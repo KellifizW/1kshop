@@ -85,7 +85,7 @@
     {"id": "job_return", "name": "回到班表的週一", "blurb": "公司沒有開始。生活還在。", "weight": 3}
   ],
   "symptoms": [
-    {"id": "discount", "axis": "market", "text": "最近六成新客只在折扣期間購買。"},
+    {"id": "discount", "axis": "market", "text": "最近大約六成新客只在折扣期間才購買。"},
     {"id": "cash_lag", "axis": "market", "text": "帳上有收入。現金要等別人的付款習慣。"},
     {"id": "rent", "axis": "market", "text": "場地吃掉的比例，比上個月更高。"},
     {"id": "churn", "axis": "market", "text": "進來的人還有，留下的人變少。"},
@@ -198,7 +198,7 @@
     "KEY_PERSON": {"subject": "{employee}", "object": "在{company}的薪水與股權"},
     "CARE": {"subject": "{kinWho}", "object": "{kinNeed}"},
     "GOVERNANCE": {"subject": "{company}的董事會", "object": "要增長，還是要毛利"},
-    "ACQUISITION": {"subject": "近場的{peer}", "object": "要不要買進{company}"},
+    "ACQUISITION": {"subject": "{city}裏{peer}", "object": "要不要買進{company}"},
     "IDENTITY": {"subject": "{company}", "object": "最初那條還被認得的產品線"},
     "SUPPLY_TERMS": {"subject": "供應商{supplier}", "object": "{company}要不要先付錢才有貨"},
     "CREDIT": {"subject": "銀行", "object": "{company}的週轉"},
@@ -250,7 +250,7 @@
     {"id": "referral", "weight": 8, "subject": "客人{customer}", "object": "把{company}的{sells}介紹給另一個人", "text": "{customer}把{company}的{sells}介紹給另一個人。沒有合約，只有一句話。", "note": "配合度上升一點。這種介紹會疊加。", "effects": {"trust": 0.01, "market_fit": 0.008, "demand": 0.012}},
     {"id": "late_goods", "weight": 10, "subject": "供應商{supplier}", "object": "給{company}的貨晚了兩天", "text": "{supplier}的貨晚了兩天，{company}只好先用較貴的替代。", "note": "變動成本被墊高一點，會留到後面幾個月。", "effects": {"cost": 0.015, "quality": -0.008}},
     {"id": "longer_terms", "weight": 7, "subject": "供應商{supplier}", "object": "肯讓{company}晚一週再付", "text": "{supplier}願意把帳期放寬一週。", "note": "現金鬆了一點。", "effects": {"cash": 0.08, "cost": -0.006}},
-    {"id": "peer_price", "weight": 11, "when": ["peer"], "subject": "{peer}", "object": "用低價看{company}的客人", "text": "{peer}把價格寫低。有幾個本來要進{company}的人先去看了一眼。", "note": "近場的壓力上升，需求被削掉一點。", "effects": {"peer": 0.02, "demand": -0.012}},
+    {"id": "peer_price", "weight": 11, "when": ["peer"], "subject": "{peer}", "object": "用低價看{company}的客人", "text": "{peer}把價格寫低。有幾個本來要進{company}的人先去看了一眼。", "note": "身邊的同行的壓力上升，需求被削掉一點。", "effects": {"peer": 0.02, "demand": -0.012}},
     {"id": "wrong_door", "weight": 7, "when": ["peer"], "subject": "{peer}的客人", "object": "走錯門，坐進{company}", "text": "{peer}的熟客有一個走錯門，在{company}坐了下來。", "note": "這個月的需求被墊高一點。", "effects": {"demand": 0.014, "trust": 0.006}},
     {"id": "staff_quiet", "weight": 9, "when": ["staff"], "subject": "{employee}", "object": "替{company}處理掉一件例外", "text": "{employee}把一件例外自己處理完，沒有半夜傳訊息給你。", "note": "士氣上升，你沒那麼不可取代。", "effects": {"morale": 0.02, "will": 0.01}},
     {"id": "staff_ask", "weight": 8, "when": ["staff"], "subject": "{employee}", "object": "問{company}下季還有沒有班", "text": "{employee}問下季的班表還有沒有位置。", "note": "士氣降了一點。人還沒走。", "effects": {"morale": -0.025}},
