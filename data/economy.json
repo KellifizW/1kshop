@@ -2,27 +2,126 @@
   "meta": {
     "game_version": "1.0.0",
     "simulation_version": "1.0.0",
-    "content_version": "1.0.0",
+    "content_version": "1.2.0",
     "data_version": "1.0.0",
     "internal_unit": "所在城市中位月薪",
     "layer": "C 遊戲參數",
     "note": "此檔全部是平衡參數與遊戲規則，不是官方統計。"
   },
-  "speeds_seconds": {"immerse": 15, "standard": 10, "fast": 5, "blitz": 2},
+  "speeds_seconds": {
+    "slow": 30,
+    "immerse": 15,
+    "standard": 10,
+    "fast": 5,
+    "blitz": 2
+  },
   "modes": {
-    "story": {"label": "故事標準", "blurb": "可拒絕兩次。重大的事會停下來等你。", "rejects": 2, "rescue_actions": 3, "rescue_days": 60, "info": "full", "chapter_save": true, "smart": true, "dialogue": true, "tail_risk": 1, "official": true},
-    "sim": {"label": "純模擬", "blurb": "帳簿更密，話更少。規則與故事標準相同。", "rejects": 2, "rescue_actions": 3, "rescue_days": 60, "info": "full", "chapter_save": true, "smart": true, "dialogue": false, "tail_risk": 1, "finance_density": 1.08, "official": true},
-    "daily": {"label": "每日世界", "blurb": "今天所有人抽到同一個世界。不能拒絕。", "rejects": 0, "rescue_actions": 3, "rescue_days": 60, "info": "full", "chapter_save": true, "smart": true, "dialogue": true, "tail_risk": 1, "official": true},
-    "hardcore": {"label": "硬核", "blurb": "不能拒絕，不能回到上一章。救援只有一次。", "rejects": 0, "rescue_actions": 1, "rescue_days": 14, "info": "sparse", "chapter_save": false, "smart": false, "dialogue": true, "tail_risk": 1.35, "official": true},
-    "challenge": {"label": "挑戰包", "blurb": "指定一種難局。可拒絕一次。", "rejects": 1, "rescue_actions": 2, "rescue_days": 30, "info": "full", "chapter_save": true, "smart": true, "dialogue": true, "tail_risk": 1.15, "official": true},
-    "sandbox": {"label": "創作者沙盒", "blurb": "自選種子與條件。不計入紀念館的正式統計。", "rejects": 2, "rescue_actions": 3, "rescue_days": 60, "info": "full", "chapter_save": true, "smart": true, "dialogue": true, "tail_risk": 1, "official": false}
+    "story": {
+      "label": "故事標準",
+      "blurb": "時間自己走，重大的事會停下來等你。可拒絕兩次。",
+      "rejects": 2,
+      "rescue_actions": 3,
+      "rescue_days": 60,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": true,
+      "tail_risk": 1,
+      "official": true
+    },
+    "sim": {
+      "label": "純模擬",
+      "blurb": "帳簿更密，話更少。規則與故事標準相同。",
+      "rejects": 2,
+      "rescue_actions": 3,
+      "rescue_days": 60,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": false,
+      "tail_risk": 1,
+      "finance_density": 1.08,
+      "official": true
+    },
+    "daily": {
+      "label": "每日世界",
+      "blurb": "今天所有人抽到同一個世界。不能拒絕。",
+      "rejects": 0,
+      "rescue_actions": 3,
+      "rescue_days": 60,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": true,
+      "tail_risk": 1,
+      "official": true
+    },
+    "hardcore": {
+      "label": "硬核",
+      "blurb": "不能拒絕，不能回到上一章。救援只有一次。",
+      "rejects": 0,
+      "rescue_actions": 1,
+      "rescue_days": 14,
+      "info": "sparse",
+      "chapter_save": false,
+      "smart": false,
+      "dialogue": true,
+      "tail_risk": 1.35,
+      "official": true
+    },
+    "challenge": {
+      "label": "挑戰包",
+      "blurb": "指定一種難局。可拒絕一次。",
+      "rejects": 1,
+      "rescue_actions": 2,
+      "rescue_days": 30,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": true,
+      "tail_risk": 1.15,
+      "official": true
+    },
+    "sandbox": {
+      "label": "創作者沙盒",
+      "blurb": "自選種子與條件。不計入紀念館的正式統計。",
+      "rejects": 2,
+      "rescue_actions": 3,
+      "rescue_days": 60,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": true,
+      "tail_risk": 1,
+      "official": false
+    }
   },
   "challenges": [
-    {"id": "decline", "label": "衰退的行業", "blurb": "第一局就抽到正在縮小的市場。"},
-    {"id": "high_rent", "label": "高租金城市", "blurb": "台北或東京。場地會先開口。"},
-    {"id": "care_8", "label": "八個月後的照護", "blurb": "家里的責任已經排進日曆。"},
-    {"id": "in_debt", "label": "從負債開始", "blurb": "公司還沒有名字，個人債務已經在。"},
-    {"id": "gdl_example", "label": "瓜達拉哈拉的採購缺口", "blurb": "三十四歲，食品採購，十四個月薪資，父親的照護在八個月後。"}
+    {
+      "id": "decline",
+      "label": "衰退的行業",
+      "blurb": "第一局就抽到正在縮小的市場。"
+    },
+    {
+      "id": "high_rent",
+      "label": "高租金城市",
+      "blurb": "台北或東京。場地會先開口。"
+    },
+    {
+      "id": "care_8",
+      "label": "八個月後的照護",
+      "blurb": "家里的責任已經排進日曆。"
+    },
+    {
+      "id": "in_debt",
+      "label": "從負債開始",
+      "blurb": "公司還沒有名字，個人債務已經在。"
+    },
+    {
+      "id": "gdl_example",
+      "label": "瓜達拉哈拉的採購缺口",
+      "blurb": "三十四歲，食品採購，十四個月薪資，父親的照護在八個月後。"
+    }
   ],
   "formula": {
     "base_revenue": 2.15,
@@ -57,103 +156,718 @@
     "competition_per_fit": 0.08,
     "maturity_overhead_per_complexity": 0.035
   },
-  "family_mult": {"single": 0.85, "partner": 1.15, "child": 1.45, "elder": 1.4, "single_parent": 1.55},
-  "family_weights": {"single": 30, "partner": 25, "child": 20, "elder": 15, "single_parent": 10},
+  "family_mult": {
+    "single": 0.85,
+    "partner": 1.15,
+    "child": 1.45,
+    "elder": 1.4,
+    "single_parent": 1.55
+  },
+  "family_weights": {
+    "single": 30,
+    "partner": 25,
+    "child": 20,
+    "elder": 15,
+    "single_parent": 10
+  },
   "age_bands": [
-    {"id": "22-26", "min": 22, "max": 26, "weight": 12},
-    {"id": "27-32", "min": 27, "max": 32, "weight": 28},
-    {"id": "33-39", "min": 33, "max": 39, "weight": 30},
-    {"id": "40-48", "min": 40, "max": 48, "weight": 20},
-    {"id": "49-58", "min": 49, "max": 58, "weight": 10}
+    {
+      "id": "22-26",
+      "min": 22,
+      "max": 26,
+      "weight": 12
+    },
+    {
+      "id": "27-32",
+      "min": 27,
+      "max": 32,
+      "weight": 28
+    },
+    {
+      "id": "33-39",
+      "min": 33,
+      "max": 39,
+      "weight": 30
+    },
+    {
+      "id": "40-48",
+      "min": 40,
+      "max": 48,
+      "weight": 20
+    },
+    {
+      "id": "49-58",
+      "min": 49,
+      "max": 58,
+      "weight": 10
+    }
   ],
   "asset_bands": [
-    {"id": "debt", "min": -6, "max": -2, "weight": 15, "label": "個人債務"},
-    {"id": "thin", "min": 0, "max": 3, "weight": 25, "label": "不到三個月薪"},
-    {"id": "short", "min": 4, "max": 8, "weight": 30, "label": "約半年薪"},
-    {"id": "runway", "min": 9, "max": 14, "weight": 18, "label": "約一年薪"},
-    {"id": "thick", "min": 15, "max": 24, "weight": 12, "label": "超過一年薪"}
+    {
+      "id": "debt",
+      "min": -6,
+      "max": -2,
+      "weight": 15,
+      "label": "個人債務"
+    },
+    {
+      "id": "thin",
+      "min": 0,
+      "max": 3,
+      "weight": 25,
+      "label": "不到三個月薪"
+    },
+    {
+      "id": "short",
+      "min": 4,
+      "max": 8,
+      "weight": 30,
+      "label": "約半年薪"
+    },
+    {
+      "id": "runway",
+      "min": 9,
+      "max": 14,
+      "weight": 18,
+      "label": "約一年薪"
+    },
+    {
+      "id": "thick",
+      "min": 15,
+      "max": 24,
+      "weight": 12,
+      "label": "超過一年薪"
+    }
   ],
   "advantages": [
-    {"id": "learn", "label": "學習", "hint": "有些數字你一看就懂"},
-    {"id": "negotiate", "label": "談判", "hint": "你習慣把條件問清楚"},
-    {"id": "craft", "label": "手藝", "hint": "你對成品的手感比別人準"},
-    {"id": "reputation", "label": "口碑", "hint": "以前的同事還願意回你訊息"},
-    {"id": "trust", "label": "可信", "hint": "陌生人願意把第一張單交給你"}
+    {
+      "id": "learn",
+      "label": "學習",
+      "hint": "有些數字你一看就懂"
+    },
+    {
+      "id": "negotiate",
+      "label": "談判",
+      "hint": "你習慣把條件問清楚"
+    },
+    {
+      "id": "craft",
+      "label": "手藝",
+      "hint": "你對成品的手感比別人準"
+    },
+    {
+      "id": "reputation",
+      "label": "口碑",
+      "hint": "以前的同事還願意回你訊息"
+    },
+    {
+      "id": "trust",
+      "label": "可信",
+      "hint": "陌生人願意把第一張單交給你"
+    }
   ],
   "risks": [
-    {"id": "health", "label": "健康", "omen": "你開始把疲倦當成正常。"},
-    {"id": "care", "label": "照護加重", "omen": "家里的班表，比你預估的更密。"},
-    {"id": "compliance", "label": "合規缺口", "omen": "有一項申報，你一直以為可以下個月再補。"},
-    {"id": "conflict", "label": "角色衝突", "omen": "有兩個人都覺得你答應過他們。"}
+    {
+      "id": "health",
+      "label": "健康",
+      "omen": "你開始把疲倦當成正常。"
+    },
+    {
+      "id": "care",
+      "label": "家里有人要被照顧",
+      "omen": "要照顧的是哪一個人、哪一件事，開局時就寫在日曆上。"
+    },
+    {
+      "id": "compliance",
+      "label": "合規缺口",
+      "omen": "有一項申報，你一直以為可以下個月再補。"
+    },
+    {
+      "id": "conflict",
+      "label": "角色衝突",
+      "omen": "有兩個人都覺得你答應過他們。"
+    }
   ],
   "commitment_styles": {
-    "quit": {"label": "立即辭職", "hours": 1, "outside": 0, "energy": 0.72, "speed": 1.2, "risk": "沒有薪水平臺。", "certain": "時間全部給公司。外界收入為零。"},
-    "part": {"label": "轉兼職", "hours": 0.58, "outside": 0.42, "energy": 0.84, "speed": 0.72, "risk": "發展較慢，正職合約可能有兼職限制。", "certain": "約六成時間給公司，保留一份較薄的薪。"},
-    "keep": {"label": "保留正職", "hours": 0.34, "outside": 0.82, "energy": 0.76, "speed": 0.45, "risk": "雇主若發現，可能一次失去兩邊。", "certain": "公司只拿到約三成時間。生活費先由薪資支付。"},
-    "intra": {"label": "內部創業", "hours": 0.62, "outside": 0.55, "energy": 0.8, "speed": 0.8, "risk": "成果可能被主張屬於雇主。", "certain": "有津貼，股權上限較低，時間被兩邊切。"},
-    "test": {"label": "先測試", "hours": 0.48, "outside": 0.6, "energy": 0.88, "speed": 0.6, "risk": "四個月後必須正式選擇。", "certain": "先用四個月試。固定成本減半，規模也減半。"}
+    "quit": {
+      "label": "立即辭職",
+      "hours": 1,
+      "outside": 0,
+      "energy": 0.72,
+      "speed": 1.2,
+      "risk": "沒有薪水平臺。",
+      "certain": "時間全部給公司。外界收入為零。"
+    },
+    "part": {
+      "label": "轉兼職",
+      "hours": 0.58,
+      "outside": 0.42,
+      "energy": 0.84,
+      "speed": 0.72,
+      "risk": "發展較慢，正職合約可能有兼職限制。",
+      "certain": "約六成時間給公司，保留一份較薄的薪。"
+    },
+    "keep": {
+      "label": "保留正職",
+      "hours": 0.34,
+      "outside": 0.82,
+      "energy": 0.76,
+      "speed": 0.45,
+      "risk": "雇主若發現，可能一次失去兩邊。",
+      "certain": "公司只拿到約三成時間。生活費先由薪資支付。"
+    },
+    "intra": {
+      "label": "內部創業",
+      "hours": 0.62,
+      "outside": 0.55,
+      "energy": 0.8,
+      "speed": 0.8,
+      "risk": "成果可能被主張屬於雇主。",
+      "certain": "有津貼，股權上限較低，時間被兩邊切。"
+    },
+    "test": {
+      "label": "先測試",
+      "hours": 0.48,
+      "outside": 0.6,
+      "energy": 0.88,
+      "speed": 0.6,
+      "risk": "四個月後必須正式選擇。",
+      "certain": "先用四個月試。固定成本減半，規模也減半。"
+    }
   },
   "venues": {
-    "street": {"label": "街舖", "fixed": 0.4, "capex": 1.7, "traffic": 1.38, "platform": 0, "license": 2, "trust": 0.48, "capacity": 1.2, "tags": ["physical", "premises"]},
-    "mall": {"label": "商場", "fixed": 0.52, "capex": 2.1, "traffic": 1.58, "platform": 0.06, "license": 2, "trust": 0.52, "capacity": 1.3, "tags": ["physical", "premises"]},
-    "studio": {"label": "工作室", "fixed": 0.26, "capex": 0.75, "traffic": 0.72, "platform": 0, "license": 1, "trust": 0.5, "capacity": 0.9, "tags": ["physical", "appointment"]},
-    "home": {"label": "家居", "fixed": 0.05, "capex": 0.22, "traffic": 0.74, "platform": 0, "license": 0, "trust": 0.32, "capacity": 0.85, "tags": ["physical", "zoning"]},
-    "mobile": {"label": "流動", "fixed": 0.11, "capex": 0.55, "traffic": 0.88, "platform": 0, "license": 1, "trust": 0.4, "capacity": 0.85, "tags": ["physical", "mobile"]},
-    "online": {"label": "網上", "fixed": 0.07, "capex": 0.35, "traffic": 1.12, "platform": 0.09, "license": 0, "trust": 0.38, "capacity": 1.35, "tags": ["digital"]},
-    "shared": {"label": "共享設施", "fixed": 0.16, "capex": 0.3, "traffic": 0.68, "platform": 0, "license": 1, "trust": 0.42, "capacity": 0.95, "tags": ["physical", "dependency"]},
-    "factory": {"label": "工場", "fixed": 0.46, "capex": 3.1, "traffic": 0.58, "platform": 0, "license": 3, "trust": 0.46, "capacity": 1.5, "tags": ["physical", "factory"]},
-    "onsite": {"label": "上門", "fixed": 0.06, "capex": 0.28, "traffic": 0.84, "platform": 0, "license": 1, "trust": 0.44, "capacity": 0.8, "tags": ["service", "time"]}
+    "street": {
+      "label": "街舖",
+      "fixed": 0.4,
+      "capex": 1.7,
+      "traffic": 1.38,
+      "platform": 0,
+      "license": 2,
+      "trust": 0.48,
+      "capacity": 1.2,
+      "tags": [
+        "physical",
+        "premises"
+      ]
+    },
+    "mall": {
+      "label": "商場",
+      "fixed": 0.52,
+      "capex": 2.1,
+      "traffic": 1.58,
+      "platform": 0.06,
+      "license": 2,
+      "trust": 0.52,
+      "capacity": 1.3,
+      "tags": [
+        "physical",
+        "premises"
+      ]
+    },
+    "studio": {
+      "label": "工作室",
+      "fixed": 0.26,
+      "capex": 0.75,
+      "traffic": 0.72,
+      "platform": 0,
+      "license": 1,
+      "trust": 0.5,
+      "capacity": 0.9,
+      "tags": [
+        "physical",
+        "appointment"
+      ]
+    },
+    "home": {
+      "label": "家居",
+      "fixed": 0.05,
+      "capex": 0.22,
+      "traffic": 0.74,
+      "platform": 0,
+      "license": 0,
+      "trust": 0.32,
+      "capacity": 0.85,
+      "tags": [
+        "physical",
+        "zoning"
+      ]
+    },
+    "mobile": {
+      "label": "流動",
+      "fixed": 0.11,
+      "capex": 0.55,
+      "traffic": 0.88,
+      "platform": 0,
+      "license": 1,
+      "trust": 0.4,
+      "capacity": 0.85,
+      "tags": [
+        "physical",
+        "mobile"
+      ]
+    },
+    "online": {
+      "label": "網上",
+      "fixed": 0.07,
+      "capex": 0.35,
+      "traffic": 1.12,
+      "platform": 0.09,
+      "license": 0,
+      "trust": 0.38,
+      "capacity": 1.35,
+      "tags": [
+        "digital"
+      ]
+    },
+    "shared": {
+      "label": "共享設施",
+      "fixed": 0.16,
+      "capex": 0.3,
+      "traffic": 0.68,
+      "platform": 0,
+      "license": 1,
+      "trust": 0.42,
+      "capacity": 0.95,
+      "tags": [
+        "physical",
+        "dependency"
+      ]
+    },
+    "factory": {
+      "label": "工場",
+      "fixed": 0.46,
+      "capex": 3.1,
+      "traffic": 0.58,
+      "platform": 0,
+      "license": 3,
+      "trust": 0.46,
+      "capacity": 1.5,
+      "tags": [
+        "physical",
+        "factory"
+      ]
+    },
+    "onsite": {
+      "label": "上門",
+      "fixed": 0.06,
+      "capex": 0.28,
+      "traffic": 0.84,
+      "platform": 0,
+      "license": 1,
+      "trust": 0.44,
+      "capacity": 0.8,
+      "tags": [
+        "service",
+        "time"
+      ]
+    }
   },
   "revenues": {
-    "once": {"label": "單次", "scale": 1, "price": 1, "ar": 0, "bad": 0.02, "platform": 0, "retain": 0.35, "recurring": false},
-    "sub": {"label": "訂閱", "scale": 0.82, "price": 1, "ar": 0, "bad": 0.03, "platform": 0, "retain": 0.93, "recurring": true},
-    "commission": {"label": "佣金", "scale": 0.68, "price": 1, "ar": 18, "bad": 0.04, "platform": 0.02, "retain": 0.55, "recurring": false},
-    "project": {"label": "專案", "scale": 1.12, "price": 1, "ar": 48, "bad": 0.06, "platform": 0, "retain": 0.4, "recurring": false},
-    "wholesale": {"label": "批發", "scale": 1.22, "price": 1, "ar": 42, "bad": 0.05, "platform": 0, "retain": 0.5, "recurring": false},
-    "lease": {"label": "租賃", "scale": 0.78, "price": 1, "ar": 12, "bad": 0.03, "platform": 0, "retain": 0.8, "recurring": true},
-    "license": {"label": "授權", "scale": 0.74, "price": 1, "ar": 36, "bad": 0.04, "platform": 0, "retain": 0.6, "recurring": false},
-    "ads": {"label": "廣告", "scale": 0.62, "price": 1, "ar": 28, "bad": 0.05, "platform": 0.12, "retain": 0.45, "recurring": false},
-    "member": {"label": "會員", "scale": 0.8, "price": 1, "ar": 0, "bad": 0.02, "platform": 0, "retain": 0.9, "recurring": true},
-    "donate": {"label": "捐款", "scale": 0.52, "price": 1, "ar": 0, "bad": 0.01, "platform": 0, "retain": 0.7, "recurring": true}
+    "once": {
+      "label": "單次",
+      "scale": 1,
+      "price": 1,
+      "ar": 0,
+      "bad": 0.02,
+      "platform": 0,
+      "retain": 0.35,
+      "recurring": false,
+      "ticks": 12,
+      "pulse": "客人付現",
+      "late": false
+    },
+    "sub": {
+      "label": "訂閱",
+      "scale": 0.82,
+      "price": 1,
+      "ar": 0,
+      "bad": 0.03,
+      "platform": 0,
+      "retain": 0.93,
+      "recurring": true,
+      "ticks": 1,
+      "pulse": "月費一次入帳",
+      "late": false
+    },
+    "commission": {
+      "label": "佣金",
+      "scale": 0.68,
+      "price": 1,
+      "ar": 18,
+      "bad": 0.04,
+      "platform": 0.02,
+      "retain": 0.55,
+      "recurring": false,
+      "ticks": 14,
+      "pulse": "一筆抽成",
+      "late": false
+    },
+    "project": {
+      "label": "專案",
+      "scale": 1.12,
+      "price": 1,
+      "ar": 48,
+      "bad": 0.06,
+      "platform": 0,
+      "retain": 0.4,
+      "recurring": false,
+      "ticks": 2,
+      "pulse": "專案款入帳",
+      "late": true
+    },
+    "wholesale": {
+      "label": "批發",
+      "scale": 1.22,
+      "price": 1,
+      "ar": 42,
+      "bad": 0.05,
+      "platform": 0,
+      "retain": 0.5,
+      "recurring": false,
+      "ticks": 3,
+      "pulse": "批發款入帳",
+      "late": true
+    },
+    "lease": {
+      "label": "租賃",
+      "scale": 0.78,
+      "price": 1,
+      "ar": 12,
+      "bad": 0.03,
+      "platform": 0,
+      "retain": 0.8,
+      "recurring": true,
+      "ticks": 1,
+      "pulse": "租金入帳",
+      "late": false
+    },
+    "license": {
+      "label": "授權",
+      "scale": 0.74,
+      "price": 1,
+      "ar": 36,
+      "bad": 0.04,
+      "platform": 0,
+      "retain": 0.6,
+      "recurring": false,
+      "ticks": 1,
+      "pulse": "授權費入帳",
+      "late": true
+    },
+    "ads": {
+      "label": "廣告",
+      "scale": 0.62,
+      "price": 1,
+      "ar": 28,
+      "bad": 0.05,
+      "platform": 0.12,
+      "retain": 0.45,
+      "recurring": false,
+      "ticks": 8,
+      "pulse": "廣告費入帳",
+      "late": false
+    },
+    "member": {
+      "label": "會員",
+      "scale": 0.8,
+      "price": 1,
+      "ar": 0,
+      "bad": 0.02,
+      "platform": 0,
+      "retain": 0.9,
+      "recurring": true,
+      "ticks": 2,
+      "pulse": "會費入帳",
+      "late": false
+    },
+    "donate": {
+      "label": "捐款",
+      "scale": 0.52,
+      "price": 1,
+      "ar": 0,
+      "bad": 0.01,
+      "platform": 0,
+      "retain": 0.7,
+      "recurring": true,
+      "ticks": 5,
+      "pulse": "一筆支持入帳",
+      "late": false
+    }
   },
   "fulfillment": {
-    "make": {"label": "自產", "throughput": 0.86, "variable_add": 0.04, "quality": 0.06, "inventory": 0.1, "dependency": 0.15},
-    "stock": {"label": "持庫存", "throughput": 1.06, "variable_add": 0.07, "quality": 0.02, "inventory": 0.85, "dependency": 0.25},
-    "order": {"label": "按單生產", "throughput": 0.92, "variable_add": 0.03, "quality": 0.04, "inventory": 0.15, "dependency": 0.2},
-    "outsource": {"label": "外判", "throughput": 1.12, "variable_add": 0.12, "quality": -0.04, "inventory": 0.05, "dependency": 0.55},
-    "resell": {"label": "代購", "throughput": 1.02, "variable_add": 0.09, "quality": 0, "inventory": 0.35, "dependency": 0.4},
-    "match": {"label": "撮合", "throughput": 1.18, "variable_add": 0.02, "quality": 0.01, "inventory": 0, "dependency": 0.45},
-    "digital": {"label": "數碼交付", "throughput": 1.28, "variable_add": 0.015, "quality": 0.03, "inventory": 0, "dependency": 0.2}
+    "make": {
+      "label": "自產",
+      "throughput": 0.86,
+      "variable_add": 0.04,
+      "quality": 0.06,
+      "inventory": 0.1,
+      "dependency": 0.15
+    },
+    "stock": {
+      "label": "持庫存",
+      "throughput": 1.06,
+      "variable_add": 0.07,
+      "quality": 0.02,
+      "inventory": 0.85,
+      "dependency": 0.25
+    },
+    "order": {
+      "label": "按單生產",
+      "throughput": 0.92,
+      "variable_add": 0.03,
+      "quality": 0.04,
+      "inventory": 0.15,
+      "dependency": 0.2
+    },
+    "outsource": {
+      "label": "外判",
+      "throughput": 1.12,
+      "variable_add": 0.12,
+      "quality": -0.04,
+      "inventory": 0.05,
+      "dependency": 0.55
+    },
+    "resell": {
+      "label": "代購",
+      "throughput": 1.02,
+      "variable_add": 0.09,
+      "quality": 0,
+      "inventory": 0.35,
+      "dependency": 0.4
+    },
+    "match": {
+      "label": "撮合",
+      "throughput": 1.18,
+      "variable_add": 0.02,
+      "quality": 0.01,
+      "inventory": 0,
+      "dependency": 0.45
+    },
+    "digital": {
+      "label": "數碼交付",
+      "throughput": 1.28,
+      "variable_add": 0.015,
+      "quality": 0.03,
+      "inventory": 0,
+      "dependency": 0.2
+    }
   },
   "ownership": {
-    "sole": {"label": "獨資", "control": 1, "cash": 0, "board": false, "form": "unlimited", "pressure": 0, "morale": 0, "slow": 0},
-    "partner": {"label": "合夥", "control": 0.6, "cash": 1.4, "board": false, "form": "partial", "pressure": 0.15, "morale": 0.05, "slow": 0.05, "skill": 0.08},
-    "family": {"label": "家族", "control": 0.72, "cash": 1.1, "board": false, "form": "partial", "pressure": 0.1, "morale": 0.04, "slow": 0.08},
-    "angel": {"label": "天使", "control": 0.75, "cash": 4.5, "board": true, "form": "limited", "pressure": 0.28, "morale": 0, "slow": 0},
-    "vc": {"label": "創投", "control": 0.55, "cash": 8, "board": true, "form": "limited", "pressure": 0.55, "morale": 0.02, "slow": 0, "growth": 0.08},
-    "esop": {"label": "員工持股", "control": 0.82, "cash": 0.4, "board": false, "form": "limited", "pressure": 0.05, "morale": 0.12, "slow": 0.04},
-    "coop": {"label": "合作社", "control": 0.42, "cash": 1.6, "board": true, "form": "limited", "pressure": 0.08, "morale": 0.1, "slow": 0.15, "mission": true},
-    "franchise": {"label": "特許", "control": 0.7, "cash": 0.8, "board": false, "form": "limited", "pressure": 0.12, "morale": 0, "slow": 0, "royalty": 0.06, "trust": 0.08}
+    "sole": {
+      "label": "獨資",
+      "control": 1,
+      "cash": 0,
+      "board": false,
+      "form": "unlimited",
+      "pressure": 0,
+      "morale": 0,
+      "slow": 0
+    },
+    "partner": {
+      "label": "合夥",
+      "control": 0.6,
+      "cash": 1.4,
+      "board": false,
+      "form": "partial",
+      "pressure": 0.15,
+      "morale": 0.05,
+      "slow": 0.05,
+      "skill": 0.08
+    },
+    "family": {
+      "label": "家族",
+      "control": 0.72,
+      "cash": 1.1,
+      "board": false,
+      "form": "partial",
+      "pressure": 0.1,
+      "morale": 0.04,
+      "slow": 0.08
+    },
+    "angel": {
+      "label": "天使",
+      "control": 0.75,
+      "cash": 4.5,
+      "board": true,
+      "form": "limited",
+      "pressure": 0.28,
+      "morale": 0,
+      "slow": 0
+    },
+    "vc": {
+      "label": "創投",
+      "control": 0.55,
+      "cash": 8,
+      "board": true,
+      "form": "limited",
+      "pressure": 0.55,
+      "morale": 0.02,
+      "slow": 0,
+      "growth": 0.08
+    },
+    "esop": {
+      "label": "員工持股",
+      "control": 0.82,
+      "cash": 0.4,
+      "board": false,
+      "form": "limited",
+      "pressure": 0.05,
+      "morale": 0.12,
+      "slow": 0.04
+    },
+    "coop": {
+      "label": "合作社",
+      "control": 0.42,
+      "cash": 1.6,
+      "board": true,
+      "form": "limited",
+      "pressure": 0.08,
+      "morale": 0.1,
+      "slow": 0.15,
+      "mission": true
+    },
+    "franchise": {
+      "label": "特許",
+      "control": 0.7,
+      "cash": 0.8,
+      "board": false,
+      "form": "limited",
+      "pressure": 0.12,
+      "morale": 0,
+      "slow": 0,
+      "royalty": 0.06,
+      "trust": 0.08
+    }
   },
   "positioning": {
-    "cheap": {"label": "低價", "volume": 1.48, "price": 0.78, "variable": 0.62, "trust_gain": 0.008, "close": 1.2},
-    "easy": {"label": "便利", "volume": 1.28, "price": 0.96, "variable": 0.52, "trust_gain": 0.012, "close": 1.15},
-    "pro": {"label": "專業", "volume": 0.74, "price": 1.36, "variable": 0.38, "trust_gain": 0.016, "close": 0.75},
-    "premium": {"label": "高端", "volume": 0.44, "price": 1.9, "variable": 0.32, "trust_gain": 0.014, "close": 0.55},
-    "relation": {"label": "人情", "volume": 0.84, "price": 1.12, "variable": 0.46, "trust_gain": 0.022, "close": 0.8},
-    "custom": {"label": "客製", "volume": 0.52, "price": 1.58, "variable": 0.4, "trust_gain": 0.015, "close": 0.6},
-    "mission": {"label": "使命", "volume": 0.7, "price": 1.05, "variable": 0.48, "trust_gain": 0.02, "close": 0.7},
-    "efficient": {"label": "效率", "volume": 1.16, "price": 0.92, "variable": 0.4, "trust_gain": 0.01, "close": 1.05}
+    "cheap": {
+      "label": "低價",
+      "volume": 1.48,
+      "price": 0.78,
+      "variable": 0.62,
+      "trust_gain": 0.008,
+      "close": 1.2
+    },
+    "easy": {
+      "label": "便利",
+      "volume": 1.28,
+      "price": 0.96,
+      "variable": 0.52,
+      "trust_gain": 0.012,
+      "close": 1.15
+    },
+    "pro": {
+      "label": "專業",
+      "volume": 0.74,
+      "price": 1.36,
+      "variable": 0.38,
+      "trust_gain": 0.016,
+      "close": 0.75
+    },
+    "premium": {
+      "label": "高端",
+      "volume": 0.44,
+      "price": 1.9,
+      "variable": 0.32,
+      "trust_gain": 0.014,
+      "close": 0.55
+    },
+    "relation": {
+      "label": "人情",
+      "volume": 0.84,
+      "price": 1.12,
+      "variable": 0.46,
+      "trust_gain": 0.022,
+      "close": 0.8
+    },
+    "custom": {
+      "label": "客製",
+      "volume": 0.52,
+      "price": 1.58,
+      "variable": 0.4,
+      "trust_gain": 0.015,
+      "close": 0.6
+    },
+    "mission": {
+      "label": "使命",
+      "volume": 0.7,
+      "price": 1.05,
+      "variable": 0.48,
+      "trust_gain": 0.02,
+      "close": 0.7
+    },
+    "efficient": {
+      "label": "效率",
+      "volume": 1.16,
+      "price": 0.92,
+      "variable": 0.4,
+      "trust_gain": 0.01,
+      "close": 1.05
+    }
   },
   "redline_thresholds": {
-    "occupancy": {"warn": 0.38, "crit": 0.52, "higher_bad": true, "name": "場地總成本／營業額", "unit": "ratio"},
-    "saas": {"warn": 0.06, "crit": 0.1, "higher_bad": true, "name": "月流失率", "unit": "ratio", "secondary": "淨收入留存"},
-    "platform": {"warn": 0.02, "crit": 0, "higher_bad": false, "name": "單位交易貢獻", "unit": "wage", "secondary": "供需平衡"},
-    "b2b": {"warn": 0.45, "crit": 0.62, "higher_bad": true, "name": "最大客戶集中度", "unit": "ratio", "secondary_warn_days": 60, "secondary_crit_days": 90},
-    "manufacturing": {"warn_low": 0.45, "warn_high": 0.95, "crit_low": 0.3, "crit_high": 0.98, "name": "產能利用率", "unit": "ratio"},
-    "personal": {"warn": 0.85, "crit": 0.95, "higher_bad": true, "name": "創辦人利用率", "unit": "ratio"},
-    "ecommerce": {"warn": 0.12, "crit": 0.2, "higher_bad": true, "name": "退貨率", "unit": "ratio", "platform_warn": 0.7},
-    "public": {"warn": 4, "crit": 2, "higher_bad": false, "name": "現金可支應月數", "unit": "months"}
+    "occupancy": {
+      "warn": 0.38,
+      "crit": 0.52,
+      "higher_bad": true,
+      "name": "場地總成本／營業額",
+      "unit": "ratio"
+    },
+    "saas": {
+      "warn": 0.06,
+      "crit": 0.1,
+      "higher_bad": true,
+      "name": "月流失率",
+      "unit": "ratio",
+      "secondary": "淨收入留存"
+    },
+    "platform": {
+      "warn": 0.02,
+      "crit": 0,
+      "higher_bad": false,
+      "name": "單位交易貢獻",
+      "unit": "wage",
+      "secondary": "供需平衡"
+    },
+    "b2b": {
+      "warn": 0.45,
+      "crit": 0.62,
+      "higher_bad": true,
+      "name": "最大客戶集中度",
+      "unit": "ratio",
+      "secondary_warn_days": 60,
+      "secondary_crit_days": 90
+    },
+    "manufacturing": {
+      "warn_low": 0.45,
+      "warn_high": 0.95,
+      "crit_low": 0.3,
+      "crit_high": 0.98,
+      "name": "產能利用率",
+      "unit": "ratio"
+    },
+    "personal": {
+      "warn": 0.85,
+      "crit": 0.95,
+      "higher_bad": true,
+      "name": "創辦人利用率",
+      "unit": "ratio"
+    },
+    "ecommerce": {
+      "warn": 0.12,
+      "crit": 0.2,
+      "higher_bad": true,
+      "name": "退貨率",
+      "unit": "ratio",
+      "platform_warn": 0.7
+    },
+    "public": {
+      "warn": 4,
+      "crit": 2,
+      "higher_bad": false,
+      "name": "現金可支應月數",
+      "unit": "months"
+    }
   },
   "outcome_prior_per_thousand": {
     "return_to_job": 70,
@@ -182,12 +896,30 @@
     "century": 6
   },
   "personalities": [
-    {"id": "cash", "label": "保守現金型"},
-    {"id": "growth", "label": "增長融資型"},
-    {"id": "relation", "label": "關係型"},
-    {"id": "craft", "label": "產品完美型"},
-    {"id": "spec", "label": "機會投機型"},
-    {"id": "govern", "label": "治理及併購型"}
+    {
+      "id": "cash",
+      "label": "保守現金型"
+    },
+    {
+      "id": "growth",
+      "label": "增長融資型"
+    },
+    {
+      "id": "relation",
+      "label": "關係型"
+    },
+    {
+      "id": "craft",
+      "label": "產品完美型"
+    },
+    {
+      "id": "spec",
+      "label": "機會投機型"
+    },
+    {
+      "id": "govern",
+      "label": "治理及併購型"
+    }
   ],
   "initiatives": {
     "price_step": 0.08,
@@ -199,18 +931,69 @@
     "angel_control": 0.16
   },
   "caps": {
-    "revenue_mult": [0.35, 3.2],
-    "fixed_mult": [0.45, 2.4],
-    "price": [-0.35, 0.55],
-    "cost": [-0.2, 0.28],
-    "platform": [0, 0.28]
+    "revenue_mult": [
+      0.35,
+      3.2
+    ],
+    "fixed_mult": [
+      0.45,
+      2.4
+    ],
+    "price": [
+      -0.35,
+      0.55
+    ],
+    "cost": [
+      -0.2,
+      0.28
+    ],
+    "platform": [
+      0,
+      0.28
+    ]
   },
   "stages": [
-    {"id": "spark", "label": "極短命", "min": 0, "max": 12, "decision_gap": 5},
-    {"id": "early", "label": "早期企業", "min": 13, "max": 60, "decision_gap": 8},
-    {"id": "growth", "label": "成長企業", "min": 61, "max": 180, "decision_gap": 14},
-    {"id": "mature", "label": "成熟企業", "min": 181, "max": 480, "decision_gap": 28},
-    {"id": "legacy", "label": "跨代企業", "min": 481, "max": 900, "decision_gap": 48},
-    {"id": "century", "label": "百年企業", "min": 901, "max": 1200, "decision_gap": 60}
+    {
+      "id": "spark",
+      "label": "極短命",
+      "min": 0,
+      "max": 12,
+      "decision_gap": 5
+    },
+    {
+      "id": "early",
+      "label": "早期企業",
+      "min": 13,
+      "max": 60,
+      "decision_gap": 8
+    },
+    {
+      "id": "growth",
+      "label": "成長企業",
+      "min": 61,
+      "max": 180,
+      "decision_gap": 14
+    },
+    {
+      "id": "mature",
+      "label": "成熟企業",
+      "min": 181,
+      "max": 480,
+      "decision_gap": 28
+    },
+    {
+      "id": "legacy",
+      "label": "跨代企業",
+      "min": 481,
+      "max": 900,
+      "decision_gap": 48
+    },
+    {
+      "id": "century",
+      "label": "百年企業",
+      "min": 901,
+      "max": 1200,
+      "decision_gap": 60
+    }
   ]
 }

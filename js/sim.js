@@ -130,6 +130,111 @@ function personName(data, country, salt) {
   return pool[i];
 }
 
+function buildKin(data, country, family, seed) {
+  if (!family || family === "single") return null;
+  const h = hashSeed(seed + ":kin");
+  const name = personName(data, country, seed + ":kinname");
+  if (family === "elder") {
+    const relation = h % 2 ? "父親" : "母親";
+    const needs = ["每週兩次的洗腎陪診", "中風後的日常起居", "失智後不能獨留在家", "復健門診和夜裡的翻身"];
+    const need = needs[h % needs.length];
+    return { relation, name, need, who: relation + name };
+  }
+  if (family === "child" || family === "single_parent") {
+    const needs = family === "single_parent"
+      ? ["放學與生病日都只有你能接", "夜裡不能獨留", "固定回診沒有第二個大人"]
+      : ["放學後沒有人接", "慢性病的固定回診", "夜裡發燒時要有人在"];
+    const need = needs[h % needs.length];
+    return { relation: "孩子", name, need, who: "孩子" + name };
+  }
+  const modes = [
+    { relation: "伴侶", need: "手術後這一個月不能獨留" },
+    { relation: "伴侶的父親", need: "突然排進來的陪診" },
+    { relation: "伴侶", need: "產後夜裡的輪替" },
+  ];
+  const mode = modes[h % modes.length];
+  const whoName = mode.relation === "伴侶" ? name : personName(data, country, seed + ":kinother");
+  return { relation: mode.relation, name: whoName, need: mode.need, who: mode.relation + whoName };
+}
+
+export function ensureCast(data, state) {
+  if (!state?.cityId) return null;
+  if (state.cast?.ready) return state.cast;
+  const country = cityById(data, state.cityId).country;
+  const family = state.founder?.family || "single";
+  const kin = buildKin(data, country, family, state.seed || "seed");
+  const named = (salt) => personName(data, country, (state.seed || "seed") + salt);
+  const contacts = state.contacts || [];
+  state.cast = {
+    ready: true,
+    kin,
+    partner: contacts[0]?.name || named(":partner"),
+    customer: contacts[1]?.name || named(":customer"),
+    mentor: contacts[2]?.name || named(":mentor"),
+    home: kin?.name || contacts[3]?.name || named(":home"),
+    supplier: named(":supplier"),
+    landlord: named(":landlord"),
+  };
+  if (kin && contacts[3]) {
+    contacts[3].role = kin.relation;
+    contacts[3].name = kin.name;
+    contacts[3].known = true;
+    contacts[3].need = kin.need;
+  }
+  return state.cast;
+}
+
+export function ensureWork(data, state) {
+  if (!state?.gapId) return state?.work || null;
+  const gap = gapById(data, state.gapId);
+  const work = gap?.work;
+  if (!work) return state.work || null;
+  state.work = {
+    id: gap.id,
+    name: work.name,
+    does: work.does,
+    sells: work.sells,
+    buyer: work.buyer,
+    unit: work.unit,
+    family: gap.family,
+    core: gap.core,
+  };
+  if (state.venture) state.venture.work = state.work;
+  return state.work;
+}
+
+function castTokens(data, state) {
+  const cast = ensureCast(data, state) || {};
+  const work = ensureWork(data, state) || {};
+  const kin = cast.kin;
+  const city = state.cityId ? cityById(data, state.cityId) : null;
+  return {
+    trade: work.name || "這門生意",
+    sells: work.sells || "東西",
+    buyer: work.buyer || "客人",
+    unit: work.unit || "一筆",
+    partner: cast.partner || "合夥人",
+    employee: state.team?.names?.[0] || "那名員工",
+    customer: cast.customer || "那位客人",
+    family: kin?.name || cast.home || "家里的人",
+    kinName: kin?.name || "家里的人",
+    kinRelation: kin?.relation || "家里",
+    kinNeed: kin?.need || "一段離不開人的照護",
+    kinWho: kin?.who || "家里的人",
+    city: city?.name || "這座城市",
+    company: state.venture?.name || "這間公司",
+    landlord: cast.landlord || "業主",
+    supplier: cast.supplier || "供應商",
+    mentor: cast.mentor || "那位導師",
+    peer: state.peers?.[0]?.name || "對街那一間",
+  };
+}
+
+export function fillText(data, state, s) {
+  const names = castTokens(data, state);
+  return String(s || "").replace(/\{(\w+)\}/g, (_, k) => (names[k] == null || names[k] === "" ? "那個人" : names[k]));
+}
+
 export function createRun(data, opts = {}) {
   const modeId = opts.mode || "story";
   const mode = modeOf(data, modeId);
@@ -195,7 +300,15 @@ export function createRun(data, opts = {}) {
   let riskPool = data.economy.risks.slice();
   if (!["elder", "child", "single_parent"].includes(family)) riskPool = riskPool.filter((r) => r.id !== "care");
   const risk = challenge === "care_8" ? data.economy.risks.find((r) => r.id === "care") : riskPool[rng.int(riskPool.length)];
-  const careMonth = family === "elder" ? (challenge === "care_8" || challenge === "gdl_example" ? 8 : 6 + rng.int(13)) : family === "child" ? 10 + rng.int(8) : 0;
+  const careMonth = family === "elder"
+    ? (challenge === "care_8" || challenge === "gdl_example" ? 8 : 6 + rng.int(13))
+    : family === "child"
+      ? 10 + rng.int(8)
+      : family === "single_parent"
+        ? 6 + rng.int(8)
+        : family === "partner"
+          ? 14 + rng.int(16)
+          : 0;
 
   const contacts = ["可能的合夥人", "可能的第一位客人", "一位導師", "家里的支援"].map((role, i) => ({
     role,
@@ -297,6 +410,9 @@ export function createRun(data, opts = {}) {
     log: [],
     series: [],
     factors: null,
+    feed: [],
+    ambient: { demand: 0, cost: 0 },
+    beatUntil: {},
     initiativeReady: 0,
     negStreak: 0,
     negStreakMax: 0,
@@ -309,6 +425,8 @@ export function createRun(data, opts = {}) {
   state.founder.personalNote = assets >= 0
     ? `口袋裡大約 ${assets} 個月的當地薪資。`
     : `名下已有約 ${Math.abs(assets)} 個月薪資的債務。`;
+  ensureCast(data, state);
+  ensureWork(data, state);
   logEvent(state, "game_start", { seed, mode: modeId, city: city.id, gap: gap.id });
   return state;
 }
@@ -695,15 +813,15 @@ function award(data, state, id, weightBoost = 0) {
   const meta = (data.narrative.memories || []).find((m) => m.id === id);
   state.memories.push({
     id,
-    name: meta?.name || id,
-    blurb: meta?.blurb || "",
+    name: fillText(data, state, meta?.name || id),
+    blurb: fillText(data, state, meta?.blurb || ""),
     month: state.month,
     weight: (meta?.weight || 1) + weightBoost,
   });
 }
 
-export function calendarLabel(state) {
-  const m = state.month + state.preMonths;
+export function calendarLabel(state, add = 0) {
+  const m = state.month + state.preMonths + add;
   const month = (state.calendar.month + m) % 12;
   const year = state.calendar.year + Math.floor((state.calendar.month + m) / 12);
   return `${year}年${month + 1}月`;
@@ -749,6 +867,7 @@ function potentialRevenue(data, state, noise) {
   const season = 1 + city.seasonality * Math.sin(((state.month + city.season_phase) * Math.PI) / 6);
   const supply = city.supply_bonus_families?.includes(familyName(data, gap.family)) ? 1.06 : 1;
   const peerDrag = clamp(state.peersPressure || 0, 0, E.formula.peer_pressure_cap);
+  const ambientDemand = clamp(state.ambient?.demand || 0, -0.1, 0.1);
   let unitDemand =
     E.formula.base_revenue *
     city.demand_index *
@@ -763,6 +882,7 @@ function potentialRevenue(data, state, noise) {
     supply *
     (mods.revenue || 1) *
     (1 - peerDrag) *
+    (1 + ambientDemand) *
     (1 + noise);
   const tenure = 1 + Math.min(E.formula.tenure_cap, (state.month || 0) * E.formula.tenure_per_month);
   unitDemand *= tenure;
@@ -796,7 +916,8 @@ function costParts(data, state, revenue, released) {
   const ful = E.fulfillment[v.fulfillment];
   const rev = E.revenues[v.revenue];
   const mods = effectiveMods(v);
-  const variable = revenue * clamp(pos.variable + ful.variable_add + mods.cost, 0.12, 0.84);
+  const ambientCost = clamp(state.ambient?.cost || 0, -0.08, 0.08);
+  const variable = revenue * clamp(pos.variable + ful.variable_add + mods.cost, 0.12, 0.84) * (1 + ambientCost);
   const premises = ven.fixed * city.rent_index * mods.fixed + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity;
   const platformRate = ven.platform + rev.platform + mods.platform + city.platform_pressure * ven.platform * 0.45;
   const platform = revenue * platformRate;
@@ -844,7 +965,25 @@ export function settle(data, state) {
   return settleOne(data, state);
 }
 
+export function previewMonth(data, state) {
+  if (!state?.venture || state.phase !== "play" || state.ending) return null;
+  const ghost = structuredClone(state);
+  settleOne(data, ghost);
+  return {
+    month: ghost.month,
+    cash: ghost.finance.cash,
+    collected: ghost.last?.collected || 0,
+    revenue: ghost.last?.revenue || 0,
+    cost: ghost.last?.cost || 0,
+    line: ghost.last?.line || "",
+    beats: ghost.lastBeats || [],
+    phase: ghost.phase,
+    when: calendarLabel(ghost),
+  };
+}
+
 function settleOne(data, state) {
+  ensureWork(data, state);
   const rng = state._cf ? { next: () => 0.5, int: () => 0 } : rngOf(state);
   state.month += 1;
   if (state.month % 12 === 0) {
@@ -931,6 +1070,9 @@ function settleOne(data, state) {
   state.level = rl.level;
   state.redlineSnap = rl;
 
+  if (!state._cf) rollBeats(data, state, rng);
+  if (state.last && state.lastBeats?.length) state.last.beat = state.lastBeats.map((b) => b.text).join(" ");
+
   if (!state._cf && state.month % 3 === 0) {
     const pool = data.narrative.atmosphere;
     state.last.aside = pool[state.month % pool.length];
@@ -990,11 +1132,12 @@ function round2(n) {
 }
 
 function monthLine(data, state, revenue, parts) {
-  const cash = state.finance.cash;
-  if (parts.collectedNow + 0.001 < parts.variable + parts.premises) return "帳面有數字。付完場地與變動成本之後，所剩不多。";
-  if (state.finance.arQueue.length && state.venture.arDays > 40) return "有些收入是真的，只是還在別人的帳上。";
-  if (revenue > parts.operating) return "這個月收進來的，蓋過了要付出去的。";
-  return "沒有大事。固定的帳仍舊要付。";
+  const name = state.work?.name || "這門生意";
+  const sells = state.work?.sells || "東西";
+  if (parts.collectedNow + 0.001 < parts.variable + parts.premises) return `${name}的帳面有數字。付完場地與${sells}的成本之後，所剩不多。`;
+  if (state.finance.arQueue.length && state.venture.arDays > 40) return `${name}賣出的${sells}有些是真的，只是錢還在別人的帳上。`;
+  if (revenue > parts.operating) return `${name}這個月的${sells}收進來了，蓋過了要付出去的。`;
+  return `${name}沒有大事。賣${sells}的固定帳仍舊要付。`;
 }
 
 function explainFactors(data, state, revenue, parts) {
@@ -1002,6 +1145,9 @@ function explainFactors(data, state, revenue, parts) {
   const gap = gapById(data, state.gapId);
   const v = state.venture;
   return [
+    ["生意", state.work?.name || gap.title],
+    ["賣的是", state.work?.sells || gap.core],
+    ["付錢的人", state.work?.buyer || "客人"],
     ["城市需求", city.demand_index],
     ["缺口強度", gap.demand],
     ["配合度", round2(v.marketFit)],
@@ -1086,22 +1232,92 @@ function weightOf(data, state, e) {
 function decorate(data, state, e) {
   const gap = gapById(data, state.gapId);
   const skin = e.skins && (e.skins[gap.family] || e.skins[state.venture.family]);
-  const names = {
-    partner: state.contacts[0]?.name,
-    employee: state.team.names[0] || "那名員工",
-    customer: state.contacts[1]?.name,
-    family: state.contacts[3]?.name,
-    city: cityById(data, state.cityId).name,
-    company: state.venture.name,
-  };
-  const fill = (s) => String(s || "").replace(/\{(\w+)\}/g, (_, k) => names[k] || "");
+  const fill = (s) => fillText(data, state, s);
+  const tokens = castTokens(data, state);
+  const actors = data.narrative.actors?.[e.grammar] || {};
+  let subject = fill(actors.subject || state.venture?.name || "這間公司");
+  let object = fill(actors.object || e.title);
+  if (!state.cast?.kin && e.grammar === "CONFLICT") {
+    subject = `客人${tokens.customer}與你自己`;
+    object = "同一個晚上、你答應過的兩件事";
+  }
   return {
     ...e,
     title: fill(skin?.title || e.title),
     body: fill(skin?.body || e.body),
-    omen: e.omen,
+    omen: fill(e.omen),
+    subject,
+    object,
     choices: e.choices.map((c) => ({ ...c, label: fill(c.label), detail: fill(c.detail), risk: fill(c.risk) })),
   };
+}
+
+function beatOk(state, b) {
+  if ((state.beatUntil?.[b.id] || 0) > state.month) return false;
+  const need = b.when || [];
+  if (need.includes("kin") && !state.cast?.kin) return false;
+  if (need.includes("staff") && !(state.team?.headcount > 0)) return false;
+  if (need.includes("premises") && !(state.venture?.tags || []).some((t) => t === "physical" || t === "premises")) return false;
+  if (need.includes("peer") && !(state.peers || []).length) return false;
+  if (need.includes("care") && (state.founder?.care || 0) < 0.2) return false;
+  return true;
+}
+
+function applyBeatEffects(state, effects = {}) {
+  const v = state.venture;
+  if (!v) return;
+  state.ambient = state.ambient || { demand: 0, cost: 0 };
+  if (effects.trust) v.trust = clamp(v.trust + effects.trust, 0.05, 0.97);
+  if (effects.market_fit) v.marketFit = clamp(v.marketFit + effects.market_fit, 0.05, 0.95);
+  if (effects.quality) v.quality = clamp((v.quality || 0.5) + effects.quality, 0.2, 0.95);
+  if (effects.morale && state.team) state.team.morale = clamp(state.team.morale + effects.morale, 0.15, 0.95);
+  if (effects.health) state.founder.health = clamp(state.founder.health + effects.health, 0.05, 1);
+  if (effects.will) state.founder.will = clamp(state.founder.will + effects.will, 0.05, 1);
+  if (effects.care) state.founder.care = clamp((state.founder.care || 0) + effects.care, 0, 1);
+  if (effects.hours) state.founder.hours = clamp(state.founder.hours + effects.hours, 0.2, 1);
+  if (effects.cash) state.finance.cash += effects.cash;
+  if (effects.peer) state.peersPressure = clamp((state.peersPressure || 0) + effects.peer, 0, 0.45);
+  if (effects.demand) state.ambient.demand = clamp((state.ambient.demand || 0) + effects.demand, -0.1, 0.1);
+  if (effects.cost) state.ambient.cost = clamp((state.ambient.cost || 0) + effects.cost, -0.08, 0.08);
+  if (effects.churn) v.churn = clamp((v.churn || 0.04) + effects.churn, 0.015, 0.2);
+}
+
+function rollBeats(data, state, rng) {
+  ensureCast(data, state);
+  const pool = (data.narrative.beats || []).filter((b) => beatOk(state, b));
+  if (!pool.length) {
+    state.lastBeats = [];
+    return;
+  }
+  const count = rng.next() < 0.28 ? 2 : 1;
+  const picked = [];
+  let rest = pool.slice();
+  for (let i = 0; i < count && rest.length; i++) {
+    const b = pickWeighted(rng, rest, (x) => x.weight || 1);
+    if (!b) break;
+    picked.push(b);
+    rest = rest.filter((x) => x.id !== b.id);
+  }
+  state.beatUntil = state.beatUntil || {};
+  state.feed = state.feed || [];
+  const beats = picked.map((b) => {
+    applyBeatEffects(state, b.effects || {});
+    state.beatUntil[b.id] = state.month + (b.cooldown || 4);
+    const beat = {
+      id: b.id,
+      m: state.month,
+      when: calendarLabel(state),
+      subject: fillText(data, state, b.subject || ""),
+      object: fillText(data, state, b.object || ""),
+      text: fillText(data, state, b.text || ""),
+      note: fillText(data, state, b.note || ""),
+    };
+    pushTimeline(state, beat.subject, `${beat.object}。${beat.text}`);
+    return beat;
+  });
+  state.lastBeats = beats;
+  state.feed.push(...beats);
+  if (state.feed.length > 60) state.feed.splice(0, state.feed.length - 60);
 }
 
 export function chooseEvent(data, state, choiceId) {
@@ -1404,6 +1620,10 @@ export function runCounterfactual(data, state, ev, chosenId) {
   }
 }
 
+export function suggestEventChoice(ev, state) {
+  return heuristicChoice(ev, state);
+}
+
 function heuristicChoice(ev, state) {
   if (!ev?.choices?.length) return null;
   let best = ev.choices[0];
@@ -1443,7 +1663,10 @@ export function skipToEvent(data, state) {
   while (state.phase === "play" && guard < 36 && state.month < 1200) {
     const before = state.month;
     settleOne(data, state);
-    if (state.last) lines.push({ m: state.last.month, line: state.last.line, cash: state.finance.cash, rev: state.last.revenue });
+    if (state.last) {
+      const beat = state.last.beat ? ` ${state.last.beat}` : "";
+      lines.push({ m: state.last.month, line: `${state.last.line}${beat}`, cash: state.finance.cash, rev: state.last.revenue });
+    }
     guard += 1;
     if (state.month === before) break;
   }

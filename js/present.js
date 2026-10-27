@@ -1,4 +1,4 @@
-import { cityById, gapById, industry, calendarLabel, lifeLabel, computeRedline, symptomIds, endingFlags, topDrivers, describeWorld, stageOf } from "./sim.js";
+import { cityById, gapById, industry, calendarLabel, lifeLabel, computeRedline, symptomIds, endingFlags, topDrivers, describeWorld, stageOf, fillText } from "./sim.js";
 
 export { calendarLabel };
 
@@ -53,7 +53,50 @@ export function whenLabel(state) {
 
 export function symptomTexts(data, state) {
   const ids = symptomIds(data, state);
-  return ids.map((id) => data.narrative.symptoms.find((s) => s.id === id)?.text || "這個月沒有新的句子。");
+  return ids.map((id) => {
+    const raw = data.narrative.symptoms.find((s) => s.id === id)?.text || "這個月沒有新的句子。";
+    return fillText(data, state, raw);
+  });
+}
+
+export function business(data, state) {
+  const gap = gapById(data, state.gapId);
+  const work = state.work || gap?.work || {};
+  const fam = industry(data, gap?.family || work.family);
+  const revId = state.venture?.revenue || state.shape?.revenue;
+  const rev = revId ? data.economy.revenues[revId] : null;
+  return {
+    name: work.name || gap?.title || "還沒成形的生意",
+    does: work.does || gap?.problem || "",
+    sells: work.sells || gap?.core || "東西",
+    buyer: work.buyer || "客人",
+    unit: work.unit || "一筆",
+    industry: fam?.name || "",
+    title: gap?.title || "",
+    problem: gap?.problem || "",
+    pulse: rev?.pulse || "入帳",
+    ticks: rev?.ticks || 6,
+    late: !!rev?.late,
+    revenueLabel: rev?.label || "",
+  };
+}
+
+export function householdLine(state) {
+  const kin = state.cast?.kin;
+  const base = familyLabel(state.founder?.family);
+  if (!kin) return `${base}。`;
+  const when = state.founder?.careMonth > 0 ? `這件事大約從第 ${state.founder.careMonth} 個月開始，開局時就排進日曆。` : "";
+  return `${base}。要照顧的是${kin.who}，事情是${kin.need}。${when}`;
+}
+
+export function ambientLine(state) {
+  const a = state.ambient || {};
+  const bits = [];
+  if ((a.demand || 0) > 0.02) bits.push("這些小事疊起來，需求被墊高了一點");
+  if ((a.demand || 0) < -0.02) bits.push("這些小事疊起來，需求被削掉一點");
+  if ((a.cost || 0) > 0.02) bits.push("變動成本也被墊高了");
+  if ((a.cost || 0) < -0.02) bits.push("變動成本被省下一點");
+  return bits.join("。");
 }
 
 export function redlineView(data, state) {

@@ -11,7 +11,7 @@ const ui = {
   screen: "boot",
   run: null,
   drawer: null,
-  settings: { speed: "standard", smart: true, autoplay: false, still: false },
+  settings: { speed: "standard", smart: false, autoplay: false, flow: true, still: false },
   prologue: 0,
   reveal: 0,
   mode: "story",
@@ -54,7 +54,13 @@ async function boot() {
       world: loaded[0], economy: loaded[1], content: loaded[2],
       events: loaded[3].events, narrative: loaded[4],
     };
-    ui.settings = { ...ui.settings, ...read(KEY.settings, {}) };
+    const savedSettings = read(KEY.settings, {});
+    ui.settings = { ...ui.settings, ...savedSettings };
+    if (!savedSettings.flowVersion) {
+      ui.settings.flow = true;
+      ui.settings.flowVersion = 2;
+      persistSettings();
+    }
     document.documentElement.classList.toggle("still", ui.settings.still || matchMedia("(prefers-reduced-motion: reduce)").matches);
     const saved = read(KEY.run, null);
     if (saved && typeof saved.month === "number" && saved.phase) ui.saved = saved;
@@ -70,9 +76,18 @@ async function boot() {
 }
 
 function render() {
+  if (data && ui.run) {
+    Sim.ensureCast(data, ui.run);
+    Sim.ensureWork(data, ui.run);
+  }
   app.innerHTML = views[ui.screen]?.() || views.error();
+  const pendingAuto = ui.settings.autoplay ? autoTarget() : null;
   const focus = app.querySelector("[data-autofocus]");
-  if (focus) focus.focus();
+  const quietTick = ui.tickAuto && ui.screen === "play" && ui.run?.phase === "play";
+  if (focus && !quietTick && !pendingAuto) focus.focus();
+  ui.tickAuto = false;
+  ui.freshBeat = false;
+  armFlow();
   armAuto();
 }
 
@@ -101,13 +116,15 @@ const views = {
   },
   settings() {
     const s = ui.settings;
-    const speeds = [["immerse", "沉浸 15 秒"], ["standard", "標準 10 秒"], ["fast", "快速 5 秒"], ["blitz", "狂飆 2 秒"]];
+    const speeds = [["slow", "放慢 · 30 秒一個月"], ["immerse", "沉浸 · 15 秒一個月"], ["standard", "標準 · 10 秒一個月"], ["fast", "快速 · 5 秒一個月"], ["blitz", "狂飆 · 2 秒一個月"]];
     return sheet(`<p class="kicker">設定</p><h2>時間怎麼走</h2>
-      <p>預設是你按一下，才進入下一個月。自動播放時，間隔用上面的秒數。連續安靜會加快；紅線進入危險會放慢。可以關掉。</p>
+      <p>月份會自己過去。預設每十秒一個月，街上的小事會浮在帳簿上，並留下一點影響。重大決定會把時間按停。你仍可以跳到下一件要決定的事，或只推進一個月。</p>
       <div class="stack">${speeds.map(([id, label]) => `<button class="choice" data-act="set-speed" data-id="${id}" ${s.speed === id ? "data-autofocus" : ""}><b>${label}</b></button>`).join("")}</div>
-      <button class="alt" data-act="toggle" data-key="autoplay">${s.autoplay ? "自動播放：開" : "自動播放：關"}</button>
-      <button class="alt" data-act="toggle" data-key="smart">${s.smart ? "智能變速：開" : "智能變速：關"}</button>
+      <button class="alt" data-act="toggle" data-key="flow">${s.flow !== false ? "時間流動：開" : "時間流動：關"}</button>
+      <button class="alt" data-act="toggle" data-key="smart">${s.smart ? "安靜時加快、危險時放慢：開" : "安靜時加快、危險時放慢：關"}</button>
       <button class="alt" data-act="toggle" data-key="still">${s.still ? "減少動效：開" : "減少動效：關"}</button>
+      <button class="alt" data-act="toggle" data-key="autoplay">${s.autoplay ? "自動選擇：開" : "自動選擇：關"}</button>
+      <p class="muted">打開之後，要拍板的選項會先亮三秒，時間走完才選上。這三秒可以改選，或把模式關掉。</p>
       <button class="go" data-act="title">完成</button>`);
   },
   mode() {
@@ -149,9 +166,9 @@ const views = {
     const w = P.worldLine(data, run);
     const steps = [
       `<p class="kicker">城市</p><h1>${$(w.city.name)}</h1><p>${$(w.country.name)}</p><ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>`,
-      `<p class="kicker">你</p><h1>${run.founder.age} 歲</h1><p>${$(P.familyLabel(run.founder.family))}。做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p><p>${run.founder.matched ? "這段經驗，和眼前的缺口是同一類。" : "這段經驗在別的行業。缺口仍是這個。"}</p>`,
+      `<p class="kicker">你</p><h1>${run.founder.age} 歲</h1><p>${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p><p>${run.founder.matched ? "這段經驗，和眼前的缺口是同一類。" : "這段經驗在別的行業。缺口仍是這個。"}</p>`,
       `<p class="kicker">口袋</p><h1>${$(run.founder.personalNote)}</h1><p class="muted">工資水準是遊戲估算，不是官方統計。${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>`,
-      `<p class="kicker">缺口</p><h2>${$(w.gap.title)}</h2><p>${$(w.gap.problem)}</p><p class="muted">${$(w.gap.quadrant)}。趨勢大約一年 ${w.gap.trend >= 0 ? "多" : "少"} ${Math.abs(Math.round(w.gap.trend * 100))}% 上下，這是區間，不是預言。</p>`,
+      `<p class="kicker">你抽到的生意</p><h1>${$(P.business(data, run).name)}</h1><p>${$(P.business(data, run).does)}</p><p>付錢的是${$(P.business(data, run).buyer)}。一筆是${$(P.business(data, run).unit)}。這是${$(P.business(data, run).industry)}。</p><p class="muted">街上的缺口叫「${$(w.gap.title)}」：${$(w.gap.problem)}</p>`,
       `<p class="kicker">條件</p><h2>和你相近的開局</h2><p class="sub">${$(P.rarityLine(Math.max(1, run.perThousand)))}</p><p>約每一千個開局，有 ${run.perThousand} 局落在${$(w.city.name)}的「${$(w.gap.title)}」。</p><p>機會本身不算最稀有。稀有的是你之後怎麼對它。</p>${run.ecosystemHint ? `<p>這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}`,
     ];
     const i = Math.min(ui.reveal, steps.length - 1);
@@ -162,8 +179,10 @@ const views = {
     const w = P.worldLine(data, run);
     const mode = data.economy.modes[run.mode];
     const canReject = run.rejectsLeft > 0;
-    return sheet(`<p class="kicker">機會 ${run.rejected.length + 1}</p><h2>${$(w.gap.title)}</h2>
-      <p>因為你做過${$(P.fieldLabel(data, run.founder.field))}，而${$(w.city.name)}有這個缺口：${$(w.gap.problem)}</p>
+    const biz = P.business(data, run);
+    return sheet(`<p class="kicker">機會 ${run.rejected.length + 1}</p><h2>${$(biz.name)}</h2>
+      <p>${$(biz.does)}付錢的是${$(biz.buyer)}。一筆是${$(biz.unit)}。</p>
+      <p>因為你做過${$(P.fieldLabel(data, run.founder.field))}，${$(w.city.name)}才把這門${$(biz.industry)}交到你手上。街上的缺口是：${$(w.gap.problem)}</p>
       <p>你還不知道的是：${$(w.gap.unknown)}</p>
       <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。</p>
       <button class="go" data-act="accept" data-autofocus>接這個機會</button>
@@ -196,7 +215,8 @@ const views = {
 };
 
 function sheet(inner, side = "") {
-  return `<div class="shell ${side ? "with-side" : ""}"><article class="sheet">${inner}</article>${side}</div>`;
+  const chrome = ui.screen === "settings" ? "" : autoChrome();
+  return `<div class="shell ${side ? "with-side" : ""}"><article class="sheet">${chrome}${inner}</article>${side}</div>`;
 }
 
 function shapingView() {
@@ -213,7 +233,7 @@ function shapingView() {
     const p = Sim.previewVenture(data, ui.run);
     if (!p) return sheet(`<p>這組結構還算不出第一個月。請回到上一步重選。</p><button class="ghost" data-act="shape-back">上一步</button>`);
     const rl = data.economy.redline_thresholds[p.redline];
-    return sheet(`<p class="kicker">開業之前</p><h2>這就是你的結構</h2>
+    return sheet(`${businessStrip(ui.run)}<p class="kicker">開業之前</p><h2>這就是你的結構</h2>
       <p>公司現金大約 ${$(P.money(data, ui.run, p.cash))}，債務 ${$(P.money(data, ui.run, p.debt))}。你自己留下約 ${$(P.money(data, ui.run, p.personalLeft))}。</p>
       <p>若第一個月大致如此，帳面收入約 ${$(P.money(data, ui.run, p.revenue))}，公司要付的約 ${$(P.money(data, ui.run, p.costs))}。${p.personalGap > 0.05 ? `生活費還差約 ${$(P.money(data, ui.run, p.personalGap))}，會先從公司現金補。` : "生活費大致由薪資或公司提取蓋過。"}跑道大約 ${p.runway > 36 ? "很長" : Math.max(0, Math.round(p.runway)) + " 個月"}。</p>
       <p>主要紅線會是：${$(rl.name)}。牌照大約 ${p.license} 個月。</p>
@@ -259,14 +279,30 @@ function playView() {
     : fc ? "硬核不把區間收窄。你看得到合約，看不到顧問的表。" : "";
   const side = sidePanel();
   const drawer = ui.drawer ? drawerHtml() : "";
+  const biz = P.business(data, run);
+  const from = P.calendarLabel(run);
+  const to = P.calendarLabel(run, 1);
   return `<div class="shell with-side"><article class="sheet">
-    <header class="worldbar"><div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p><h2>${$(P.whenLabel(run))}</h2><p class="muted">${$(P.calendarLabel(run))} · ${$(run.venture.name)}</p></div>
-    <button class="pill" data-act="cycle-speed">${$(speedLabel())}</button></header>
+    <header class="worldbar"><div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p><h2 id="pass-title">${$(P.whenLabel(run))}</h2><p class="muted">${$(from)} · ${$(run.venture.name)}</p></div>
+    <div class="pace">
+      <button class="pill" data-act="speed-slower">減速</button>
+      <button class="pill" data-act="flow-toggle">${$(speedLabel())}</button>
+      <button class="pill" data-act="speed-faster">加速</button>
+    </div></header>
+    ${autoChrome()}
+    ${businessStrip(run)}
+    ${flowOn() ? `<section class="passage" aria-label="時間在走">
+      <div class="passage-months"><span id="pass-from">${$(from)}</span><div class="passage-track"><i id="pass-marker"></i></div><span id="pass-to">${$(to)}</span></div>
+      <p id="pass-day">第 1 日 / 30 · ${$(biz.name)}</p>
+      <p id="pass-pulse" class="small">${$(biz.revenueLabel ? biz.revenueLabel + "：" + biz.pulse : "入帳")}會在這個月裡跳動。重大的事才把日子按停。</p>
+      <div id="live-feed" class="feed" aria-live="polite" aria-label="這個月出現的小事"></div>
+    </section>` : `<p class="small">時間暫停。可以手動進入下一個月，或再打開流動。</p>`}
     <section class="ledger" aria-label="本期帳簿">
+      <div class="row live-row"><span>走動中的現金</span><strong id="live-cash">${$(P.money(data, run, run.finance.cash))}</strong></div>
       <div class="row"><span>帳面收入</span><strong>${last ? $(P.money(data, run, last.revenue)) : "—"}</strong></div>
       <div class="row"><span>實際進帳</span><strong>${last ? $(P.money(data, run, last.collected)) : "—"}</strong></div>
       <div class="row"><span>本月成本</span><strong>${last ? $(P.money(data, run, last.cost)) : "—"}</strong></div>
-      <div class="row"><span>期末現金</span><strong>${$(P.money(data, run, run.finance.cash))}</strong></div>
+      <div class="row"><span>已結現金</span><strong>${$(P.money(data, run, run.finance.cash))}</strong></div>
     </section>
     <p class="${(last?.revenue || 0) >= (last?.cost || 0) ? "delta up" : "delta down"}">${last ? $(last.line) : "名字已經寫上。第一個月還沒結算。"}</p>
     ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
@@ -274,8 +310,10 @@ function playView() {
     <ul class="symptoms">${sym.map((s) => `<li>${$(s)}</li>`).join("")}</ul>
     <p>${$(P.commitmentLine(run))}</p>
     <p class="muted">${$(band)}</p>
-    <button class="go" data-act="settle" data-autofocus>進入下一個月</button>
+    ${feedHtml(run)}
+    ${flowOn() ? "" : `<button class="go" data-act="settle" data-autofocus>進入下一個月</button>`}
     <button class="alt" data-act="skip">跳到下一件要決定的事</button>
+    ${flowOn() ? `<button class="ghost" data-act="settle">只推進這一個月</button>` : ""}
     <button class="ghost" data-act="initiative-open">主動做一件事</button>
     <nav class="dock" aria-label="帳簿分頁">
       <button data-act="drawer" data-id="ledger">帳簿</button>
@@ -287,8 +325,30 @@ function playView() {
   </article>${side}</div>`;
 }
 
+function businessStrip(run) {
+  const b = P.business(data, run);
+  const pay = b.revenueLabel ? `錢進來的方式是${b.revenueLabel}，畫面上會按「${b.pulse}」的頻率跳。` : "開業之後，進帳會按你選的方式跳動。";
+  return `<section class="trade"><p class="kicker">你抽到的生意</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">付錢的是${$(b.buyer)}。一筆是${$(b.unit)}。行業是${$(b.industry)}。${$(pay)}</p></section>`;
+}
+
 function speedLabel() {
-  return { immerse: "沉浸", standard: "標準", fast: "快速", blitz: "狂飆" }[ui.run?.speed || ui.settings.speed] || "標準";
+  const names = { slow: "放慢", immerse: "沉浸", standard: "標準", fast: "快速", blitz: "狂飆" };
+  const id = ui.run?.speed || ui.settings.speed || "standard";
+  if (!flowOn()) return "時間暫停";
+  const sec = data ? paceSeconds(ui.run) : 10;
+  return `${names[id] || "標準"} · ${sec} 秒／月`;
+}
+
+function feedHtml(run) {
+  const items = (run.feed || []).slice(-5).reverse();
+  const piled = P.ambientLine(run);
+  if (!items.length) {
+    return `<section class="feed"><p class="kicker">時間裡的小事</p><p class="muted">月份開始走之後，客人、供應商、家里的人會從這裡經過。這些句子會留下，並改動後面的帳。</p></section>`;
+  }
+  return `<section class="feed" aria-live="polite" aria-label="時間裡的小事"><p class="kicker">時間裡的小事</p>${items.map((b, i) => {
+    const fresh = ui.freshBeat && i === 0 ? "beat-new" : "";
+    return `<article class="beat ${fresh}"><p class="when muted">第 ${b.m} 月 · ${$(b.when || "")}</p><p><b>${$(b.subject)}</b> · ${$(b.object)}</p><p>${$(b.text)}</p>${b.note ? `<p class="muted">${$(b.note)}</p>` : ""}</article>`;
+  }).join("")}${piled ? `<p class="muted">${$(piled)}</p>` : ""}</section>`;
 }
 
 function sidePanel() {
@@ -360,7 +420,9 @@ function sparkTable() {
 function eventView() {
   const ev = ui.run.pendingEvent;
   const choices = ev.choices.map((c, i) => `<button class="choice ${c.effects?.force_ending ? "warn" : ""}" data-act="choice" data-id="${$(c.id)}" ${i === 0 ? "data-autofocus" : ""}><b><span class="mark">${i + 1}</span>${$(c.label)}</b><span>${$(c.detail)}</span><span>未知：${$(c.risk || "沒有額外未知。")}</span></button>`).join("");
-  return sheet(`<p class="kicker">要決定 · 第 ${ui.run.month} 個月</p><h2>${$(ev.title)}</h2>
+  const who = ev.subject && ev.object ? `<div class="who"><span>誰</span><b>${$(ev.subject)}</b><span>什麼事</span><b>${$(ev.object)}</b></div>` : "";
+  return sheet(`${businessStrip(ui.run)}<p class="kicker">要決定 · 第 ${ui.run.month} 個月 · 時間按停</p><h2>${$(ev.title)}</h2>
+    ${who}
     ${ev.omen ? `<p class="muted">事前的徵兆：${$(ev.omen)}</p>` : ""}
     <p>${$(ev.body)}</p><div class="stack">${choices}</div>
     <p class="small">數字是這張合約寫死的部分。人物與市場的未知，不換成機率。</p>`);
@@ -369,7 +431,7 @@ function eventView() {
 function lastView() {
   const run = ui.run;
   const opts = Sim.rescueOptions(data, run);
-  return sheet(`<p class="kicker">最後階段</p><h2>現金不夠付這一輪</h2>
+  return sheet(`${businessStrip(run)}<p class="kicker">最後階段</p><h2>現金不夠付這一輪</h2>
     <p>帳上 ${$(P.money(data, run, run.finance.cash))}。以日計，這個模式大約還有 ${run.rescueDays} 天的緩衝，行動還剩 ${run.rescueLeft} 次。</p>
     <p>你通常不能同時保住公司、員工、家庭與控制權。</p>
     <div class="stack">${opts.map((o) => `<button class="choice" data-act="rescue" data-id="${o.id}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("")}</div>`);
@@ -386,7 +448,7 @@ function chapterView() {
   const run = ui.run;
   const mem = run.memories[run.memories.length - 1];
   const big = (run.commitments || [])[0];
-  return sheet(`<p class="kicker">第 ${run.chapter} 章</p><h2>${$(P.whenLabel(run))}</h2>
+  return sheet(`${businessStrip(run)}<p class="kicker">第 ${run.chapter} 章</p><h2>${$(P.whenLabel(run))}</h2>
     <p>現金 ${$(P.money(data, run, run.finance.cash))}。這一章最大的承諾：${big ? $(big.name) : "沒有新的鎖。"}</p>
     <p>${mem ? `留下一件東西：${$(mem.name)}。${$(mem.blurb)}` : "這一章沒有新的物件。"}</p>
     <p class="muted">${$(run.role)}仍在。合上帳簿不會刪掉公司，只是這一局先停。</p>
@@ -484,6 +546,16 @@ app.addEventListener("click", (ev) => {
   act(el.dataset.act, el.dataset);
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (!ui.auto) return;
+  if (document.hidden) {
+    if (!ui.auto.pausedAt) ui.auto.pausedAt = performance.now();
+    stopAutoPaint();
+    return;
+  }
+  armAuto();
+});
+
 document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && ui.drawer) { ui.drawer = null; render(); return; }
   const n = Number(ev.key);
@@ -498,6 +570,7 @@ document.addEventListener("keydown", (ev) => {
 });
 
 function act(name, ds = {}) {
+  if (!autoCommit) cancelAuto();
   const run = ui.run;
   if (name === "reload") return location.reload();
   if (name === "title") { ui.screen = "title"; ui.drawer = null; return render(); }
@@ -505,11 +578,12 @@ function act(name, ds = {}) {
   if (name === "settings") { ui.screen = "settings"; return render(); }
   if (name === "to-mode") { ui.screen = "mode"; return render(); }
   if (name === "archive") { ui.screen = "archive"; ui.archiveId = null; return render(); }
-  if (name === "set-speed") { ui.settings.speed = ds.id; if (run) run.speed = ds.id; persistSettings(); return render(); }
+  if (name === "set-speed") { ui.settings.speed = ds.id; if (run) run.speed = ds.id; persistSettings(); if (run) saveRun(); return render(); }
   if (name === "toggle") {
     ui.settings[ds.key] = !ui.settings[ds.key];
     if (ds.key === "still") document.documentElement.classList.toggle("still", ui.settings.still);
     if (ds.key === "smart" && run) run.smart = ui.settings.smart;
+    if (ds.key === "autoplay" && run) run.autoplay = !!ui.settings.autoplay;
     persistSettings();
     return render();
   }
@@ -553,13 +627,13 @@ function act(name, ds = {}) {
     ui.screen = "naming"; saveRun(); return render();
   }
   if (name === "name") { Sim.confirmName(run, ds.name); run.speed = ui.settings.speed; run.smart = ui.settings.smart; ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`); return render(); }
-  if (name === "settle") return doSettle();
+  if (name === "settle") { ui.clock = null; return doSettle(false); }
   if (name === "choice") { Sim.chooseEvent(data, run, ds.id); ui.quiet = 0; afterStep(); return; }
   if (name === "rescue") { Sim.chooseRescue(data, run, ds.id); afterStep(); return; }
   if (name === "successor") { Sim.chooseSuccessor(data, run, ds.id); afterStep(); return; }
   if (name === "chapter-go") { Sim.continueChapter(run); ui.screen = "play"; saveRun(); return render(); }
   if (name === "ack-summary") { Sim.ackSummary(run); ui.screen = "play"; saveRun(); return render(); }
-  if (name === "skip") { Sim.skipToEvent(data, run); ui.quiet = 0; ui.screen = "play"; saveRun(); return render(); }
+  if (name === "skip") { ui.clock = null; ui.preview = null; Sim.skipToEvent(data, run); ui.quiet = 0; ui.screen = "play"; saveRun(); return render(); }
   if (name === "drawer") { ui.drawer = ds.id; if (ds.id === "ledger") Sim.logEvent?.(run, "ledger_open"); log(run, "ledger_open"); return render(); }
   if (name === "close-drawer") { ui.drawer = null; return render(); }
   if (name === "initiative-open") { ui.drawer = "initiative"; return render(); }
@@ -569,12 +643,25 @@ function act(name, ds = {}) {
   if (name === "pause") { saveRun(); ui.screen = "title"; say("這一章已留下。"); return render(); }
   if (name === "continue") { ui.run = ui.saved; ui.screen = ui.saved.venture ? "play" : screenFor(ui.saved); return render(); }
   if (name === "drop-save") { localStorage.removeItem(KEY.run); ui.saved = null; ui.corrupt = false; ui.screen = "title"; return render(); }
-  if (name === "cycle-speed") {
-    const order = ["immerse", "standard", "fast", "blitz"];
-    const i = order.indexOf(run.speed || "standard");
-    run.speed = order[(i + 1) % order.length];
+  if (name === "speed-slower" || name === "speed-faster" || name === "cycle-speed") {
+    const order = ["slow", "immerse", "standard", "fast", "blitz"];
+    const i = Math.max(0, order.indexOf(run.speed || ui.settings.speed || "standard"));
+    const next = name === "speed-slower" ? Math.max(0, i - 1) : name === "speed-faster" ? Math.min(order.length - 1, i + 1) : (i + 1) % order.length;
+    run.speed = order[next];
     ui.settings.speed = run.speed;
     persistSettings(); log(run, "speed_change"); saveRun(); return render();
+  }
+  if (name === "flow-toggle") {
+    ui.settings.flow = ui.settings.flow === false;
+    ui.settings.flowVersion = 2;
+    persistSettings();
+    return render();
+  }
+  if (name === "auto-toggle") {
+    ui.settings.autoplay = !ui.settings.autoplay;
+    if (run) run.autoplay = !!ui.settings.autoplay;
+    persistSettings();
+    return render();
   }
   if (name === "share") return share();
   if (name === "to-diagnosis") { ui.screen = "diagnosis"; log(run, "ending_share"); return render(); }
@@ -628,6 +715,7 @@ function beginRun() {
   write(KEY.recent, recent);
   run.speed = ui.settings.speed;
   run.smart = ui.settings.smart;
+  run.autoplay = !!ui.settings.autoplay;
   ui.run = run;
   ui.reveal = 0;
   ui.screen = "reveal";
@@ -666,16 +754,18 @@ function clampAge(v) {
   return Math.round(n);
 }
 
-function doSettle() {
+function doSettle(auto = false) {
   const run = ui.run;
   if (!run || run.phase !== "play") return;
   const before = run.month;
+  ui.clock = null;
+  ui.preview = null;
   Sim.settle(data, run);
   if (run.phase === "play") ui.quiet += 1; else ui.quiet = 0;
-  if (ui.settings.smart && ui.quiet >= 2 && run.phase === "play" && run.level !== "crit") {
-    /* smart span is represented by faster autoplay; a tap still moves one month so choices stay visible */
-  }
-  say(run.last?.line || "這個月過去了。");
+  ui.tickAuto = !!auto;
+  ui.freshBeat = !!(run.lastBeats || []).length;
+  const beat = run.lastBeats?.[run.lastBeats.length - 1];
+  say(beat?.text || run.last?.line || "這個月過去了。");
   if (before === run.month && run.phase === "play") say("這個月沒有推進。");
   afterStep();
 }
@@ -709,15 +799,357 @@ function persistSettings() { write(KEY.settings, ui.settings); }
 function log(run, name) { if (run) run.analytics = [...(run.analytics || []), { e: name, m: run.month }]; }
 
 let timer = 0;
-function armAuto() {
-  clearInterval(timer);
+let raf = 0;
+let autoRaf = 0;
+let autoCommit = false;
+const AUTO_MS = 3000;
+
+function flowOn() {
+  return ui.settings.flow !== false;
+}
+
+function stopFlow() {
+  clearTimeout(timer);
+  if (raf) cancelAnimationFrame(raf);
+  raf = 0;
+}
+
+function monthPreview(run) {
+  const key = `${run.month}:${run.rngState}`;
+  if (ui.preview?.key === key) return ui.preview;
+  let raw = null;
+  try { raw = Sim.previewMonth(data, run); } catch { raw = null; }
+  if (!raw) return null;
+  const biz = P.business(data, run);
+  const beats = (raw.beats || []).map((beat, i, arr) => ({
+    ...beat,
+    at: arr.length === 1 ? 0.42 : 0.28 + (0.46 * i) / Math.max(1, arr.length - 1),
+  }));
+  ui.preview = { key, ...raw, beats, pulses: buildPulses(run.finance.cash, raw.cash, raw.collected, raw.cost, biz), startCash: run.finance.cash };
+  return ui.preview;
+}
+
+function buildPulses(start, end, collected, cost, biz) {
+  const ticks = Math.max(1, Math.min(16, biz.ticks || 6));
+  const delta = end - start;
+  const outTotal = Math.min(Math.max(cost, 0), Math.max(collected, 0) * 0.9 + Math.max(-delta, 0));
+  const inTotal = delta + outTotal;
+  const pulses = [];
+  for (let i = 0; i < ticks; i++) {
+    const at = biz.late ? 0.58 + 0.36 * ((i + 1) / ticks) : (i + 1) / (ticks + 1);
+    pulses.push({ at, amount: inTotal / ticks, label: inTotal >= 0 ? `${biz.pulse} · ${biz.sells}` : `${biz.name}的結算` });
+  }
+  if (outTotal > 0.001) {
+    pulses.push({ at: 0.08, amount: -outTotal * 0.42, label: `${biz.name}的固定開支` });
+    pulses.push({ at: 0.5, amount: -outTotal * 0.58, label: `${biz.name}的營運開支` });
+  }
+  pulses.sort((a, b) => a.at - b.at);
+  return pulses;
+}
+
+function paintPassage(run, preview, t) {
+  const marker = document.querySelector("#pass-marker");
+  const day = document.querySelector("#pass-day");
+  const cashEl = document.querySelector("#live-cash");
+  const pulseEl = document.querySelector("#pass-pulse");
+  const live = document.querySelector("#live-feed");
+  if (!marker || !day || !cashEl || !preview) return;
+  const biz = P.business(data, run);
+  const dayN = Math.min(30, Math.max(1, Math.floor(Math.min(t, 0.999) * 30) + 1));
+  marker.style.left = `${Math.min(100, t * 100)}%`;
+  day.textContent = `第 ${dayN} 日 / 30 · ${biz.name} · 走向${preview.when}`;
+  let shown = preview.startCash;
+  let last = null;
+  let n = 0;
+  for (const p of preview.pulses) {
+    if (p.at <= t + 0.0001) {
+      shown += p.amount;
+      last = p;
+      n += 1;
+    }
+  }
+  cashEl.textContent = P.money(data, run, shown);
+  cashEl.classList.toggle("tick-up", !!(last && last.amount > 0));
+  cashEl.classList.toggle("tick-down", !!(last && last.amount < 0));
+  if (pulseEl && ui.clock && n !== ui.clock.pulseN && last) {
+    ui.clock.pulseN = n;
+    const sign = last.amount >= 0 ? "入帳" : "支出";
+    pulseEl.textContent = `${sign} ${P.money(data, run, last.amount)} · ${last.label}`;
+    pulseEl.classList.remove("pulse-pop");
+    void pulseEl.offsetWidth;
+    pulseEl.classList.add("pulse-pop");
+  }
+  const due = (preview.beats || []).filter((b) => (b.at ?? 1) <= t + 0.0001);
+  if (live && ui.clock && due.length !== ui.clock.beatN) {
+    ui.clock.beatN = due.length;
+    live.innerHTML = due.length
+      ? due.slice().reverse().map((b, i) => `<article class="beat ${i === 0 ? "beat-new" : ""}"><p><b>${$(b.subject)}</b> · ${$(b.object)}</p><p>${$(b.text)}</p>${b.note ? `<p class="muted">${$(b.note)}</p>` : ""}</article>`).join("")
+      : `<p class="muted">這個月的小事會在日子走到時出現。</p>`;
+  }
+}
+
+function paceSeconds(run) {
+  const table = data?.economy?.speeds_seconds || { slow: 30, immerse: 15, standard: 10, fast: 5, blitz: 2 };
+  let sec = table[run?.speed || ui.settings.speed] || table.standard || 10;
+  if (ui.settings.smart && ui.quiet >= 2 && run?.level !== "crit") sec = table.blitz || 2;
+  if (run && (run.level === "crit" || run.founder?.health < 0.4)) sec = Math.max(sec, table.immerse || 15);
+  return sec;
+}
+
+function autoToggleButton() {
+  const on = !!ui.settings.autoplay;
+  return `<button class="pill" data-act="auto-toggle" aria-pressed="${on ? "true" : "false"}">${on ? "自動選擇：開" : "自動選擇：關"}</button>`;
+}
+
+function autoChrome() {
+  const on = !!ui.settings.autoplay;
+  return `<div class="auto-bar">${autoToggleButton()}<p class="auto-hint" id="auto-hint"${on ? "" : " hidden"}>開著。輪到店裡的決定時，會先把要選的那項亮三秒。</p></div>`;
+}
+
+function attrSel(act, extra = {}) {
+  let sel = `[data-act="${act}"]`;
+  for (const [k, v] of Object.entries(extra)) sel += `[data-${k}="${CSS.escape(String(v))}"]`;
+  return sel;
+}
+
+function preferKey(order, dict) {
+  return (order || []).find((id) => dict?.[id]) || Object.keys(dict || {})[0] || "";
+}
+
+function shapeTarget(run) {
+  const steps = [
+    ["style", "commitment_styles"],
+    ["venue", "venues"],
+    ["revenue", "revenues"],
+    ["fulfillment", "fulfillment"],
+    ["ownership", "ownership"],
+    ["positioning", "positioning"],
+  ];
+  const step = run.shapeStep || 0;
+  if (step >= steps.length) {
+    return { key: "shape:lock", act: "lock-shape", sel: '[data-act="lock-shape"]', label: "用這個結構開業" };
+  }
+  const [key, group] = steps[step];
+  const dict = data.economy[group] || {};
+  const poor = (run.personal?.cash ?? run.founder?.assetMonths ?? 0) < 1;
+  const prefer = {
+    style: poor ? ["keep", "part", "test", "intra", "quit"] : ["part", "test", "keep", "quit", "intra"],
+    venue: poor ? ["home", "online", "mobile", "studio", "shared"] : ["studio", "home", "online", "shared", "street"],
+    revenue: ["once", "member", "project", "sub"],
+    fulfillment: ["order", "make", "digital", "resell"],
+    ownership: poor ? ["partner", "family", "sole", "angel"] : ["sole", "partner", "family"],
+    positioning: ["easy", "relation", "efficient", "pro"],
+  };
+  const id = preferKey(prefer[key], dict);
+  if (!id) return null;
+  return {
+    key: `shape:${step}:${id}`,
+    act: "shape",
+    ds: { key, value: id },
+    sel: attrSel("shape", { key, value: id }),
+    label: dict[id]?.label || id,
+  };
+}
+
+function suggestRescueId(run, opts) {
+  const trust = run.venture?.trust || 0;
+  const order = [];
+  if (trust >= 0.38) order.push("presell");
+  order.push("delay", "nodraw", "shrink");
+  if ((run.finance?.debt || 0) < 6) order.push("borrow");
+  if ((run.venture?.capexBook || 0) > 0.3) order.push("asset");
+  return order.find((id) => opts.some((o) => o.id === id)) || opts.find((o) => o.id !== "close")?.id || opts[0]?.id;
+}
+
+function autoTarget() {
   const run = ui.run;
-  if (!ui.settings.autoplay || !run || ui.screen !== "play" || run.phase !== "play") return;
-  const table = data.economy.speeds_seconds;
-  let sec = table[run.speed] || table.standard;
-  if (ui.settings.smart && ui.quiet >= 2) sec = table.blitz;
-  if (run.level === "crit" || run.founder.health < 0.4) sec = table.immerse;
-  timer = setInterval(() => { if (ui.run?.phase === "play" && ui.screen === "play") doSettle(); }, sec * 1000);
+  const screen = ui.screen;
+  if (screen === "prologue") {
+    const i = Math.min(ui.prologue || 0, 2);
+    return { key: `prologue:${i}`, act: "prologue", sel: '[data-act="prologue"]', label: i < 2 ? "繼續" : "抽取你的世界" };
+  }
+  if (!run || !data) return null;
+  if (screen === "reveal") {
+    const i = Math.min(ui.reveal || 0, 4);
+    return { key: `reveal:${i}`, act: "reveal-next", sel: '[data-act="reveal-next"]', label: i < 4 ? "繼續" : "看這個機會" };
+  }
+  if (screen === "opportunity") {
+    return { key: `opp:${run.rejected?.length || 0}:${run.gapId}`, act: "accept", sel: '[data-act="accept"]', label: "接這個機會" };
+  }
+  if (screen === "rejected") {
+    return { key: `rejected:${run.rejected?.length || 0}`, act: "after-reject", sel: '[data-act="after-reject"]', label: "看下一個機會" };
+  }
+  if (screen === "shaping") return shapeTarget(run);
+  if (screen === "naming") {
+    const name = Sim.nameOptions(run, data)[0];
+    if (!name) return null;
+    return { key: `name:${name}`, act: "name", ds: { name }, sel: attrSel("name", { name }), label: name };
+  }
+  if (screen !== "play") return null;
+  if (ui.drawer && run.phase === "play") return null;
+  if (run.phase === "event" && run.pendingEvent?.choices?.length) {
+    const id = Sim.suggestEventChoice(run.pendingEvent, run);
+    const choice = run.pendingEvent.choices.find((c) => c.id === id) || run.pendingEvent.choices[0];
+    if (!choice) return null;
+    return { key: `event:${run.pendingEvent.id}:${run.month}`, act: "choice", ds: { id: choice.id }, sel: attrSel("choice", { id: choice.id }), label: choice.label };
+  }
+  if (run.phase === "laststand") {
+    const opts = Sim.rescueOptions(data, run);
+    const id = suggestRescueId(run, opts);
+    const opt = opts.find((o) => o.id === id);
+    if (!opt) return null;
+    return { key: `rescue:${run.month}:${run.rescueLeft}`, act: "rescue", ds: { id: opt.id }, sel: attrSel("rescue", { id: opt.id }), label: opt.label };
+  }
+  if (run.phase === "succession") {
+    const opts = Sim.successorOptions(data, run);
+    const opt = opts.find((o) => o.id !== "sell") || opts[0];
+    if (!opt) return null;
+    return { key: `succ:${run.month}:${run.successionCount}`, act: "successor", ds: { id: opt.id }, sel: attrSel("successor", { id: opt.id }), label: opt.label };
+  }
+  if (run.phase === "chapter") {
+    return { key: `chapter:${run.chapter}:${run.month}`, act: "chapter-go", sel: '[data-act="chapter-go"]', label: "繼續經營" };
+  }
+  if (run.phase === "summary") {
+    const s = run.summary || {};
+    return { key: `summary:${s.from}:${s.to}`, act: "ack-summary", sel: '[data-act="ack-summary"]', label: "看下一件要決定的事" };
+  }
+  if (run.phase === "closing") {
+    return { key: `close:${run.month}`, act: "do-close", ds: { how: "back" }, sel: attrSel("do-close", { how: "back" }), label: "還不結束" };
+  }
+  return null;
+}
+
+function cancelAuto() {
+  ui.auto = null;
+  stopAutoPaint();
+}
+
+function stopAutoPaint() {
+  if (autoRaf) cancelAnimationFrame(autoRaf);
+  autoRaf = 0;
+}
+
+function armAuto() {
+  stopAutoPaint();
+  if (!ui.settings.autoplay) {
+    ui.auto = null;
+    return;
+  }
+  const target = autoTarget();
+  if (!target) {
+    ui.auto = null;
+    return;
+  }
+  const now = performance.now();
+  if (!ui.auto || ui.auto.key !== target.key) {
+    ui.auto = { ...target, ds: target.ds || {}, started: now, pausedAt: 0, needsFocus: true };
+    say(`三秒後將選擇：${target.label}`);
+  } else {
+    ui.auto.sel = target.sel;
+    ui.auto.act = target.act;
+    ui.auto.ds = target.ds || {};
+    ui.auto.label = target.label;
+    if (ui.auto.pausedAt) {
+      ui.auto.started += now - ui.auto.pausedAt;
+      ui.auto.pausedAt = 0;
+    }
+    if (!app.querySelector(target.sel)?.classList.contains("auto-pick")) ui.auto.needsFocus = true;
+  }
+  const token = ui.auto;
+  const tick = () => {
+    if (ui.auto !== token || !ui.settings.autoplay) return;
+    if (document.hidden) {
+      if (!token.pausedAt) token.pausedAt = performance.now();
+      return;
+    }
+    const el = app.querySelector(token.sel);
+    if (!el) {
+      ui.auto = null;
+      return;
+    }
+    el.classList.add("auto-pick");
+    el.setAttribute("aria-describedby", "auto-hint");
+    if (!el.querySelector(":scope > .auto-fill")) {
+      const fill = document.createElement("span");
+      fill.className = "auto-fill";
+      fill.setAttribute("aria-hidden", "true");
+      el.prepend(fill);
+    }
+    const t = Math.min(1, (performance.now() - token.started) / AUTO_MS);
+    el.style.setProperty("--auto", t.toFixed(4));
+    el.dataset.autoProgress = t.toFixed(3);
+    const hint = document.querySelector("#auto-hint");
+    if (hint) {
+      hint.hidden = false;
+      hint.classList.add("is-live");
+      const left = Math.max(1, Math.ceil((1 - t) * 3));
+      if (hint.dataset.left !== String(left) || hint.dataset.for !== token.key) {
+        hint.dataset.left = String(left);
+        hint.dataset.for = token.key;
+        hint.textContent = `即將選擇「${token.label}」。還有 ${left} 秒。這段時間只把該選項高亮，你仍可改選或關掉。`;
+      }
+    }
+    if (token.needsFocus) {
+      token.needsFocus = false;
+      el.focus();
+      el.scrollIntoView({ block: "nearest" });
+    }
+    if (t >= 1) {
+      ui.auto = null;
+      stopAutoPaint();
+      autoCommit = true;
+      try { act(token.act, token.ds || {}); }
+      finally { autoCommit = false; }
+      return;
+    }
+    autoRaf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function armFlow() {
+  stopFlow();
+  const run = ui.run;
+  const can = flowOn() && run && ui.screen === "play" && run.phase === "play" && !ui.drawer;
+  if (!can) {
+    if (ui.clock && ui.screen === "play" && run?.phase === "play" && !ui.clock.pausedAt) ui.clock.pausedAt = performance.now();
+    return;
+  }
+  const duration = paceSeconds(run) * 1000;
+  if (!ui.clock) ui.clock = { started: performance.now(), duration, pulseN: 0, beatN: -1, pausedAt: 0 };
+  else {
+    if (ui.clock.pausedAt) {
+      ui.clock.started += performance.now() - ui.clock.pausedAt;
+      ui.clock.pausedAt = 0;
+    }
+    if (ui.clock.duration !== duration) {
+      const frac = Math.min(1, Math.max(0, (performance.now() - ui.clock.started) / ui.clock.duration));
+      ui.clock.started = performance.now() - frac * duration;
+      ui.clock.duration = duration;
+    }
+  }
+  const preview = monthPreview(run);
+  ui.clock.beatN = -1;
+  ui.clock.pulseN = -1;
+  const frame = () => {
+    if (!ui.clock || !flowOn() || ui.drawer || ui.screen !== "play" || ui.run?.phase !== "play") return;
+    const t = Math.min(1, (performance.now() - ui.clock.started) / ui.clock.duration);
+    if (preview) paintPassage(ui.run, preview, t);
+    if (t >= 1) {
+      ui.clock = null;
+      ui.preview = null;
+      doSettle(true);
+      return;
+    }
+    raf = requestAnimationFrame(frame);
+  };
+  if (!preview) {
+    timer = setTimeout(() => {
+      if (ui.run?.phase === "play" && ui.screen === "play" && flowOn() && !ui.drawer) doSettle(true);
+    }, Math.max(40, duration - (performance.now() - ui.clock.started)));
+    return;
+  }
+  frame();
 }
 
 async function share() {
