@@ -14,6 +14,7 @@ const FILES = [
   "./data/events.json",
   "./data/narrative.json",
   "./assets/favicon.svg",
+  "./assets/fonts/DroidSansFallbackFull.ttf",
   "./manifest.webmanifest",
 ];
 
