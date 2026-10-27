@@ -1,4 +1,4 @@
-const CACHE = "qianfen-v2";
+const CACHE = "qianfen-v6";
 const FILES = [
   "./",
   "./index.html",
@@ -30,10 +30,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((hit) => hit || fetch(event.request).then((res) => {
+    fetch(event.request).then((res) => {
       const copy = res.clone();
       caches.open(CACHE).then((cache) => cache.put(event.request, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match("./index.html")))
+    }).catch(() => caches.match(event.request).then((hit) => hit || caches.match("./index.html")))
   );
 });
