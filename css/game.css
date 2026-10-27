@@ -490,3 +490,30 @@ button.alt .auto-fill { background: #f4efe4; }
   height: 1px;
   background: var(--line);
 }
+
+/* ── 開場單頁：城市、你、你的工作、你抽到的生意 ── */
+.dossier {
+  display: flex; flex-direction: column; gap: 10px; margin: 12px 0 4px;
+}
+.fold {
+  background: #fffdf8; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+}
+.fold > p { margin: 6px 0; }
+.fold h2 { margin: 2px 0 4px; font-size: 24px; }
+.fold-k {
+  margin: 0 0 6px; color: var(--muted); font-size: 13px; letter-spacing: 0.14em;
+}
+.jobcard { border-left: 4px solid var(--accent-blue); }
+.pick-group { margin: 14px 0; }
+.pick-group .fold-k { margin-bottom: 8px; }
+
+.choice.is-on {
+  border-color: var(--ink); background: var(--paper-2);
+  box-shadow: inset 3px 0 0 var(--seal);
+}
+.choice.is-on b::after { content: " · 已選"; color: var(--seal); font-size: 13px; font-weight: 500; }
+
+.step-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+.name-suggest .choice { min-height: 46px; }

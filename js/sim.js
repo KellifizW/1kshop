@@ -124,6 +124,25 @@ export function nameOptions(state, data) {
   return [...new Set(out)].concat(a.slice(0, 3)).slice(0, 3);
 }
 
+/**
+ * 開局先替你抽一份原本的工作。
+ * 這份工作決定你的月薪、你能保留多少、遣散費有多少，以及辭職要花多少精力，
+ * 所以「你怎麼投入」不再是抽象選項，而是拿甚麼去換甚麼。
+ */
+function pickJob(data, rng, fieldId, exp) {
+  const jobs = data.content.jobs || [];
+  if (!jobs.length) return null;
+  const weight = (j) => {
+    let w = 1;
+    if ((j.fields || []).includes(fieldId)) w *= 4;
+    if (exp >= 8 && num(j.income, 1) >= 1.2) w *= 1.6;
+    if (exp < 4 && num(j.income, 1) >= 1.5) w *= 0.3;
+    if (exp >= 14 && num(j.income, 1) < 1) w *= 0.5;
+    return w;
+  };
+  return pickWeighted(rng, jobs, weight);
+}
+
 function personName(data, country, salt) {
   const pool = data.content.people[country] || data.content.people.tw;
   const i = hashSeed(salt) % pool.length;
@@ -192,15 +211,32 @@ export function ensureWork(data, state) {
   state.work = {
     id: gap.id,
     name: work.name,
+    company: work.company || "",
     does: work.does,
     sells: work.sells,
     buyer: work.buyer,
     unit: work.unit,
+    scale: work.scale || "",
+    hire: work.hire || "",
     family: gap.family,
     core: gap.core,
   };
   if (state.venture) state.venture.work = state.work;
   return state.work;
+}
+
+/** 你抽到的那份工作。找不到時回退成「一份中位薪資的工作」，讓舊存檔仍能算。 */
+export function jobOf(data, state) {
+  return (data.content.jobs || []).find((j) => j.id === state?.founder?.job) || null;
+}
+
+/** 這份投入方式下，正職每個月還留給你的錢（單位＝城市中位月薪）。 */
+export function salaryKept(data, state, styleId) {
+  const style = econ(data).commitment_styles[styleId ?? state?.shape?.style];
+  if (!style) return 0;
+  const job = jobOf(data, state);
+  const salary = num(job?.income, 1);
+  return salary * num(style.outsideShare, 0);
 }
 
 function castTokens(data, state) {
@@ -296,6 +332,8 @@ export function createRun(data, opts = {}) {
     fieldId = others[rng.int(others.length)];
   }
 
+  const job = pickJob(data, rng, fieldId, exp);
+
   const advantage = data.economy.advantages[rng.int(data.economy.advantages.length)];
   let riskPool = data.economy.risks.slice();
   if (!["elder", "child", "single_parent"].includes(family)) riskPool = riskPool.filter((r) => r.id !== "care");
@@ -345,6 +383,8 @@ export function createRun(data, opts = {}) {
       family,
       experience: exp,
       field: fieldId,
+      job: job?.id || null,
+      salary: job ? num(job.income, 1) : 1,
       matched: fieldId === gap.field,
       assetMonths: assets,
       assetBand: assetBand.id,
@@ -425,6 +465,9 @@ export function createRun(data, opts = {}) {
   state.founder.personalNote = assets >= 0
     ? `口袋裡大約 ${assets} 個月的當地薪資。`
     : `名下已有約 ${Math.abs(assets)} 個月薪資的債務。`;
+  state.founder.jobNote = job
+    ? `${job.label}。月薪約當地的 ${Math.round(num(job.income, 1) * 100) / 100} 倍中位薪資。`
+    : "你現在沒有正職。";
   ensureCast(data, state);
   ensureWork(data, state);
   logEvent(state, "game_start", { seed, mode: modeId, city: city.id, gap: gap.id });
@@ -491,10 +534,13 @@ export function finishReject(state) {
 }
 
 export function returnToJob(data, state) {
+  const job = jobOf(data, state);
   state.ending = {
     id: "return_to_job",
     month: state.preMonths,
     personalDebt: state.personal.debt,
+    job: job?.label || null,
+    ladder: job?.ladder || "",
   };
   award(data, state, "job_return", 4);
   if (!state.memories.find((m) => m.id === "unsent_resignation")) award(data, state, "unsent_resignation", 4);
@@ -526,10 +572,12 @@ export function previewVenture(data, state, shape = state.shape) {
   const own = E.ownership[shape.ownership || "sole"];
   const style = E.commitment_styles[shape.style];
   if (!venue || !style) return null;
+  const job = jobOf(data, state);
+  const severance = Math.max(0, num(job?.severance, 0) * num(job?.income, 1) * num(style.severanceShare, 0));
   const living = livingCost(data, { ...state });
   const reserveWanted = Math.min(Math.max(0, state.personal.cash), living * E.formula.personal_reserve_months);
   const inject = Math.max(0, state.personal.cash - reserveWanted);
-  let cash = inject + (own ? own.cash : 0);
+  let cash = inject + (own ? own.cash : 0) + severance;
   let capex = venue.capex * (shape.style === "test" ? 0.5 : 1);
   if (state.ecosystemHint?.type === "vacant" && ["street", "mall"].includes(shape.venue)) capex *= 0.85;
   if (state.ecosystemHint?.type === "equipment" && shape.venue === "factory") capex *= 0.8;
@@ -550,6 +598,9 @@ export function previewVenture(data, state, shape = state.shape) {
     cash,
     debt,
     capex,
+    severance,
+    salary: num(job?.income, 1),
+    salaryKept: salaryKept(data, state, shape.style),
     personalLeft: Math.max(0, state.personal.cash - inject),
     fixed,
     revenue: rev,
@@ -566,6 +617,7 @@ export function previewVenture(data, state, shape = state.shape) {
 function buildProbe(data, state, shape, cashIgnored) {
   const styleNow = econ(data).commitment_styles[shape.style];
   const livingNow = livingCost(data, state);
+  const kept = salaryKept(data, state, shape.style);
   const fake = {
     ...state,
     shape,
@@ -573,7 +625,7 @@ function buildProbe(data, state, shape, cashIgnored) {
       ...state.founder,
       hours: styleNow.hours,
       exited: false,
-      wantsDraw: styleNow.outside >= 0.4 ? livingNow * 0.12 : livingNow * 0.46,
+      wantsDraw: kept >= 0.4 ? livingNow * 0.12 : livingNow * 0.46,
       drawPause: 0,
     },
     venture: ventureSkeleton(data, state, shape),
@@ -592,8 +644,8 @@ function founderShortfall(data, state, shape, revenue) {
   const style = econ(data).commitment_styles[shape.style];
   if (!style) return 0;
   const living = livingCost(data, state);
-  const outside = style.outside || 0;
-  const wants = style.outside >= 0.4 ? living * 0.12 : living * 0.46;
+  const outside = salaryKept(data, state, shape.style);
+  const wants = outside >= 0.4 ? living * 0.12 : living * 0.46;
   const draw = Math.min(wants, Math.max(0.04, (revenue || 0) * 0.32));
   return Math.max(0, living - outside - draw);
 }
@@ -649,18 +701,22 @@ function ventureSkeleton(data, state, shape) {
 
 export function confirmShape(data, state) {
   for (const k of SHAPE_KEYS) {
-    if (!state.shape[k]) return { ok: false, reason: "六步還沒有走完。" };
+    if (!state.shape[k]) return { ok: false, reason: "結構還沒有選完。" };
   }
   const E = econ(data);
   const preview = previewVenture(data, state);
   const own = E.ownership[state.shape.ownership];
   const style = E.commitment_styles[state.shape.style];
   const venue = E.venues[state.shape.venue];
+  const job = jobOf(data, state);
   state.founder.hours = style.hours;
-  state.founder.will = clamp(state.founder.will * style.energy, 0.2, 1);
+  state.founder.will = clamp(state.founder.will * style.energy / Math.max(0.7, num(job?.drain, 1)), 0.2, 1);
   state.founder.control = own.control;
+  state.founder.salary = num(job?.income, 1);
+  state.founder.salaryKept = salaryKept(data, state);
+  state.founder.sideRisk = num(style.sideRisk, 0);
   const livingDraw = livingCost(data, state);
-  state.founder.wantsDraw = style.outside >= 0.4 ? livingDraw * 0.12 : livingDraw * 0.46;
+  state.founder.wantsDraw = state.founder.salaryKept >= 0.4 ? livingDraw * 0.12 : livingDraw * 0.46;
   const living = livingCost(data, state);
   const reserveWanted = Math.min(state.personal.cash, living * E.formula.personal_reserve_months);
   const inject = Math.max(0, state.personal.cash - reserveWanted);
@@ -1013,7 +1069,7 @@ function settleOne(data, state) {
   state.finance.cash += parts.collectedNow + released;
   state.finance.cash -= parts.operating;
   state.finance.debt = Math.max(0, state.finance.debt - parts.principal);
-  state.personal.cash += econ(data).commitment_styles[state.shape.style]?.outside && !state.founder.exited
+  state.personal.cash += !state.founder.exited && salaryKept(data, state) > 0
     ? outsideNow(data, state)
     : 0;
   state.personal.cash += parts.draw;
@@ -1124,7 +1180,7 @@ function outsideNow(data, state) {
   if (!style || state.founder.exited) return 0;
   if (state.flags.outside_off) return 0;
   if (state.flags.outside_value != null) return state.flags.outside_value;
-  return style.outside * (state.flags.outside_mult || 1);
+  return salaryKept(data, state) * (state.flags.outside_mult || 1);
 }
 
 function round2(n) {
@@ -1225,6 +1281,11 @@ function weightOf(data, state, e) {
   if (state.level === "crit" && e.layer === "structure") w *= 1.3;
   const last = state.choices[state.choices.length - 1];
   if (last && e.grammar && last.grammar === e.grammar) w *= 0.45;
+  if (e.spine === "moonlighting") {
+    // 正職那邊發現你的機率，取決於你選的投入方式有多藏不住
+    const risk = num(econ(data).commitment_styles[state.shape.style]?.sideRisk, 0);
+    w *= 0.5 + risk * 2.6;
+  }
   if ((state.cooldown[e.id] || 0) > state.month) return 0;
   return w;
 }

@@ -12,8 +12,7 @@ const ui = {
   run: null,
   drawer: null,
   settings: { speed: "standard", smart: false, autoplay: false, flow: true, still: false },
-  prologue: 0,
-  reveal: 0,
+  draftName: "",
   mode: "story",
   challenge: null,
   quiet: 0,
@@ -151,43 +150,50 @@ const views = {
       <p class="muted" id="sb-error"></p>
       <button class="ghost" data-act="to-mode">返回</button>`);
   },
-  prologue() {
-    const lines = [
-      "大多數店，撐不過第一個租約。",
-      "你抽不到完美的城市，也選不了完美的時機。",
-      "你能決定的，是它成為甚麼，以及最後留下甚麼。",
-    ];
-    const i = Math.min(ui.prologue, lines.length - 1);
-    return sheet(`<p class="kicker">開場</p><h1>${$(lines[i])}</h1>
-      <button class="go" data-act="prologue" data-autofocus>${i < lines.length - 1 ? "繼續" : "抽取你的世界"}</button>`);
-  },
-  reveal() {
-    const run = ui.run;
-    const w = P.worldLine(data, run);
-    const steps = [
-      `<p class="kicker">城市</p><h1>${$(w.city.name)}</h1><p>${$(w.country.name)}</p><ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>`,
-      `<p class="kicker">你</p><h1>${run.founder.age} 歲</h1><p>${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p><p>${run.founder.matched ? "這段經驗和眼前的缺口是同一類型。" : "這段經驗屬於別的行業，但你仍要面對眼前的缺口。"}</p>`,
-      `<p class="kicker">口袋</p><h1>${$(run.founder.personalNote)}</h1><p class="muted">工資水準是遊戲估算，不是官方統計。${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>`,
-      `<p class="kicker">你抽到的生意</p><h1>${$(P.business(data, run).name)}</h1><p>${$(P.business(data, run).does)}</p><p>客群是${$(P.business(data, run).buyer)}，交易單位是${$(P.business(data, run).unit)}。這屬於${$(P.business(data, run).industry)}行業。</p><p class="muted">這門生意對應的缺口是「${$(w.gap.title)}」：${$(w.gap.problem)}</p>`,
-      `<p class="kicker">條件</p><h2>和你相近的開局</h2><p class="sub">${$(P.rarityLine(Math.max(1, run.perThousand)))}</p><p>約每一千個開局，有 ${run.perThousand} 局落在${$(w.city.name)}的「${$(w.gap.title)}」。</p><p>機會本身不算最稀有。稀有的是你拿到之後，怎麼經營它。</p>${run.ecosystemHint ? `<p>這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}`,
-    ];
-    const i = Math.min(ui.reveal, steps.length - 1);
-    return sheet(`${steps[i]}<button class="go" data-act="reveal-next" data-autofocus>${i < steps.length - 1 ? "繼續" : "看這個機會"}</button>`);
-  },
-  opportunity() {
+  // 開場只有一頁：城市、你、你的工作、你抽到的生意，全部攤在同一張桌上。
+  opening() {
     const run = ui.run;
     const w = P.worldLine(data, run);
     const mode = data.economy.modes[run.mode];
     const canReject = run.rejectsLeft > 0;
     const biz = P.business(data, run);
-    return sheet(`<p class="kicker">機會 ${run.rejected.length + 1}</p><h2>${$(biz.name)}</h2>
-      <p>${$(biz.does)}客群是${$(biz.buyer)}，交易單位是${$(biz.unit)}。</p>
-      <p>你做過${$(P.fieldLabel(data, run.founder.field))}，所以你看到了這門${$(biz.industry)}的機會。街上的缺口是：${$(w.gap.problem)}</p>
-      <p>你還不知道的是：${$(w.gap.unknown)}</p>
-      <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。</p>
-      <button class="go" data-act="accept" data-autofocus>接這個機會</button>
+    const job = P.jobLine(data, run);
+    const n = Math.max(1, run.perThousand);
+    return sheet(`<p class="kicker">開局${run.rejected.length ? ` · 第 ${run.rejected.length + 1} 個機會` : ""}</p>
+      <h1>${$(w.city.name)}</h1>
+      <p class="muted">${$(w.country.name)} · 約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。</p>
+      <ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>
+
+      <div class="dossier">
+        <section class="fold">
+          <p class="fold-k">你</p>
+          <p><b>${run.founder.age} 歲</b> · ${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p>
+          <p class="muted">${run.founder.matched ? "這段經驗和眼前的缺口是同一類型。" : "這段經驗屬於別的行業，但你仍要面對眼前的缺口。"}</p>
+          <p>${$(run.founder.personalNote)}${job.has ? `你現在是${$(job.label)}，${$(job.hours)}。${job.learn ? `這份工作教會你${$(job.learn)}。` : ""}` : "你現在沒有正職。"}</p>
+        </section>
+
+        <section class="fold">
+          <p class="fold-k">你抽到的生意</p>
+          <h2>${$(biz.name)}</h2>
+          <p class="muted">${$(biz.company)} · 屬於${$(biz.industry)}行業</p>
+          <p>${$(biz.does)}</p>
+          <p>你賣的是<b>${$(biz.sells)}</b>，付錢的是${$(biz.buyer)}，一筆交易交付${$(biz.unit)}。</p>
+          <p><b>怎麼長大：</b>${$(biz.scale)}${biz.hire ? `要長大，${$(biz.hire)}` : ""}</p>
+        </section>
+
+        <section class="fold">
+          <p class="fold-k">街上的缺口</p>
+          <p><b>「${$(w.gap.title)}」</b>：${$(w.gap.problem)}</p>
+          <p>你還不知道的是：${$(biz.unknown)}</p>
+          ${run.ecosystemHint ? `<p class="muted">這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}
+        </section>
+      </div>
+
+      <p class="sub">${$(P.rarityLine(n))}。機會本身不算最稀有，稀有的是你拿到之後怎麼經營它。</p>
+      <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。工資與租金是遊戲估算，不是官方統計；${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>
+      <button class="go" data-act="accept" data-autofocus>接這個機會，開始塑形</button>
       ${canReject ? `<button class="alt" data-act="reject">拒絕。會經過 ${run.rejectPreview} 個月，並付生活費。還剩 ${run.rejectsLeft} 次。</button>` : `<p class="muted">${mode.rejects ? "拒絕已經用完。" : "這個模式不能拒絕。"}</p>`}
-      <button class="ghost" data-act="job">不創業，返回上班</button>`);
+      <button class="ghost" data-act="job">${job.has ? `不創業，回去做${$(job.label)}` : "不創業，先回去上班"}</button>`);
   },
   rejected() {
     const r = ui.run.rejectResult;
@@ -199,15 +205,33 @@ const views = {
   shaping() {
     return shapingView();
   },
+  // 開業前的數字與名字放在同一頁：結構已經定了，只剩把它寫上帳簿第一頁。
   naming() {
-    const names = Sim.nameOptions(ui.run, data);
-    return sheet(`<p class="kicker">名字</p><h2>寫在帳簿第一頁</h2><p>你可以為公司取一個自己的名字，或從建議中挑選。</p>
+    const run = ui.run;
+    const p = Sim.previewVenture(data, run);
+    if (!p) return sheet(`<p>這組結構還算不出第一個月。請回到上一步重選。</p><button class="ghost" data-act="shape-back">上一步</button>`);
+    const rl = data.economy.redline_thresholds[p.redline];
+    const names = Sim.nameOptions(run, data);
+    const draft = ui.draftName || names[0] || "";
+    const gapLine = p.personalGap > 0.05
+      ? `生活費還差約 ${$(P.money(data, run, p.personalGap))}，會先從公司現金補。`
+      : p.salaryKept > 0.05
+        ? `生活費主要由你留下的薪水蓋過（約 ${$(P.money(data, run, p.salaryKept))}／月）。`
+        : "生活費要靠公司提取蓋過。";
+    return sheet(`${businessStrip(run)}<p class="kicker">開業之前</p><h2>這就是你的結構</h2>
+      <p>公司現金大約 ${$(P.money(data, run, p.cash))}${p.severance > 0 ? `（含遣散費約 ${$(P.money(data, run, p.severance))}）` : ""}，債務 ${$(P.money(data, run, p.debt))}。你自己留下約 ${$(P.money(data, run, p.personalLeft))}。</p>
+      <p>若第一個月大致如此，帳面收入約 ${$(P.money(data, run, p.revenue))}，公司要付的約 ${$(P.money(data, run, p.costs))}。${gapLine}跑道大約 ${p.runway > 36 ? "很長" : Math.max(0, Math.round(p.runway)) + " 個月"}。</p>
+      <p>主要紅線會是：${$(rl.name)}。牌照大約 ${p.license} 個月。</p>
+      <p class="muted">這是確定會寫進結構的部分。市場結果仍是區間。外面的錢（天使、創投）不在開局選項裡，它們要等公司站穩之後才會上門。</p>
+
+
+      <p class="fold-k">寫在帳簿第一頁的名字</p>
       <div class="custom-name-input">
-        <input id="custom-name" placeholder="輸入你的公司名字" maxlength="16" aria-label="公司名字">
-        <button class="go" data-act="custom-name" style="width:auto; font-size:15px; padding: 12px 20px;">用這個名字</button>
+        <input id="custom-name" value="${$(draft)}" placeholder="輸入你的公司名字" maxlength="16" aria-label="公司名字">
       </div>
-      <div class="name-divider">或從建議中挑選</div>
-      <div class="stack">${names.map((n, i) => `<button class="choice" data-act="name" data-name="${$(n)}" ${i === 0 ? "data-autofocus" : ""}><b>${$(n)}</b></button>`).join("")}</div>`);
+      <div class="stack name-suggest">${names.map((n) => `<button class="choice${draft === n ? " is-on" : ""}" data-act="pick-name" data-name="${$(n)}" aria-pressed="${draft === n}"><b>${$(n)}</b><span>用這個名字</span></button>`).join("")}</div>
+      <button class="go" data-act="open" data-autofocus>用「${$(draft)}」開業</button>
+      <button class="ghost" data-act="shape-back">回到上一步</button>`);
   },
   play() { return playView(); },
   ending() { return endingView(); },
@@ -224,43 +248,87 @@ function sheet(inner, side = "") {
   return `<div class="shell ${side ? "with-side" : ""}"><article class="sheet">${chrome}${inner}</article>${side}</div>`;
 }
 
+// 塑形從六頁併成三頁。同一頁上的選項可以一起看、一起比較，選完再往下走。
+const SHAPE_STEPS = [
+  {
+    kicker: "塑形 1 / 3",
+    title: "你怎麼投入",
+    lead: "你已經決定要開這間公司。現在的問題只有一個：手上那份工作怎麼辦。",
+    groups: [["style", "commitment_styles", "投入方式"]],
+  },
+  {
+    kicker: "塑形 2 / 3",
+    title: "在哪裡做，東西怎麼交出去",
+    lead: "這兩件事決定你的固定成本，以及品質是不是握在自己手上。",
+    groups: [["venue", "venues", "在哪裡做"], ["fulfillment", "fulfillment", "東西怎麼交出去"]],
+  },
+  {
+    kicker: "塑形 3 / 3",
+    title: "錢怎麼進來，誰擁有它，你站在哪",
+    lead: "這三件事決定跑道、控制權，以及你要跟誰搶同一批客人。",
+    groups: [["revenue", "revenues", "錢怎麼進來"], ["ownership", "ownership", "誰擁有它"], ["positioning", "positioning", "你站在哪"]],
+  },
+];
+
 function shapingView() {
-  const steps = [
-    ["style", "你怎麼投入", "commitment_styles"],
-    ["venue", "在哪裡做", "venues"],
-    ["revenue", "錢怎麼進來", "revenues"],
-    ["fulfillment", "東西怎麼交出去", "fulfillment"],
-    ["ownership", "誰擁有它", "ownership"],
-    ["positioning", "你站在哪", "positioning"],
-  ];
-  const i = ui.run.shapeStep || 0;
-  if (i >= steps.length) {
-    const p = Sim.previewVenture(data, ui.run);
-    if (!p) return sheet(`<p>這組結構還算不出第一個月。請回到上一步重選。</p><button class="ghost" data-act="shape-back">上一步</button>`);
-    const rl = data.economy.redline_thresholds[p.redline];
-    return sheet(`${businessStrip(ui.run)}<p class="kicker">開業之前</p><h2>這就是你的結構</h2>
-      <p>公司現金大約 ${$(P.money(data, ui.run, p.cash))}，債務 ${$(P.money(data, ui.run, p.debt))}。你自己留下約 ${$(P.money(data, ui.run, p.personalLeft))}。</p>
-      <p>若第一個月大致如此，帳面收入約 ${$(P.money(data, ui.run, p.revenue))}，公司要付的約 ${$(P.money(data, ui.run, p.costs))}。${p.personalGap > 0.05 ? `生活費還差約 ${$(P.money(data, ui.run, p.personalGap))}，會先從公司現金補。` : "生活費大致由薪資或公司提取蓋過。"}跑道大約 ${p.runway > 36 ? "很長" : Math.max(0, Math.round(p.runway)) + " 個月"}。</p>
-      <p>主要紅線會是：${$(rl.name)}。牌照大約 ${p.license} 個月。</p>
-      <p class="muted">這是確定會寫進結構的部分。市場結果仍是區間。</p>
-      <button class="go" data-act="lock-shape" data-autofocus>用這個結構開業</button>
-      <button class="ghost" data-act="shape-back">回到上一步</button>`);
+  const run = ui.run;
+  const idx = Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1);
+  const step = SHAPE_STEPS[idx];
+  const missing = step.groups.filter(([k]) => !run.shape[k]);
+  const last = idx >= SHAPE_STEPS.length - 1;
+  const showsJob = step.groups.some(([k]) => k === "style");
+  return sheet(`<p class="kicker">${$(step.kicker)}</p><h2>${$(step.title)}</h2>
+    <p class="sub">${$(step.lead)}</p>
+    ${showsJob ? jobCardHtml(run) : ""}
+    ${step.groups.map(([key, group, title]) => pickGroupHtml(run, key, group, title)).join("")}
+    ${missing.length ? `<p class="muted">這一頁還要選：${missing.map(([, , t]) => t).join("、")}。</p>` : ""}
+    <div class="step-actions">
+      <button class="go" data-act="shape-next" ${missing.length ? "disabled" : "data-autofocus"}>${last ? "看開業前的數字" : "下一步"}</button>
+      ${idx > 0 ? `<button class="ghost" data-act="shape-back">上一步</button>` : ""}
+    </div>`);
+}
+
+function jobCardHtml(run) {
+  const job = P.jobLine(data, run);
+  if (!job.has) {
+    return `<section class="fold jobcard"><p class="fold-k">你現在的工作</p>
+      <p>你沒有正職。沒有薪水可以保留，也沒有遣散費可以拿——所有選項對你的差別，只在時間與精力。</p></section>`;
   }
-  const [key, title, group] = steps[i];
-  const dict = data.economy[group];
+  return `<section class="fold jobcard"><p class="fold-k">你現在的工作</p>
+    <p><b>${$(job.label)}</b> · 月薪約 ${$(P.money(data, run, job.income))}（當地中位薪資約 ${$(P.money(data, run, 1))}）</p>
+    <p class="muted">班表：${$(job.hours)}。要離開：${$(job.notice)}。在外開公司：${$(job.side)}。</p>
+    <p class="muted">遣散費：約 ${$(P.money(data, run, job.severance * job.income))}。${$(job.ladder)}。</p></section>`;
+}
+
+function pickGroupHtml(run, key, group, title) {
+  const dict = data.economy[group] || {};
+  const picked = run.shape[key];
   const buttons = Object.entries(dict).map(([id, obj]) => {
-    const blurb = obj.certain || obj.risk || shapeHint(group, obj);
-    return `<button class="choice" data-act="shape" data-key="${key}" data-value="${id}"><b>${$(obj.label)}</b><span>${$(blurb)}</span></button>`;
+    const on = picked === id;
+    return `<button class="choice${on ? " is-on" : ""}" data-act="shape-pick" data-key="${key}" data-value="${id}" aria-pressed="${on ? "true" : "false"}"><b>${$(obj.label)}</b><span>${$(choiceBlurb(key, group, id, obj))}</span></button>`;
   }).join("");
-  return sheet(`<p class="kicker">塑形 ${i + 1} / 6</p><h2>${$(title)}</h2><div class="stack">${buttons}</div>
-    ${i > 0 ? `<button class="ghost" data-act="shape-back">上一步</button>` : ""}`);
+  return `<section class="pick-group"><p class="fold-k">${$(title)}${picked ? ` · 已選 ${$(dict[picked]?.label || picked)}` : ""}</p><div class="stack">${buttons}</div></section>`;
+}
+
+/** 投入方式要把「你這份工作」換算成具體數字，否則玩家看不出自己在換甚麼。 */
+function choiceBlurb(key, group, id, obj) {
+  if (key === "style") {
+    const s = P.styleLine(data, ui.run, id);
+    if (s) {
+      const bits = [`${s.timePct}% 的時間給公司`];
+      bits.push(s.salaryKept > 0 ? `月薪保留約 ${P.money(data, ui.run, s.salaryKept)}` : "這份薪水歸零");
+      if (s.severance > 0) bits.push(`遣散費約 ${P.money(data, ui.run, s.severance)} 一次到手`);
+      return `${obj.certain}（${bits.join("；")}）風險：${obj.risk}`;
+    }
+  }
+  return obj.certain || obj.risk || shapeHint(group, obj);
 }
 
 function shapeHint(group, obj) {
   if (group === "venues") return `固定成本${obj.fixed > 0.4 ? "偏高" : obj.fixed < 0.15 ? "很低" : "中等"}，人流${obj.traffic > 1.2 ? "較旺" : "要自己找"}。`;
   if (group === "revenues") return obj.recurring ? "收入較可預期，要守住留存。" : `帳期大約 ${obj.ar || 0} 天。`;
   if (group === "fulfillment") return obj.dependency > 0.4 ? "你會依賴別人把東西交出。" : "品質比較握在自己手上。";
-  if (group === "ownership") return obj.cash > 2 ? "錢進來，控制權出去一截。" : "控制權較完整，跑道靠你自己。";
+  if (group === "ownership") return `控制權約 ${Math.round((obj.control || 1) * 100)}%，帶進約 ${obj.cash || 0} 單位現金。外面的錢（天使、創投）之後才會上門。`;
   if (group === "positioning") return obj.price > 1.3 ? "客單高，成交慢。" : "較容易成交，毛利要看緊。";
   return "";
 }
@@ -679,47 +747,65 @@ function act(name, ds = {}) {
     ui.mode = ds.id;
     if (ds.id === "challenge") { ui.screen = "challenge"; return render(); }
     if (ds.id === "sandbox") { ui.screen = "sandbox"; return render(); }
-    ui.prologue = 0; ui.screen = "prologue"; return render();
+    return beginRun();
   }
-  if (name === "pick-challenge") { ui.challenge = ds.id; ui.prologue = 0; ui.screen = "prologue"; return render(); }
+  if (name === "pick-challenge") { ui.challenge = ds.id; return beginRun(); }
   if (name === "start-sandbox") return startSandbox();
-  if (name === "prologue") {
-    if (ui.prologue < 2) { ui.prologue += 1; return render(); }
-    beginRun();
-    return render();
-  }
-  if (name === "reveal-next") {
-    if (ui.reveal < 4) { ui.reveal += 1; return render(); }
+  if (name === "accept") {
     Sim.acknowledgeReveal(run);
-    ui.screen = "opportunity";
+    Sim.acceptOpportunity(run);
+    ui.screen = "shaping";
     saveRun();
     return render();
   }
-  if (name === "accept") { Sim.acceptOpportunity(run); ui.screen = "shaping"; saveRun(); return render(); }
   if (name === "reject") {
+    Sim.acknowledgeReveal(run);
     const res = Sim.rejectOpportunity(data, run);
     if (!res.ok) { say(res.reason); return; }
     ui.screen = "rejected"; saveRun(); return render();
   }
-  if (name === "after-reject") { Sim.finishReject(run); ui.screen = "opportunity"; saveRun(); return render(); }
+  if (name === "after-reject") { Sim.finishReject(run); ui.screen = "opening"; saveRun(); return render(); }
   if (name === "job") { Sim.returnToJob(data, run); ui.screen = "ending"; finishWorld(); saveRun(); return render(); }
+  if (name === "shape-pick") {
+    Sim.setShape(run, ds.key, ds.value);
+    saveRun();
+    return render();
+  }
   if (name === "shape") {
     Sim.setShape(run, ds.key, ds.value);
     run.shapeStep = (run.shapeStep || 0) + 1;
     saveRun(); return render();
   }
-  if (name === "shape-back") { run.shapeStep = Math.max(0, (run.shapeStep || 0) - 1); return render(); }
-  if (name === "lock-shape") {
+  if (name === "shape-next") {
+    const step = SHAPE_STEPS[Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1)];
+    if (step.groups.some(([k]) => !run.shape[k])) { say("這一頁還有選項沒有選。"); return; }
+    if ((run.shapeStep || 0) < SHAPE_STEPS.length - 1) {
+      run.shapeStep = (run.shapeStep || 0) + 1;
+      saveRun();
+      return render();
+    }
     const res = Sim.confirmShape(data, run);
     if (!res.ok) { say(res.reason); return; }
-    ui.screen = "naming"; saveRun(); return render();
+    ui.draftName = "";
+    ui.screen = "naming";
+    saveRun();
+    return render();
   }
-  if (name === "name") { Sim.confirmName(run, ds.name); run.speed = ui.settings.speed; run.smart = ui.settings.smart; ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`); return render(); }
-  if (name === "custom-name") {
+  if (name === "shape-back") {
+    if (ui.screen === "naming") { run.phase = "shaping"; run.shapeStep = Math.max(0, SHAPE_STEPS.length - 1); ui.screen = "shaping"; return render(); }
+    run.shapeStep = Math.max(0, (run.shapeStep || 0) - 1);
+    return render();
+  }
+  if (name === "pick-name") { ui.draftName = ds.name; return render(); }
+  if (name === "open") {
     const input = document.querySelector("#custom-name");
-    const customName = input?.value?.trim();
-    if (!customName) { say("請輸入一個名字。"); return; }
-    Sim.confirmName(run, customName); run.speed = ui.settings.speed; run.smart = ui.settings.smart; ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`); return render();
+    const typed = input?.value?.trim();
+    const finalName = typed || ui.draftName || Sim.nameOptions(run, data)[0];
+    if (!finalName) { say("請先給公司一個名字。"); return; }
+    Sim.confirmName(run, finalName);
+    run.speed = ui.settings.speed; run.smart = ui.settings.smart;
+    ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`);
+    return render();
   }
   if (name === "settle") { ui.clock = null; return doSettle(false); }
   if (name === "choice") { Sim.chooseEvent(data, run, ds.id); ui.quiet = 0; afterStep(); return; }
@@ -775,8 +861,7 @@ function act(name, ds = {}) {
 }
 
 function screenFor(run) {
-  if (run.phase === "reveal") return "reveal";
-  if (run.phase === "opportunity") return "opportunity";
+  if (run.phase === "reveal" || run.phase === "opportunity") return "opening";
   if (run.phase === "rejected") return "rejected";
   if (run.phase === "shaping") return "shaping";
   if (run.phase === "naming") return "naming";
@@ -811,10 +896,11 @@ function beginRun() {
   run.smart = ui.settings.smart;
   run.autoplay = !!ui.settings.autoplay;
   ui.run = run;
-  ui.reveal = 0;
-  ui.screen = "reveal";
+  ui.draftName = "";
+  ui.screen = "opening";
   ui.picked = [];
   saveRun();
+  render();
 }
 
 function startSandbox() {
@@ -838,9 +924,7 @@ function startSandbox() {
     return;
   }
   ui.mode = "sandbox";
-  ui.prologue = 0;
-  ui.screen = "prologue";
-  render();
+  beginRun();
 }
 function clampAge(v) {
   const n = Number(v);
@@ -1011,36 +1095,31 @@ function preferKey(order, dict) {
 }
 
 function shapeTarget(run) {
-  const steps = [
-    ["style", "commitment_styles"],
-    ["venue", "venues"],
-    ["revenue", "revenues"],
-    ["fulfillment", "fulfillment"],
-    ["ownership", "ownership"],
-    ["positioning", "positioning"],
-  ];
-  const step = run.shapeStep || 0;
-  if (step >= steps.length) {
-    return { key: "shape:lock", act: "lock-shape", sel: '[data-act="lock-shape"]', label: "用這個結構開業" };
+  const idx = Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1);
+  const step = SHAPE_STEPS[idx];
+  const missing = step.groups.find(([k]) => !run.shape[k]);
+  if (!missing) {
+    const label = idx >= SHAPE_STEPS.length - 1 ? "看開業前的數字" : "下一步";
+    return { key: `shape:next:${idx}`, act: "shape-next", sel: '[data-act="shape-next"]', label };
   }
-  const [key, group] = steps[step];
+  const [key, group] = missing;
   const dict = data.economy[group] || {};
   const poor = (run.personal?.cash ?? run.founder?.assetMonths ?? 0) < 1;
   const prefer = {
-    style: poor ? ["keep", "part", "test", "intra", "quit"] : ["part", "test", "keep", "quit", "intra"],
+    style: poor ? ["keep", "part", "test", "handover", "leave", "intra", "quit"] : ["part", "test", "leave", "keep", "quit", "intra", "handover"],
     venue: poor ? ["home", "online", "mobile", "studio", "shared"] : ["studio", "home", "online", "shared", "street"],
     revenue: ["once", "member", "project", "sub"],
     fulfillment: ["order", "make", "digital", "resell"],
-    ownership: poor ? ["partner", "family", "sole", "angel"] : ["sole", "partner", "family"],
+    ownership: poor ? ["partner", "family", "coop", "sole"] : ["sole", "partner", "family"],
     positioning: ["easy", "relation", "efficient", "pro"],
   };
   const id = preferKey(prefer[key], dict);
   if (!id) return null;
   return {
-    key: `shape:${step}:${id}`,
-    act: "shape",
+    key: `shape:${idx}:${key}:${id}`,
+    act: "shape-pick",
     ds: { key, value: id },
-    sel: attrSel("shape", { key, value: id }),
+    sel: attrSel("shape-pick", { key, value: id }),
     label: dict[id]?.label || id,
   };
 }
@@ -1058,16 +1137,8 @@ function suggestRescueId(run, opts) {
 function autoTarget() {
   const run = ui.run;
   const screen = ui.screen;
-  if (screen === "prologue") {
-    const i = Math.min(ui.prologue || 0, 2);
-    return { key: `prologue:${i}`, act: "prologue", sel: '[data-act="prologue"]', label: i < 2 ? "繼續" : "抽取你的世界" };
-  }
   if (!run || !data) return null;
-  if (screen === "reveal") {
-    const i = Math.min(ui.reveal || 0, 4);
-    return { key: `reveal:${i}`, act: "reveal-next", sel: '[data-act="reveal-next"]', label: i < 4 ? "繼續" : "看這個機會" };
-  }
-  if (screen === "opportunity") {
+  if (screen === "opening") {
     return { key: `opp:${run.rejected?.length || 0}:${run.gapId}`, act: "accept", sel: '[data-act="accept"]', label: "接這個機會" };
   }
   if (screen === "rejected") {
@@ -1075,9 +1146,8 @@ function autoTarget() {
   }
   if (screen === "shaping") return shapeTarget(run);
   if (screen === "naming") {
-    const name = Sim.nameOptions(run, data)[0];
-    if (!name) return null;
-    return { key: `name:${name}`, act: "name", ds: { name }, sel: attrSel("name", { name }), label: name };
+    const name = ui.draftName || Sim.nameOptions(run, data)[0];
+    return { key: `open:${run.gapId}:${name}`, act: "open", sel: '[data-act="open"]', label: `用「${name}」開業` };
   }
   if (screen !== "play") return null;
   if (ui.drawer && run.phase === "play") return null;
