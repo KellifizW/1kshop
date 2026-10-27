@@ -166,10 +166,10 @@ const views = {
     const w = P.worldLine(data, run);
     const steps = [
       `<p class="kicker">城市</p><h1>${$(w.city.name)}</h1><p>${$(w.country.name)}</p><ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>`,
-      `<p class="kicker">你</p><h1>${run.founder.age} 歲</h1><p>${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p><p>${run.founder.matched ? "這段經驗，和眼前的缺口是同一類。" : "這段經驗在別的行業。缺口仍是這個。"}</p>`,
+      `<p class="kicker">你</p><h1>${run.founder.age} 歲</h1><p>${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。</p><p>${run.founder.matched ? "這段經驗和眼前的缺口是同一類型。" : "這段經驗屬於別的行業，但你仍要面對眼前的缺口。"}</p>`,
       `<p class="kicker">口袋</p><h1>${$(run.founder.personalNote)}</h1><p class="muted">工資水準是遊戲估算，不是官方統計。${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>`,
-      `<p class="kicker">你抽到的生意</p><h1>${$(P.business(data, run).name)}</h1><p>${$(P.business(data, run).does)}</p><p>付錢的是${$(P.business(data, run).buyer)}。一筆是${$(P.business(data, run).unit)}。這是${$(P.business(data, run).industry)}。</p><p class="muted">街上的缺口叫「${$(w.gap.title)}」：${$(w.gap.problem)}</p>`,
-      `<p class="kicker">條件</p><h2>和你相近的開局</h2><p class="sub">${$(P.rarityLine(Math.max(1, run.perThousand)))}</p><p>約每一千個開局，有 ${run.perThousand} 局落在${$(w.city.name)}的「${$(w.gap.title)}」。</p><p>機會本身不算最稀有。稀有的是你之後怎麼對它。</p>${run.ecosystemHint ? `<p>這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}`,
+      `<p class="kicker">你抽到的生意</p><h1>${$(P.business(data, run).name)}</h1><p>${$(P.business(data, run).does)}</p><p>客群是${$(P.business(data, run).buyer)}，交易單位是${$(P.business(data, run).unit)}。這屬於${$(P.business(data, run).industry)}行業。</p><p class="muted">這門生意對應的缺口是「${$(w.gap.title)}」：${$(w.gap.problem)}</p>`,
+      `<p class="kicker">條件</p><h2>和你相近的開局</h2><p class="sub">${$(P.rarityLine(Math.max(1, run.perThousand)))}</p><p>約每一千個開局，有 ${run.perThousand} 局落在${$(w.city.name)}的「${$(w.gap.title)}」。</p><p>機會本身不算最稀有。稀有的是你拿到之後，怎麼經營它。</p>${run.ecosystemHint ? `<p>這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}`,
     ];
     const i = Math.min(ui.reveal, steps.length - 1);
     return sheet(`${steps[i]}<button class="go" data-act="reveal-next" data-autofocus>${i < steps.length - 1 ? "繼續" : "看這個機會"}</button>`);
@@ -181,8 +181,8 @@ const views = {
     const canReject = run.rejectsLeft > 0;
     const biz = P.business(data, run);
     return sheet(`<p class="kicker">機會 ${run.rejected.length + 1}</p><h2>${$(biz.name)}</h2>
-      <p>${$(biz.does)}付錢的是${$(biz.buyer)}。一筆是${$(biz.unit)}。</p>
-      <p>因為你做過${$(P.fieldLabel(data, run.founder.field))}，${$(w.city.name)}才把這門${$(biz.industry)}交到你手上。街上的缺口是：${$(w.gap.problem)}</p>
+      <p>${$(biz.does)}客群是${$(biz.buyer)}，交易單位是${$(biz.unit)}。</p>
+      <p>你做過${$(P.fieldLabel(data, run.founder.field))}，所以你看到了這門${$(biz.industry)}的機會。街上的缺口是：${$(w.gap.problem)}</p>
       <p>你還不知道的是：${$(w.gap.unknown)}</p>
       <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。</p>
       <button class="go" data-act="accept" data-autofocus>接這個機會</button>
@@ -193,7 +193,7 @@ const views = {
     const r = ui.run.rejectResult;
     return sheet(`<p class="kicker">時間過去</p><h2>${r.months} 個月</h2>
       <p>生活費大約 ${$(P.money(data, ui.run, r.spent))}。世界沒有停。</p>
-      <p>${r.taken ? `${$(r.peerName)}把你拒絕的機會接了過去。以後可能在近場遇見。` : "那個機會暫時沒有人接。"}</p>
+      <p>${r.taken ? `${$(r.peerName)}把你拒絕的機會接了過去。以後可能在同行圈子裡遇見。` : "那個機會暫時沒有人接。"}</p>
       <button class="go" data-act="after-reject" data-autofocus>看下一個機會</button>`);
   },
   shaping() {
@@ -201,7 +201,12 @@ const views = {
   },
   naming() {
     const names = Sim.nameOptions(ui.run, data);
-    return sheet(`<p class="kicker">名字</p><h2>寫在帳簿第一頁</h2><p>名字不改變數字。</p>
+    return sheet(`<p class="kicker">名字</p><h2>寫在帳簿第一頁</h2><p>你可以為公司取一個自己的名字，或從建議中挑選。</p>
+      <div class="custom-name-input">
+        <input id="custom-name" placeholder="輸入你的公司名字" maxlength="16" aria-label="公司名字">
+        <button class="go" data-act="custom-name" style="width:auto; font-size:15px; padding: 12px 20px;">用這個名字</button>
+      </div>
+      <div class="name-divider">或從建議中挑選</div>
       <div class="stack">${names.map((n, i) => `<button class="choice" data-act="name" data-name="${$(n)}" ${i === 0 ? "data-autofocus" : ""}><b>${$(n)}</b></button>`).join("")}</div>`);
   },
   play() { return playView(); },
@@ -282,6 +287,14 @@ function playView() {
   const biz = P.business(data, run);
   const from = P.calendarLabel(run);
   const to = P.calendarLabel(run, 1);
+  const isProfit = (last?.revenue || 0) >= (last?.cost || 0);
+  const healthPct = Math.round(run.founder.health * 100);
+  const willPct = Math.round(run.founder.will * 100);
+  const controlPct = Math.round(run.founder.control * 100);
+  const trustPct = Math.round((run.venture?.trust || 0) * 100);
+  const fitPct = Math.round((run.venture?.marketFit || 0) * 100);
+  const qualityPct = Math.round((run.venture?.quality || 0) * 100);
+
   return `<div class="shell with-side"><article class="sheet">
     <header class="worldbar"><div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p><h2 id="pass-title">${$(P.whenLabel(run))}</h2><p class="muted">${$(from)} · ${$(run.venture.name)}</p></div>
     <div class="pace">
@@ -290,34 +303,78 @@ function playView() {
       <button class="pill" data-act="speed-faster">加速</button>
     </div></header>
     ${autoChrome()}
-    ${businessStrip(run)}
-    ${flowOn() ? `<section class="passage" aria-label="時間在走">
-      <div class="passage-months"><span id="pass-from">${$(from)}</span><div class="passage-track"><i id="pass-marker"></i></div><span id="pass-to">${$(to)}</span></div>
-      <p id="pass-day">第 1 日 / 30 · ${$(biz.name)}</p>
-      <p id="pass-pulse" class="small">${$(biz.revenueLabel ? biz.revenueLabel + "：" + biz.pulse : "入帳")}會在這個月裡跳動。重大的事才把日子按停。</p>
-      <div id="live-feed" class="feed" aria-live="polite" aria-label="這個月出現的小事"></div>
-    </section>` : `<p class="small">時間暫停。可以手動進入下一個月，或再打開流動。</p>`}
-    <section class="ledger" aria-label="本期帳簿">
-      <div class="row live-row"><span>走動中的現金</span><strong id="live-cash">${$(P.money(data, run, run.finance.cash))}</strong></div>
-      <div class="row"><span>帳面收入</span><strong>${last ? $(P.money(data, run, last.revenue)) : "—"}</strong></div>
-      <div class="row"><span>實際進帳</span><strong>${last ? $(P.money(data, run, last.collected)) : "—"}</strong></div>
-      <div class="row"><span>本月成本</span><strong>${last ? $(P.money(data, run, last.cost)) : "—"}</strong></div>
-      <div class="row"><span>已結現金</span><strong>${$(P.money(data, run, run.finance.cash))}</strong></div>
-    </section>
-    <p class="${(last?.revenue || 0) >= (last?.cost || 0) ? "delta up" : "delta down"}">${last ? $(last.line) : "名字已經寫上。第一個月還沒結算。"}</p>
-    ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
-    <section class="redline ${rl.level}"><p class="kicker">結構紅線</p><p><span class="mark">${$(rl.mark)}</span>${$(rl.name || "")}</p><p>${$(rl.text || "")}</p></section>
-    <ul class="symptoms">${sym.map((s) => `<li>${$(s)}</li>`).join("")}</ul>
-    <p>${$(P.commitmentLine(run))}</p>
-    <p class="muted">${$(band)}</p>
-    ${feedHtml(run)}
+    <div class="dashboard-grid">
+      <section class="dash-card dash-full" aria-label="時間在走">
+        <h3>🕐 時間流動</h3>
+        ${flowOn() ? `<div class="passage-months"><span id="pass-from">${$(from)}</span><div class="passage-track"><i id="pass-marker"></i></div><span id="pass-to">${$(to)}</span></div>
+        <p id="pass-day">第 1 日 / 30 · ${$(biz.name)}</p>
+        <p id="pass-pulse" class="sub-text">${$(biz.revenueLabel ? biz.revenueLabel + "：" + biz.pulse : "入帳")}會在這個月裡跳動。重大的事才把日子按停。</p>
+        <div id="live-feed" class="feed" aria-live="polite" aria-label="這個月出現的小事"></div>` : `<p class="sub-text">時間暫停。可以手動進入下一個月，或再打開流動。</p>`}
+      </section>
+
+      <section class="dash-card" aria-label="財務概覽">
+        <h3>💰 財務概覽</h3>
+        <div class="big-num ${run.finance.cash > 0.5 ? "good" : "bad"}" id="live-cash">${$(P.money(data, run, run.finance.cash))}</div>
+        <p class="sub-text">走動中的現金</p>
+        <div style="margin-top: 12px;">
+          <div class="metric-row"><span class="label">帳面收入</span><span class="value">${last ? $(P.money(data, run, last.revenue)) : "—"}</span></div>
+          <div class="metric-row"><span class="label">實際進帳</span><span class="value">${last ? $(P.money(data, run, last.collected)) : "—"}</span></div>
+          <div class="metric-row"><span class="label">本月成本</span><span class="value">${last ? $(P.money(data, run, last.cost)) : "—"}</span></div>
+          ${run.finance.debt > 0 ? `<div class="metric-row"><span class="label">債務</span><span class="value">${$(P.money(data, run, run.finance.debt))}</span></div>` : ""}
+        </div>
+      </section>
+
+      <section class="dash-card redline-card ${rl.level}" aria-label="結構紅線">
+        <h3>⚠️ 結構紅線</h3>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span class="redline-icon" style="color: ${rl.level === "crit" ? "var(--seal)" : rl.level === "warn" ? "var(--warn)" : "var(--good)"}">${$(rl.mark)}</span>
+          <span style="font-weight:600; font-size:16px;">${$(rl.name || "尚未結算")}</span>
+        </div>
+        <p class="sub-text">${$(rl.text || "結算第一個月之後，紅線才有數字。")}</p>
+      </section>
+
+      <section class="dash-card dash-full" aria-label="本月總結">
+        <h3>📋 本月紀錄</h3>
+        <p class="${isProfit ? "delta up" : "delta down"}" style="font-size:16px; font-weight:500; margin-bottom:6px;">${last ? $(last.line) : "名字已經寫上。第一個月還沒結算。"}</p>
+        ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
+        <p class="muted">${$(P.commitmentLine(run))}</p>
+        ${band ? `<p class="muted">${$(band)}</p>` : ""}
+      </section>
+
+      <section class="dash-card" aria-label="經營指標">
+        <h3>📊 經營指標</h3>
+        <div class="metric-row"><span class="label">信任</span><span class="value">${trustPct}%</span></div>
+        <div class="metric-row"><span class="label">配合度</span><span class="value">${fitPct}%</span></div>
+        <div class="metric-row"><span class="label">品質</span><span class="value">${qualityPct}%</span></div>
+      </section>
+
+      <section class="dash-card" aria-label="創辦人狀態">
+        <h3>🧑 創辦人狀態</h3>
+        <div class="metric-row"><span class="label">健康</span><span class="value" style="color: ${healthPct < 40 ? "var(--seal)" : healthPct < 60 ? "var(--warn)" : "var(--good)"}">${healthPct}%</span></div>
+        <div class="metric-row"><span class="label">意志</span><span class="value" style="color: ${willPct < 40 ? "var(--seal)" : willPct < 60 ? "var(--warn)" : "var(--good)"}">${willPct}%</span></div>
+        <div class="metric-row"><span class="label">控制權</span><span class="value">${controlPct}%</span></div>
+      </section>
+
+      <section class="dash-card dash-full" aria-label="三條線">
+        <h3>📝 這個月的句子</h3>
+        <ul class="symptom-list">
+          ${sym.map((s, i) => {
+            const axis = i === 0 ? "axis-market" : i === 1 ? "axis-team" : "axis-founder";
+            const axisLabel = i === 0 ? "市場" : i === 1 ? "團隊" : "你";
+            return `<li class="${axis}">${$(s)}</li>`;
+          }).join("")}
+        </ul>
+      </section>
+
+      ${feedHtmlDash(run)}
+    </div>
     ${flowOn() ? "" : `<button class="go" data-act="settle" data-autofocus>進入下一個月</button>`}
     <button class="alt" data-act="skip">跳到下一件要決定的事</button>
     ${flowOn() ? `<button class="ghost" data-act="settle">只推進這一個月</button>` : ""}
     <button class="ghost" data-act="initiative-open">主動做一件事</button>
     <nav class="dock" aria-label="帳簿分頁">
       <button data-act="drawer" data-id="ledger">帳簿</button>
-      <button data-act="drawer" data-id="peers">近場</button>
+      <button data-act="drawer" data-id="peers">同行</button>
       <button data-act="drawer" data-id="commits">承諾</button>
       <button data-act="drawer" data-id="time">時間</button>
     </nav>
@@ -327,8 +384,8 @@ function playView() {
 
 function businessStrip(run) {
   const b = P.business(data, run);
-  const pay = b.revenueLabel ? `錢進來的方式是${b.revenueLabel}，畫面上會按「${b.pulse}」的頻率跳。` : "開業之後，進帳會按你選的方式跳動。";
-  return `<section class="trade"><p class="kicker">你抽到的生意</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">付錢的是${$(b.buyer)}。一筆是${$(b.unit)}。行業是${$(b.industry)}。${$(pay)}</p></section>`;
+  const pay = b.revenueLabel ? `收入方式是${b.revenueLabel}，畫面上會按「${b.pulse}」的頻率跳動。` : "開業之後，進帳會按你選的方式跳動。";
+  return `<section class="trade"><p class="kicker">你的生意</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">客群：${$(b.buyer)} · 交易單位：${$(b.unit)} · 行業：${$(b.industry)}。${$(pay)}</p></section>`;
 }
 
 function speedLabel() {
@@ -351,6 +408,18 @@ function feedHtml(run) {
   }).join("")}${piled ? `<p class="muted">${$(piled)}</p>` : ""}</section>`;
 }
 
+function feedHtmlDash(run) {
+  const items = (run.feed || []).slice(-3).reverse();
+  if (!items.length) return "";
+  return `<section class="dash-card dash-full" aria-live="polite" aria-label="時間裡的小事">
+    <h3>📬 時間裡的小事</h3>
+    ${items.map((b, i) => {
+      const fresh = ui.freshBeat && i === 0 ? "beat-new" : "";
+      return `<article class="beat ${fresh}" style="margin-bottom:8px;"><p class="when muted">第 ${b.m} 月 · ${$(b.when || "")}</p><p><b>${$(b.subject)}</b> · ${$(b.object)}</p>${b.note ? `<p class="muted">${$(b.note)}</p>` : ""}</article>`;
+    }).join("")}
+  </section>`;
+}
+
 function sidePanel() {
   const run = ui.run;
   const pts = (run.series || []).slice(-24);
@@ -360,9 +429,28 @@ function sidePanel() {
     const y = 70 - ((p.cash / max) * 28 + 36);
     return `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(" ");
-  return `<aside class="side"><h3>現金</h3>${pts.length ? `<svg class="spark" viewBox="0 0 260 80" role="img" aria-label="最近現金曲線"><path d="${d}" fill="none" stroke="#e7d7c4" stroke-width="2"/></svg>` : `<p>結算之後這裡會有一條線。</p>`}
-    <h3>近場</h3>${(run.peers || []).map((p) => `<div class="peer"><b>${$(p.name)}</b><br>${$(p.label)} · ${p.alive ? "仍在" : "已退出"}</div>`).join("") || `<p>近場還沒形成。</p>`}
-    <p class="muted">遠場在結局才對照。桌面上看得到這欄，手機上在近場抽屜。</p></aside>`;
+  const lastPt = pts[pts.length - 1];
+  const cashStr = lastPt ? P.money(data, run, lastPt.cash) : "—";
+  const runway = run.finance?.runway ? Math.round(run.finance.runway) : "—";
+  return `<aside class="side">
+    <div class="side-card">
+      <h3>📈 現金曲線</h3>
+      ${pts.length ? `<svg class="spark" viewBox="0 0 260 80" role="img" aria-label="最近現金曲線"><path d="${d}" fill="none" stroke="#e7d7c4" stroke-width="2"/></svg>` : `<p>結算之後這裡會有一條線。</p>`}
+      <div style="display:flex; justify-content:space-between; margin-top:8px;">
+        <span style="font-size:13px; color:#b8a890;">最新</span>
+        <span class="side-value">${cashStr}</span>
+      </div>
+    </div>
+    <div class="side-card">
+      <h3>🏪 身邊的同行</h3>
+      ${(run.peers || []).map((p) => `<div class="peer"><b>${$(p.name)}</b><br>${$(p.label)} · ${p.alive ? "仍在" : "已退出"}</div>`).join("") || `<p style="font-size:14px; color:#b8a890;">街上還沒有同行。</p>`}
+    </div>
+    <div class="side-card">
+      <h3>📅 跑道</h3>
+      <div class="side-value">${typeof runway === "number" ? runway + " 個月" : runway}</div>
+    </div>
+    <p class="muted" style="font-size:12px;">看不見的同行在結局才對照。</p>
+  </aside>`;
 }
 
 function drawerHtml() {
@@ -378,7 +466,7 @@ function drawerHtml() {
       <table>${rows || `<tr><td>結算一次之後，這裡會列出收入怎麼來。</td></tr>`}</table>
       ${sparkTable()}`;
   } else if (id === "peers") {
-    body = `<h2>近場與遠場</h2>${run.peers?.length ? run.peers.map((p) => `<p><b>${$(p.name)}</b> ${$(p.label)}<br>${$(p.note)} 壓力 ${Math.round(p.pressure * 100)}。</p>`).join("") : `<p>等你決定企業的樣子，街上才會出現鄰居。</p>`}
+    body = `<h2>身邊的同行與看不見的同行</h2>${run.peers?.length ? run.peers.map((p) => `<p><b>${$(p.name)}</b> ${$(p.label)}<br>${$(p.note)} 壓力 ${Math.round(p.pressure * 100)}。</p>`).join("") : `<p>等你決定企業的樣子，街上才會出現鄰居。</p>`}
       ${(run.far || []).map((f) => `<p><b>${$(f.kind)}</b> ${$(f.name)}<br>${$(f.note)}</p>`).join("")}`;
   } else if (id === "commits") {
     const list = run.commitments || [];
@@ -511,8 +599,8 @@ function diagnosisView() {
   return sheet(`<p class="kicker">診斷</p><h2>若重來，節點在選擇裡</h2>
     <p>推著它的：${end.pos.length ? $(end.pos.join("、")) : "開局條件本身"}。</p>
     <p>消耗它的：${end.neg.length ? $(end.neg.join("、")) : "時間與固定的帳"}。</p>
-    <p>近場：${$(peers || "沒有形成。")}</p>
-    <p>遠場：${(run.far || []).map((f) => `${$(f.kind)} ${$(f.name)}`).join("。") || "沒有。"}</p>
+    <p>身邊的同行：${$(peers || "沒有形成。")}</p>
+    <p>看不見的同行：${(run.far || []).map((f) => `${$(f.kind)} ${$(f.name)}`).join("。") || "沒有。"}</p>
     <p>${cf ? `若第一個重大選擇改成「${$(cf.choice)}」，那間公司可能走到第 ${cf.months} 個月，結局傾向「${$(cf.ending)}」。這是可能，不是保證。` : "這局還沒有足夠的分岔可以對照。"}</p>
     <p>種子 ${$(run.seed)}。在沙盒輸入同一種子且不改條件，世界會重現。選擇仍由你決定。</p>
     <p class="muted">${$(data.narrative.disclaimer)}</p>
@@ -627,6 +715,12 @@ function act(name, ds = {}) {
     ui.screen = "naming"; saveRun(); return render();
   }
   if (name === "name") { Sim.confirmName(run, ds.name); run.speed = ui.settings.speed; run.smart = ui.settings.smart; ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`); return render(); }
+  if (name === "custom-name") {
+    const input = document.querySelector("#custom-name");
+    const customName = input?.value?.trim();
+    if (!customName) { say("請輸入一個名字。"); return; }
+    Sim.confirmName(run, customName); run.speed = ui.settings.speed; run.smart = ui.settings.smart; ui.screen = "play"; saveRun(); say(`${run.venture.name}開業。`); return render();
+  }
   if (name === "settle") { ui.clock = null; return doSettle(false); }
   if (name === "choice") { Sim.chooseEvent(data, run, ds.id); ui.quiet = 0; afterStep(); return; }
   if (name === "rescue") { Sim.chooseRescue(data, run, ds.id); afterStep(); return; }
