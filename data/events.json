@@ -206,15 +206,15 @@
       "layer": "generic",
       "grammar": "CARE",
       "spine": "family_care",
-      "title": "照護從這個月開始",
-      "body": "這不是突發。日曆上早寫著。公司的班表沒有寫。",
-      "omen": "家里的人開始用短句問你：月底可以嗎。",
+      "title": "{kinWho}需要{kinNeed}",
+      "body": "要照顧的人是{kinWho}，事情是{kinNeed}。這不是突然冒出來的「照護」兩個字。日曆上早寫著，{company}的班表沒有寫。",
+      "omen": "{kinWho}開始用短句問你：{kinNeed}，月底可以嗎。",
       "requires": {"family": ["elder", "child", "single_parent", "partner"]},
       "weight": 24, "cooldown": 40, "min_month": 6, "once": true, "major": true,
       "choices": [
-        {"id": "self", "label": "你親自接", "detail": "確定：可投入時間下降約兩成。公司不增加人力。", "risk": "營運會更黏在你身上。", "effects": {"hours": -0.22, "care": 0.35, "will": -0.04, "flags": {"caring": true}}, "drivers": {"family": 2, "ops": -2}, "memory": "care_schedule"},
-        {"id": "hire", "label": "請調度或替手，你保留決定", "detail": "確定：人力 +1。時間只下降一點。現金壓力上升。", "risk": "家里可能覺得你用錢代替在場。", "effects": {"headcount": 1, "hours": -0.08, "care": 0.2, "morale": 0.03}, "drivers": {"family": 1, "cash": -1, "team": 1}, "memory": "care_schedule"},
-        {"id": "step", "label": "把公司時間讓出來", "detail": "確定：你的抽取停止四個月，收入係數 ×0.75。", "risk": "顧客與合夥人會重新理解這間公司是誰的。", "effects": {"revenue_mult": 0.75, "draw_zero": 4, "hours": -0.4, "care": 0.4, "flags": {"family_first": true}}, "drivers": {"family": 3, "demand": -2}}
+        {"id": "self", "label": "你親自照顧{kinWho}", "detail": "確定：你的時間下降約兩成，拿去處理{kinNeed}。{company}不增加人力。", "risk": "{company}的營運會更黏在你身上。", "effects": {"hours": -0.22, "care": 0.35, "will": -0.04, "flags": {"caring": true}}, "drivers": {"family": 2, "ops": -2}, "memory": "care_schedule"},
+        {"id": "hire", "label": "請人看{company}，你去處理{kinNeed}", "detail": "確定：人力 +1。你的時間只下降一點。現金壓力上升。", "risk": "{kinWho}可能覺得你用錢代替在場。", "effects": {"headcount": 1, "hours": -0.08, "care": 0.2, "morale": 0.03}, "drivers": {"family": 1, "cash": -1, "team": 1}, "memory": "care_schedule"},
+        {"id": "step", "label": "把{company}的時間讓給{kinWho}", "detail": "確定：你的抽取停止四個月，收入係數 ×0.75。你留在{kinWho}身邊，處理{kinNeed}。", "risk": "客人{customer}與合夥人會重新理解{company}是誰的。", "effects": {"revenue_mult": 0.75, "draw_zero": 4, "hours": -0.4, "care": 0.4, "flags": {"family_first": true}}, "drivers": {"family": 3, "demand": -2}}
       ]
     },
     {
@@ -379,8 +379,8 @@
       "layer": "generic",
       "grammar": "HEALTH",
       "spine": "hidden_health",
-      "title": "身體先給了徵兆",
-      "body": "不是診斷書。是你開始把檢查一延再延。這張卡不告訴你機率。",
+      "title": "你的身體先給了徵兆",
+      "body": "要處理的是你自己，不是{company}的帳。你開始把檢查一延再延。這張卡不告訴你機率。",
       "weight": 8, "cooldown": 36, "min_month": 12, "once": true, "major": true,
       "choices": [
         {"id": "slow", "label": "把每週空出半天", "detail": "確定：可投入時間 −10%，健康回升。", "risk": "有些單會延遲。", "effects": {"hours": -0.1, "health": 0.08, "revenue_mult": 0.95}, "drivers": {"founder": 2, "demand": -1}},
@@ -393,8 +393,8 @@
       "layer": "generic",
       "grammar": "HEALTH",
       "spine": "founder_health_crisis",
-      "title": "你必須離開日常一段時間",
-      "body": "這次不是感覺。你有一段時間不能坐在櫃檯後面。公司要麼有人接，要麼縮小。",
+      "title": "你必須離開{company}一段時間",
+      "body": "這次不是感覺。要離開日常的人是你。{company}要麼有人接，要麼縮小。",
       "weight": 10, "cooldown": 60, "min_month": 18, "once": true, "major": true,
       "choices": [
         {"id": "handoff", "label": "把日常交給已有的人", "detail": "確定：若無人，改為聘請。你的抽取暫停。健康開始恢復。", "risk": "客人會發現聲音變了。", "effects": {"headcount_min": 1, "hours": 0.25, "draw_zero": 6, "health": 0.1, "key_dependency": -0.1, "flags": {"founder_absent": true}}, "drivers": {"founder": 2, "team": 1}},
@@ -407,8 +407,8 @@
       "layer": "regional",
       "grammar": "COMPLIANCE",
       "spine": "hidden_compliance",
-      "title": "有一項申報是空的",
-      "body": "不是突襲。是你早就看過的那個空格。現在期限到了。",
+      "title": "{city}要{company}補的申報還是空的",
+      "body": "不是突襲。{city}的承辦人指的是你早就看過的那個空格，對象是{company}。現在期限到了。",
       "weight": 14, "cooldown": 30, "min_month": 4, "major": true,
       "choices": [
         {"id": "fix", "label": "補上，並付遲延的代價", "detail": "確定：現金 −0.9。合規旗標清除。", "risk": "代價因城市而異，嚴格的城市會再多一點檢查。", "effects": {"cash": -0.9, "flags": {"compliance_ok": true, "compliance_risk": false}, "reputation": -0.04}, "drivers": {"compliance": 2, "cash": -1}, "memory": "license"},
@@ -435,12 +435,13 @@
       "layer": "generic",
       "grammar": "CONFLICT",
       "spine": "hidden_conflict",
-      "title": "兩個承諾撞在一起",
-      "body": "你答應家裡的時間，和你答應客戶的交期，是同一個晚上。",
+      "title": "{customer}的交期撞上{kinWho}",
+      "body": "你答應客人{customer}的交期，和{kinWho}的{kinNeed}，是同一個晚上。",
+      "omen": "{kinWho}和{customer}都覺得你答應過他們。",
       "weight": 12, "cooldown": 20, "min_month": 6, "once": true, "major": true,
       "choices": [
-        {"id": "client", "label": "守住交期", "detail": "確定：信任 +0.04，照護壓力與意志下降。", "risk": "家里會記住這一次。", "effects": {"trust": 0.04, "will": -0.05, "care": 0.08}, "drivers": {"customer": 2, "family": -2}},
-        {"id": "home", "label": "守住家裡", "detail": "確定：交期延遲，信任 −0.05，意志回一點。", "risk": "大客戶尤其會記。", "effects": {"trust": -0.05, "will": 0.05, "revenue_mult": 0.94}, "drivers": {"family": 2, "customer": -2}, "memory": "family_photo"},
+        {"id": "client", "label": "守住{customer}的交期", "detail": "確定：{customer}的信任上升。{kinWho}的{kinNeed}這一次沒有人接，意志下降。", "risk": "{kinWho}會記住這一次。", "effects": {"trust": 0.04, "will": -0.05, "care": 0.08}, "drivers": {"customer": 2, "family": -2}},
+        {"id": "home", "label": "守住{kinWho}", "detail": "確定：{customer}的交期延遲，信任下降。你人在{kinNeed}。", "risk": "{customer}尤其會記。", "effects": {"trust": -0.05, "will": 0.05, "revenue_mult": 0.94}, "drivers": {"family": 2, "customer": -2}, "memory": "family_photo"},
         {"id": "say", "label": "兩邊都說實話，改期", "detail": "確定：收入略降，信任不額外懲罰。", "risk": "有人只接受一種答案。", "effects": {"revenue_mult": 0.96, "trust": 0.01, "will": 0.02}, "drivers": {"trust": 1}}
       ]
     },
@@ -916,8 +917,8 @@
       "id": "child_grown",
       "layer": "generic",
       "grammar": "FAMILY_SUCCESSION",
-      "title": "家里的下一代問能不能進來",
-      "body": "時間夠久了，孩子不再只是生活費的原因。對方想進公司。能力與血緣是兩件事。",
+      "title": "家里的下一代問能不能進{company}",
+      "body": "時間夠久了。問的人是你的孩子，不是別的親戚。對方想進{company}做事。能力與血緣是兩件事。",
       "requires": {"family": ["child", "elder", "partner"]},
       "weight": 8, "cooldown": 80, "min_month": 180, "once": true, "major": true,
       "choices": [

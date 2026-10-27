@@ -1,71 +1,983 @@
 {
   "industries": [
-    {"id": "food", "name": "餐飲及食品"},
-    {"id": "retail", "name": "零售及電商"},
-    {"id": "pro", "name": "專業服務"},
-    {"id": "edu", "name": "教育及培訓"},
-    {"id": "saas", "name": "數碼產品及 SaaS"},
-    {"id": "repair", "name": "維修及工程"},
-    {"id": "mfg", "name": "製造"},
-    {"id": "agri", "name": "農業及生物"},
-    {"id": "care", "name": "醫療及照護"},
-    {"id": "logi", "name": "物流、租賃及資產服務"},
-    {"id": "culture", "name": "創作及文化"},
-    {"id": "platform", "name": "平台及撮合"},
-    {"id": "fin", "name": "金融科技及商業基建"},
-    {"id": "energy", "name": "能源及環境服務"},
-    {"id": "enterprise", "name": "大型科技、企業軟件及資料服務"}
+    {
+      "id": "food",
+      "name": "餐飲及食品"
+    },
+    {
+      "id": "retail",
+      "name": "零售及電商"
+    },
+    {
+      "id": "pro",
+      "name": "專業服務"
+    },
+    {
+      "id": "edu",
+      "name": "教育及培訓"
+    },
+    {
+      "id": "saas",
+      "name": "數碼產品及 SaaS"
+    },
+    {
+      "id": "repair",
+      "name": "維修及工程"
+    },
+    {
+      "id": "mfg",
+      "name": "製造"
+    },
+    {
+      "id": "agri",
+      "name": "農業及生物"
+    },
+    {
+      "id": "care",
+      "name": "醫療及照護"
+    },
+    {
+      "id": "logi",
+      "name": "物流、租賃及資產服務"
+    },
+    {
+      "id": "culture",
+      "name": "創作及文化"
+    },
+    {
+      "id": "platform",
+      "name": "平台及撮合"
+    },
+    {
+      "id": "fin",
+      "name": "金融科技及商業基建"
+    },
+    {
+      "id": "energy",
+      "name": "能源及環境服務"
+    },
+    {
+      "id": "enterprise",
+      "name": "大型科技、企業軟件及資料服務"
+    }
   ],
   "gaps": [
-    {"id": "night_service", "family": "food", "weight": 1.1, "trend": 0.02, "demand": 1.15, "barrier": 0.32, "competition": 1.25, "stick": 0.35, "skill": 0.4, "capital": 0.45, "reg": 0.55, "declining": false, "field": "food", "quadrant": "高需求低門檻", "title": "深夜仍想吃到熱的", "problem": "社區夜班與加班的人，過了九點就沒有穩定出餐。", "unknown": "你不知道這是每日需求，還是只在發薪週出現。", "core": "九點以後仍有熱食", "tags": ["physical", "food", "hours"]},
-    {"id": "kitchen_prep", "family": "food", "weight": 1, "trend": 0.03, "demand": 0.95, "barrier": 0.48, "competition": 0.9, "stick": 0.55, "skill": 0.5, "capital": 0.5, "reg": 0.6, "declining": false, "field": "food", "quadrant": "高需求高門檻", "title": "小廚房不想自己備料", "problem": "小型餐廳需要乾淨的半成品，但不敢把味道交給中央廚房。", "unknown": "你不知道他們肯不肯為穩定多付一點。", "core": "味道還認得出來的備料", "tags": ["food", "b2b", "physical"]},
-    {"id": "same_day", "family": "retail", "weight": 1.15, "trend": 0.01, "demand": 1.12, "barrier": 0.28, "competition": 1.3, "stick": 0.3, "skill": 0.25, "capital": 0.4, "reg": 0.3, "declining": false, "field": "retail", "quadrant": "高需求低門檻", "title": "今天就要拿到", "problem": "鄰里日常用品可以網購，卻等不到今天。", "unknown": "你不知道便利是習慣，還是只是一時不耐。", "core": "當日能交到手上", "tags": ["retail", "physical", "speed"]},
-    {"id": "missing_sizes", "family": "retail", "weight": 0.9, "trend": 0.02, "demand": 0.72, "barrier": 0.38, "competition": 0.7, "stick": 0.6, "skill": 0.45, "capital": 0.35, "reg": 0.25, "declining": false, "field": "retail", "quadrant": "低需求高門檻", "title": "尺寸與口味永遠缺貨", "problem": "在地身材、在地口味的商品，大電商的頁面上永遠顯示缺貨。", "unknown": "你不知道缺貨是真需求，還是搜尋留下的錯覺。", "core": "把缺的尺寸留在架上", "tags": ["retail", "niche"]},
-    {"id": "shop_books", "family": "pro", "weight": 1.05, "trend": 0.04, "demand": 0.9, "barrier": 0.42, "competition": 0.85, "stick": 0.7, "skill": 0.65, "capital": 0.2, "reg": 0.5, "declining": false, "field": "pro", "quadrant": "高需求高門檻", "title": "小店不會記帳簿", "problem": "店主知道現金不對，但請不起一間事務所，也不敢把數字交給陌生人。", "unknown": "你不知道他們要的是報稅，還是要有人解釋現金去了哪。", "core": "用店主聽得懂的話記帳", "tags": ["service", "trust", "b2b"]},
-    {"id": "contract_collect", "family": "pro", "weight": 1, "trend": 0.035, "demand": 0.82, "barrier": 0.5, "competition": 0.8, "stick": 0.62, "skill": 0.6, "capital": 0.25, "reg": 0.7, "declining": false, "field": "pro", "quadrant": "高需求高門檻", "title": "工作做完了，錢沒有進來", "problem": "自由工作者會做事，不會催收，也不敢把合約寫硬。", "unknown": "你不知道拖延的是客戶習慣，還是你的城市的帳期。", "core": "先把付款寫成句子", "tags": ["service", "b2b", "cash"]},
-    {"id": "night_craft", "family": "edu", "weight": 1, "trend": 0.025, "demand": 0.88, "barrier": 0.33, "competition": 1, "stick": 0.4, "skill": 0.55, "capital": 0.25, "reg": 0.35, "declining": false, "field": "edu", "quadrant": "高需求低門檻", "title": "下班後想學一門能用的手藝", "problem": "在職的人夜間有空，城市裡的課卻停在白天，或停在證書。", "unknown": "你不知道他們要作品，還是要一個班級的陪伴。", "core": "夜間能學會、明天用得上", "tags": ["service", "hours", "edu"]},
-    {"id": "lesson_only", "family": "edu", "weight": 0.75, "trend": -0.05, "demand": 0.7, "barrier": 0.36, "competition": 1.15, "stick": 0.28, "skill": 0.4, "capital": 0.3, "reg": 0.4, "declining": true, "field": "edu", "quadrant": "低需求低門檻", "title": "只賣課時的補習", "problem": "家長已經不願意只為鐘點付費，但街上仍全是課時單。", "unknown": "你不知道這門生意是能改，還是只能縮小。", "core": "把進度留給下一個老師也看得懂", "tags": ["edu", "declining", "service"]},
-    {"id": "inventory_tool", "family": "saas", "weight": 1.05, "trend": 0.06, "demand": 1, "barrier": 0.52, "competition": 1.05, "stick": 0.66, "skill": 0.7, "capital": 0.45, "reg": 0.3, "declining": false, "field": "saas", "quadrant": "高需求高門檻", "title": "庫存還躺在表格裡", "problem": "小店用表格管庫存，每月對不上，又負擔不起大軟體。", "unknown": "你不知道他們會不會為一個月費改變習慣。", "core": "讓店主相信數字", "tags": ["digital", "saas", "b2b"]},
-    {"id": "quote_mess", "family": "saas", "weight": 0.95, "trend": 0.05, "demand": 0.84, "barrier": 0.5, "competition": 0.9, "stick": 0.6, "skill": 0.68, "capital": 0.4, "reg": 0.25, "declining": false, "field": "saas", "quadrant": "高需求高門檻", "title": "報價在聊天紀錄裡失控", "problem": "同一張單有三個版本，沒有人知道哪一版算數。", "unknown": "你不知道痛的是老闆，還是只是第一線在抱怨。", "core": "一份算數的報價", "tags": ["digital", "saas", "b2b"]},
-    {"id": "aging_repair", "family": "repair", "weight": 0.8, "trend": -0.04, "demand": 0.68, "barrier": 0.42, "competition": 0.6, "stick": 0.5, "skill": 0.75, "capital": 0.3, "reg": 0.35, "declining": true, "field": "repair", "quadrant": "低需求高門檻", "title": "急件維修後繼無人", "problem": "會修舊家電的人在變老，年輕人只肯換新的。", "unknown": "你不知道這是手藝的結尾，還是還有人願意學。", "core": "急件有人接，方法有人接得走", "tags": ["repair", "declining", "craft"]},
-    {"id": "building_pipes", "family": "repair", "weight": 1.1, "trend": 0.015, "demand": 1.05, "barrier": 0.34, "competition": 1.05, "stick": 0.45, "skill": 0.55, "capital": 0.25, "reg": 0.4, "declining": false, "field": "repair", "quadrant": "高需求低門檻", "title": "老房子的水電沒有可信報價", "problem": "公寓一漏水，報價從親切到嚇人都有，住戶無法判斷。", "unknown": "你不知道信任來自分項報價，還是來自分鐘到場。", "core": "報價寫清楚、修完留紀錄", "tags": ["repair", "service", "trust"]},
-    {"id": "short_run", "family": "mfg", "weight": 0.9, "trend": 0.03, "demand": 0.78, "barrier": 0.72, "competition": 0.55, "stick": 0.58, "skill": 0.6, "capital": 0.8, "reg": 0.5, "declining": false, "field": "mfg", "quadrant": "低需求高門檻", "title": "小批量沒有廠願意接", "problem": "短單、試單、補單，大廠的產線排不進去。", "unknown": "你不知道短單是入口，還是永遠只是短單。", "core": "小單也有交期", "tags": ["mfg", "b2b", "factory"]},
-    {"id": "compliance_pack", "family": "mfg", "weight": 0.85, "trend": 0.04, "demand": 0.74, "barrier": 0.68, "competition": 0.5, "stick": 0.64, "skill": 0.7, "capital": 0.6, "reg": 0.85, "declining": false, "field": "mfg", "quadrant": "高需求高門檻", "title": "新的出口包裝規則", "problem": "小廠的貨過得了客戶，過不了新的包裝與標示。", "unknown": "你不知道規則會穩定下來，還是每年都改。", "core": "讓小廠的箱子過得了關", "tags": ["mfg", "reg", "b2b"]},
-    {"id": "farm_sourcing", "family": "agri", "weight": 1, "trend": 0.025, "demand": 0.86, "barrier": 0.58, "competition": 0.75, "stick": 0.6, "skill": 0.55, "capital": 0.5, "reg": 0.45, "declining": false, "field": "food", "quadrant": "高需求高門檻", "title": "餐廳訂不到穩定的本地菜", "problem": "小型餐廳想向附近農戶採購，但數量、冷鏈與週期對不上。", "unknown": "你不知道農戶要的是預付，還是一個不會臨時取消的訂單。", "core": "可追溯的採購承諾", "tags": ["food", "agri", "platform"]},
-    {"id": "offgrade", "family": "agri", "weight": 0.7, "trend": -0.03, "demand": 0.55, "barrier": 0.4, "competition": 0.65, "stick": 0.35, "skill": 0.4, "capital": 0.35, "reg": 0.3, "declining": true, "field": "food", "quadrant": "低需求低門檻", "title": "規格外的菜沒有去處", "problem": "賣相不合格的農產與剩食，通路在變薄，價格年年更差。", "unknown": "你不知道這是一門生意，還是一件只值得被好好結束的事。", "core": "不把還能吃的東西悄悄倒掉", "tags": ["agri", "declining", "food"]},
-    {"id": "care_night", "family": "care", "weight": 0.95, "trend": 0.045, "demand": 0.9, "barrier": 0.66, "competition": 0.7, "stick": 0.72, "skill": 0.7, "capital": 0.35, "reg": 0.9, "declining": false, "field": "care", "quadrant": "高需求高門檻", "title": "夜裡沒有替手", "problem": "家庭照顧者可以撐白天，夜裡找不到可靠的人接手幾個小時。", "unknown": "你不知道阻礙是價格、信任，還是牌照。", "core": "夜裡有人接得住", "tags": ["care", "service", "hours", "reg"]},
-    {"id": "city_delivery", "family": "logi", "weight": 1.15, "trend": 0.05, "demand": 1.18, "barrier": 0.4, "competition": 1.35, "stick": 0.33, "skill": 0.35, "capital": 0.55, "reg": 0.4, "declining": false, "field": "logi", "quadrant": "高需求低門檻", "title": "同城當日對小店太貴", "problem": "平台配送吃掉小店的毛利，自己送又送不完。", "unknown": "你不知道他們要的是更低的價格，還是一個不會在下雨天消失的人。", "core": "小店付得起的當日達", "tags": ["logi", "platform", "speed"]},
-    {"id": "creator_venue", "family": "culture", "weight": 0.85, "trend": 0.01, "demand": 0.62, "barrier": 0.36, "competition": 0.8, "stick": 0.5, "skill": 0.45, "capital": 0.4, "reg": 0.3, "declining": false, "field": "culture", "quadrant": "低需求高門檻", "title": "檔期與分成都不透明", "problem": "在地創作者找得到作品，找不到穩定檔期，也看不懂分成。", "unknown": "你不知道場地缺的是日子，還是觀眾。", "core": "分成寫在一頁紙上", "tags": ["culture", "venue"]},
-    {"id": "small_print", "family": "culture", "weight": 0.65, "trend": -0.07, "demand": 0.48, "barrier": 0.3, "competition": 0.5, "stick": 0.55, "skill": 0.5, "capital": 0.35, "reg": 0.2, "declining": true, "field": "culture", "quadrant": "低需求低門檻", "title": "印量太小，沒有廠願意印", "problem": "獨立刊物的市場逐年變薄，印刷廠的最低印量卻逐年變高。", "unknown": "你不知道該把印量救回來，還是把編輯方法留下。", "core": "小印量也值得被做完", "tags": ["culture", "declining", "craft"]},
-    {"id": "group_buy", "family": "platform", "weight": 1.1, "trend": 0.03, "demand": 1.05, "barrier": 0.33, "competition": 1.4, "stick": 0.38, "skill": 0.3, "capital": 0.3, "reg": 0.35, "declining": false, "field": "retail", "quadrant": "高需求低門檻", "title": "想一起買，沒有人願意當中間", "problem": "同類小店想團購原料，但沒有人肯扛對帳、配送與投訴。", "unknown": "你不知道信任夠不夠支撐抽成。", "core": "中間人把帳算清楚", "tags": ["platform", "b2b", "food"]},
-    {"id": "micro_float", "family": "fin", "weight": 0.9, "trend": 0.04, "demand": 0.92, "barrier": 0.74, "competition": 0.85, "stick": 0.6, "skill": 0.65, "capital": 0.7, "reg": 0.95, "declining": false, "field": "fin", "quadrant": "高需求高門檻", "title": "小額週轉過不了銀行的文件", "problem": "小店差的是兩週的現金，不是一筆看不懂的貸款。", "unknown": "你不知道卡關的是信用，還是表格。", "core": "週轉不拿店主的家去賭", "tags": ["fin", "reg", "b2b"]},
-    {"id": "energy_audit", "family": "energy", "weight": 0.8, "trend": 0.05, "demand": 0.7, "barrier": 0.6, "competition": 0.55, "stick": 0.58, "skill": 0.7, "capital": 0.45, "reg": 0.55, "declining": false, "field": "repair", "quadrant": "低需求高門檻", "title": "電費花在哪，沒有人說得清", "problem": "老店與小廠想降電費，找不到肯做小案的節能改造。", "unknown": "你不知道他們要報告，還是要這個月的帳單真的下降。", "core": "先讓帳單下降，再談設備", "tags": ["energy", "b2b", "service"]},
-    {"id": "legacy_data", "family": "enterprise", "weight": 0.85, "trend": 0.045, "demand": 0.8, "barrier": 0.78, "competition": 0.6, "stick": 0.7, "skill": 0.8, "capital": 0.55, "reg": 0.5, "declining": false, "field": "saas", "quadrant": "高需求高門檻", "title": "同一張表，每個月重做一次", "problem": "老公司的數字散在各處，沒有人敢換系統，只好每月手工合併。", "unknown": "你不知道痛在資訊部門，還是在那個每個月加班做表的人。", "core": "同一張表不用再做第二次", "tags": ["enterprise", "digital", "b2b"]}
+    {
+      "id": "night_service",
+      "family": "food",
+      "weight": 1.1,
+      "trend": 0.02,
+      "demand": 1.15,
+      "barrier": 0.32,
+      "competition": 1.25,
+      "stick": 0.35,
+      "skill": 0.4,
+      "capital": 0.45,
+      "reg": 0.55,
+      "declining": false,
+      "field": "food",
+      "quadrant": "高需求低門檻",
+      "title": "深夜仍想吃到熱的",
+      "problem": "社區夜班與加班的人，過了九點就沒有穩定出餐。",
+      "unknown": "你不知道這是每日需求，還是只在發薪週出現。",
+      "core": "九點以後仍有熱食",
+      "tags": [
+        "physical",
+        "food",
+        "hours"
+      ],
+      "work": {
+        "name": "夜間熱食",
+        "does": "你做的是九點以後仍熱的一餐。",
+        "sells": "熱食",
+        "buyer": "夜班與加班的街坊",
+        "unit": "一餐"
+      }
+    },
+    {
+      "id": "kitchen_prep",
+      "family": "food",
+      "weight": 1,
+      "trend": 0.03,
+      "demand": 0.95,
+      "barrier": 0.48,
+      "competition": 0.9,
+      "stick": 0.55,
+      "skill": 0.5,
+      "capital": 0.5,
+      "reg": 0.6,
+      "declining": false,
+      "field": "food",
+      "quadrant": "高需求高門檻",
+      "title": "小廚房不想自己備料",
+      "problem": "小型餐廳需要乾淨的半成品，但不敢把味道交給中央廚房。",
+      "unknown": "你不知道他們肯不肯為穩定多付一點。",
+      "core": "味道還認得出來的備料",
+      "tags": [
+        "food",
+        "b2b",
+        "physical"
+      ],
+      "work": {
+        "name": "廚房備料",
+        "does": "你做的是小餐廳用的半成品。",
+        "sells": "備料",
+        "buyer": "不想自己備料的小廚房",
+        "unit": "一批備料"
+      }
+    },
+    {
+      "id": "same_day",
+      "family": "retail",
+      "weight": 1.15,
+      "trend": 0.01,
+      "demand": 1.12,
+      "barrier": 0.28,
+      "competition": 1.3,
+      "stick": 0.3,
+      "skill": 0.25,
+      "capital": 0.4,
+      "reg": 0.3,
+      "declining": false,
+      "field": "retail",
+      "quadrant": "高需求低門檻",
+      "title": "今天就要拿到",
+      "problem": "鄰里日常用品可以網購，卻等不到今天。",
+      "unknown": "你不知道便利是習慣，還是只是一時不耐。",
+      "core": "當日能交到手上",
+      "tags": [
+        "retail",
+        "physical",
+        "speed"
+      ],
+      "work": {
+        "name": "當日送到的日用品",
+        "does": "你做的是今天就能交到手上的鄰里用品。",
+        "sells": "日用品",
+        "buyer": "等不及網購的鄰居",
+        "unit": "一件"
+      }
+    },
+    {
+      "id": "missing_sizes",
+      "family": "retail",
+      "weight": 0.9,
+      "trend": 0.02,
+      "demand": 0.72,
+      "barrier": 0.38,
+      "competition": 0.7,
+      "stick": 0.6,
+      "skill": 0.45,
+      "capital": 0.35,
+      "reg": 0.25,
+      "declining": false,
+      "field": "retail",
+      "quadrant": "低需求高門檻",
+      "title": "尺寸與口味永遠缺貨",
+      "problem": "在地身材、在地口味的商品，大電商的頁面上永遠顯示缺貨。",
+      "unknown": "你不知道缺貨是真需求，還是搜尋留下的錯覺。",
+      "core": "把缺的尺寸留在架上",
+      "tags": [
+        "retail",
+        "niche"
+      ],
+      "work": {
+        "name": "缺貨的尺寸與口味",
+        "does": "你做的是大電商頁面上永遠缺貨的在地尺寸和口味。",
+        "sells": "缺貨商品",
+        "buyer": "找不到自己尺寸的人",
+        "unit": "一件"
+      }
+    },
+    {
+      "id": "shop_books",
+      "family": "pro",
+      "weight": 1.05,
+      "trend": 0.04,
+      "demand": 0.9,
+      "barrier": 0.42,
+      "competition": 0.85,
+      "stick": 0.7,
+      "skill": 0.65,
+      "capital": 0.2,
+      "reg": 0.5,
+      "declining": false,
+      "field": "pro",
+      "quadrant": "高需求高門檻",
+      "title": "小店不會記帳簿",
+      "problem": "店主知道現金不對，但請不起一間事務所，也不敢把數字交給陌生人。",
+      "unknown": "你不知道他們要的是報稅，還是要有人解釋現金去了哪。",
+      "core": "用店主聽得懂的話記帳",
+      "tags": [
+        "service",
+        "trust",
+        "b2b"
+      ],
+      "work": {
+        "name": "小店記帳",
+        "does": "你做的是用店主聽得懂的話，把小店的現金記清楚。",
+        "sells": "記帳",
+        "buyer": "現金對不上的店主",
+        "unit": "一個月的帳"
+      }
+    },
+    {
+      "id": "contract_collect",
+      "family": "pro",
+      "weight": 1,
+      "trend": 0.035,
+      "demand": 0.82,
+      "barrier": 0.5,
+      "competition": 0.8,
+      "stick": 0.62,
+      "skill": 0.6,
+      "capital": 0.25,
+      "reg": 0.7,
+      "declining": false,
+      "field": "pro",
+      "quadrant": "高需求高門檻",
+      "title": "工作做完了，錢沒有進來",
+      "problem": "自由工作者會做事，不會催收，也不敢把合約寫硬。",
+      "unknown": "你不知道拖延的是客戶習慣，還是你的城市的帳期。",
+      "core": "先把付款寫成句子",
+      "tags": [
+        "service",
+        "b2b",
+        "cash"
+      ],
+      "work": {
+        "name": "催收與合約",
+        "does": "你做的是把做完的工作寫成收得到的句子，並把錢追進來。",
+        "sells": "催收",
+        "buyer": "會做事但收不到錢的人",
+        "unit": "一張合約"
+      }
+    },
+    {
+      "id": "night_craft",
+      "family": "edu",
+      "weight": 1,
+      "trend": 0.025,
+      "demand": 0.88,
+      "barrier": 0.33,
+      "competition": 1,
+      "stick": 0.4,
+      "skill": 0.55,
+      "capital": 0.25,
+      "reg": 0.35,
+      "declining": false,
+      "field": "edu",
+      "quadrant": "高需求低門檻",
+      "title": "下班後想學一門能用的手藝",
+      "problem": "在職的人夜間有空，城市裡的課卻停在白天，或停在證書。",
+      "unknown": "你不知道他們要作品，還是要一個班級的陪伴。",
+      "core": "夜間能學會、明天用得上",
+      "tags": [
+        "service",
+        "hours",
+        "edu"
+      ],
+      "work": {
+        "name": "夜間手藝課",
+        "does": "你做的是下班以後、明天用得上的手藝課。",
+        "sells": "夜課",
+        "buyer": "想學一門手藝的在職人",
+        "unit": "一堂課"
+      }
+    },
+    {
+      "id": "lesson_only",
+      "family": "edu",
+      "weight": 0.75,
+      "trend": -0.05,
+      "demand": 0.7,
+      "barrier": 0.36,
+      "competition": 1.15,
+      "stick": 0.28,
+      "skill": 0.4,
+      "capital": 0.3,
+      "reg": 0.4,
+      "declining": true,
+      "field": "edu",
+      "quadrant": "低需求低門檻",
+      "title": "只賣課時的補習",
+      "problem": "家長已經不願意只為鐘點付費，但街上仍全是課時單。",
+      "unknown": "你不知道這門生意是能改，還是只能縮小。",
+      "core": "把進度留給下一個老師也看得懂",
+      "tags": [
+        "edu",
+        "declining",
+        "service"
+      ],
+      "work": {
+        "name": "課時補習",
+        "does": "你做的是按鐘點賣的補習。",
+        "sells": "課時",
+        "buyer": "仍在比較補習班的家長",
+        "unit": "一小時"
+      }
+    },
+    {
+      "id": "inventory_tool",
+      "family": "saas",
+      "weight": 1.05,
+      "trend": 0.06,
+      "demand": 1,
+      "barrier": 0.52,
+      "competition": 1.05,
+      "stick": 0.66,
+      "skill": 0.7,
+      "capital": 0.45,
+      "reg": 0.3,
+      "declining": false,
+      "field": "saas",
+      "quadrant": "高需求高門檻",
+      "title": "庫存還躺在表格裡",
+      "problem": "小店用表格管庫存，每月對不上，又負擔不起大軟體。",
+      "unknown": "你不知道他們會不會為一個月費改變習慣。",
+      "core": "讓店主相信數字",
+      "tags": [
+        "digital",
+        "saas",
+        "b2b"
+      ],
+      "work": {
+        "name": "小店庫存工具",
+        "does": "你做的是讓小店不必用大軟體，也能相信自己的庫存數字。",
+        "sells": "庫存工具",
+        "buyer": "用表格管庫存的店主",
+        "unit": "一個月費"
+      }
+    },
+    {
+      "id": "quote_mess",
+      "family": "saas",
+      "weight": 0.95,
+      "trend": 0.05,
+      "demand": 0.84,
+      "barrier": 0.5,
+      "competition": 0.9,
+      "stick": 0.6,
+      "skill": 0.68,
+      "capital": 0.4,
+      "reg": 0.25,
+      "declining": false,
+      "field": "saas",
+      "quadrant": "高需求高門檻",
+      "title": "報價在聊天紀錄裡失控",
+      "problem": "同一張單有三個版本，沒有人知道哪一版算數。",
+      "unknown": "你不知道痛的是老闆，還是只是第一線在抱怨。",
+      "core": "一份算數的報價",
+      "tags": [
+        "digital",
+        "saas",
+        "b2b"
+      ],
+      "work": {
+        "name": "算數的報價",
+        "does": "你做的是讓同一張單只留一份算數的報價。",
+        "sells": "報價工具",
+        "buyer": "報價散在聊天紀錄裡的公司",
+        "unit": "一份報價"
+      }
+    },
+    {
+      "id": "aging_repair",
+      "family": "repair",
+      "weight": 0.8,
+      "trend": -0.04,
+      "demand": 0.68,
+      "barrier": 0.42,
+      "competition": 0.6,
+      "stick": 0.5,
+      "skill": 0.75,
+      "capital": 0.3,
+      "reg": 0.35,
+      "declining": true,
+      "field": "repair",
+      "quadrant": "低需求高門檻",
+      "title": "急件維修後繼無人",
+      "problem": "會修舊家電的人在變老，年輕人只肯換新的。",
+      "unknown": "你不知道這是手藝的結尾，還是還有人願意學。",
+      "core": "急件有人接，方法有人接得走",
+      "tags": [
+        "repair",
+        "declining",
+        "craft"
+      ],
+      "work": {
+        "name": "舊家電急修",
+        "does": "你做的是還有人肯修的舊家電急件。",
+        "sells": "急修",
+        "buyer": "不肯直接換新的人",
+        "unit": "一件急修"
+      }
+    },
+    {
+      "id": "building_pipes",
+      "family": "repair",
+      "weight": 1.1,
+      "trend": 0.015,
+      "demand": 1.05,
+      "barrier": 0.34,
+      "competition": 1.05,
+      "stick": 0.45,
+      "skill": 0.55,
+      "capital": 0.25,
+      "reg": 0.4,
+      "declining": false,
+      "field": "repair",
+      "quadrant": "高需求低門檻",
+      "title": "老房子的水電沒有可信報價",
+      "problem": "公寓一漏水，報價從親切到嚇人都有，住戶無法判斷。",
+      "unknown": "你不知道信任來自分項報價，還是來自分鐘到場。",
+      "core": "報價寫清楚、修完留紀錄",
+      "tags": [
+        "repair",
+        "service",
+        "trust"
+      ],
+      "work": {
+        "name": "老房子水電",
+        "does": "你做的是老房子漏水時，寫得清楚、修完留紀錄的水電報價。",
+        "sells": "水電",
+        "buyer": "無法判斷報價的住戶",
+        "unit": "一張報價"
+      }
+    },
+    {
+      "id": "short_run",
+      "family": "mfg",
+      "weight": 0.9,
+      "trend": 0.03,
+      "demand": 0.78,
+      "barrier": 0.72,
+      "competition": 0.55,
+      "stick": 0.58,
+      "skill": 0.6,
+      "capital": 0.8,
+      "reg": 0.5,
+      "declining": false,
+      "field": "mfg",
+      "quadrant": "低需求高門檻",
+      "title": "小批量沒有廠願意接",
+      "problem": "短單、試單、補單，大廠的產線排不進去。",
+      "unknown": "你不知道短單是入口，還是永遠只是短單。",
+      "core": "小單也有交期",
+      "tags": [
+        "mfg",
+        "b2b",
+        "factory"
+      ],
+      "work": {
+        "name": "小批量製造",
+        "does": "你做的是大廠排不進產線的短單、試單和補單。",
+        "sells": "小單",
+        "buyer": "需要短單的客戶",
+        "unit": "一張工單"
+      }
+    },
+    {
+      "id": "compliance_pack",
+      "family": "mfg",
+      "weight": 0.85,
+      "trend": 0.04,
+      "demand": 0.74,
+      "barrier": 0.68,
+      "competition": 0.5,
+      "stick": 0.64,
+      "skill": 0.7,
+      "capital": 0.6,
+      "reg": 0.85,
+      "declining": false,
+      "field": "mfg",
+      "quadrant": "高需求高門檻",
+      "title": "新的出口包裝規則",
+      "problem": "小廠的貨過得了客戶，過不了新的包裝與標示。",
+      "unknown": "你不知道規則會穩定下來，還是每年都改。",
+      "core": "讓小廠的箱子過得了關",
+      "tags": [
+        "mfg",
+        "reg",
+        "b2b"
+      ],
+      "work": {
+        "name": "出口包裝",
+        "does": "你做的是讓小廠的箱子過得了新的包裝和標示。",
+        "sells": "合規包裝",
+        "buyer": "貨過得了客戶、過不了關的小廠",
+        "unit": "一批包裝"
+      }
+    },
+    {
+      "id": "farm_sourcing",
+      "family": "agri",
+      "weight": 1,
+      "trend": 0.025,
+      "demand": 0.86,
+      "barrier": 0.58,
+      "competition": 0.75,
+      "stick": 0.6,
+      "skill": 0.55,
+      "capital": 0.5,
+      "reg": 0.45,
+      "declining": false,
+      "field": "food",
+      "quadrant": "高需求高門檻",
+      "title": "餐廳訂不到穩定的本地菜",
+      "problem": "小型餐廳想向附近農戶採購，但數量、冷鏈與週期對不上。",
+      "unknown": "你不知道農戶要的是預付，還是一個不會臨時取消的訂單。",
+      "core": "可追溯的採購承諾",
+      "tags": [
+        "food",
+        "agri",
+        "platform"
+      ],
+      "work": {
+        "name": "餐廳的本地菜",
+        "does": "你做的是把附近農戶的菜，按數量和週期交到小餐廳。",
+        "sells": "本地菜",
+        "buyer": "想穩定採購的小餐廳",
+        "unit": "一週的菜"
+      }
+    },
+    {
+      "id": "offgrade",
+      "family": "agri",
+      "weight": 0.7,
+      "trend": -0.03,
+      "demand": 0.55,
+      "barrier": 0.4,
+      "competition": 0.65,
+      "stick": 0.35,
+      "skill": 0.4,
+      "capital": 0.35,
+      "reg": 0.3,
+      "declining": true,
+      "field": "food",
+      "quadrant": "低需求低門檻",
+      "title": "規格外的菜沒有去處",
+      "problem": "賣相不合格的農產與剩食，通路在變薄，價格年年更差。",
+      "unknown": "你不知道這是一門生意，還是一件只值得被好好結束的事。",
+      "core": "不把還能吃的東西悄悄倒掉",
+      "tags": [
+        "agri",
+        "declining",
+        "food"
+      ],
+      "work": {
+        "name": "規格外的菜",
+        "does": "你做的是賣相不合格、但還能吃的農產和剩食。",
+        "sells": "規格外的菜",
+        "buyer": "還願意收下這些菜的人",
+        "unit": "一批"
+      }
+    },
+    {
+      "id": "care_night",
+      "family": "care",
+      "weight": 0.95,
+      "trend": 0.045,
+      "demand": 0.9,
+      "barrier": 0.66,
+      "competition": 0.7,
+      "stick": 0.72,
+      "skill": 0.7,
+      "capital": 0.35,
+      "reg": 0.9,
+      "declining": false,
+      "field": "care",
+      "quadrant": "高需求高門檻",
+      "title": "夜裡沒有替手",
+      "problem": "家庭照顧者可以撐白天，夜裡找不到可靠的人接手幾個小時。",
+      "unknown": "你不知道阻礙是價格、信任，還是牌照。",
+      "core": "夜裡有人接得住",
+      "tags": [
+        "care",
+        "service",
+        "hours",
+        "reg"
+      ],
+      "work": {
+        "name": "夜間照護替手",
+        "does": "你做的是夜裡接手幾個小時的照護。這是客人的生意，不是你家里的那一件事。",
+        "sells": "夜間替手",
+        "buyer": "白天撐得住、夜裡需要人接手的家庭",
+        "unit": "幾個小時"
+      }
+    },
+    {
+      "id": "city_delivery",
+      "family": "logi",
+      "weight": 1.15,
+      "trend": 0.05,
+      "demand": 1.18,
+      "barrier": 0.4,
+      "competition": 1.35,
+      "stick": 0.33,
+      "skill": 0.35,
+      "capital": 0.55,
+      "reg": 0.4,
+      "declining": false,
+      "field": "logi",
+      "quadrant": "高需求低門檻",
+      "title": "同城當日對小店太貴",
+      "problem": "平台配送吃掉小店的毛利，自己送又送不完。",
+      "unknown": "你不知道他們要的是更低的價格，還是一個不會在下雨天消失的人。",
+      "core": "小店付得起的當日達",
+      "tags": [
+        "logi",
+        "platform",
+        "speed"
+      ],
+      "work": {
+        "name": "小店當日送",
+        "does": "你做的是小店付得起、下雨天也不消失的同城當日送。",
+        "sells": "當日送",
+        "buyer": "被平台運費吃掉毛利的小店",
+        "unit": "一趟"
+      }
+    },
+    {
+      "id": "creator_venue",
+      "family": "culture",
+      "weight": 0.85,
+      "trend": 0.01,
+      "demand": 0.62,
+      "barrier": 0.36,
+      "competition": 0.8,
+      "stick": 0.5,
+      "skill": 0.45,
+      "capital": 0.4,
+      "reg": 0.3,
+      "declining": false,
+      "field": "culture",
+      "quadrant": "低需求高門檻",
+      "title": "檔期與分成都不透明",
+      "problem": "在地創作者找得到作品，找不到穩定檔期，也看不懂分成。",
+      "unknown": "你不知道場地缺的是日子，還是觀眾。",
+      "core": "分成寫在一頁紙上",
+      "tags": [
+        "culture",
+        "venue"
+      ],
+      "work": {
+        "name": "創作者檔期",
+        "does": "你做的是把在地創作者的檔期和分成寫在一頁紙上。",
+        "sells": "檔期",
+        "buyer": "找得到作品、看不懂分成的創作者",
+        "unit": "一個檔期"
+      }
+    },
+    {
+      "id": "small_print",
+      "family": "culture",
+      "weight": 0.65,
+      "trend": -0.07,
+      "demand": 0.48,
+      "barrier": 0.3,
+      "competition": 0.5,
+      "stick": 0.55,
+      "skill": 0.5,
+      "capital": 0.35,
+      "reg": 0.2,
+      "declining": true,
+      "field": "culture",
+      "quadrant": "低需求低門檻",
+      "title": "印量太小，沒有廠願意印",
+      "problem": "獨立刊物的市場逐年變薄，印刷廠的最低印量卻逐年變高。",
+      "unknown": "你不知道該把印量救回來，還是把編輯方法留下。",
+      "core": "小印量也值得被做完",
+      "tags": [
+        "culture",
+        "declining",
+        "craft"
+      ],
+      "work": {
+        "name": "小印量印刷",
+        "does": "你做的是大廠不肯接的小印量。",
+        "sells": "小印量",
+        "buyer": "獨立刊物",
+        "unit": "一次印刷"
+      }
+    },
+    {
+      "id": "group_buy",
+      "family": "platform",
+      "weight": 1.1,
+      "trend": 0.03,
+      "demand": 1.05,
+      "barrier": 0.33,
+      "competition": 1.4,
+      "stick": 0.38,
+      "skill": 0.3,
+      "capital": 0.3,
+      "reg": 0.35,
+      "declining": false,
+      "field": "retail",
+      "quadrant": "高需求低門檻",
+      "title": "想一起買，沒有人願意當中間",
+      "problem": "同類小店想團購原料，但沒有人肯扛對帳、配送與投訴。",
+      "unknown": "你不知道信任夠不夠支撐抽成。",
+      "core": "中間人把帳算清楚",
+      "tags": [
+        "platform",
+        "b2b",
+        "food"
+      ],
+      "work": {
+        "name": "小店團購",
+        "does": "你做的是替同類小店把原料團購的對帳、配送和投訴扛起來。",
+        "sells": "團購",
+        "buyer": "想一起買原料的小店",
+        "unit": "一輪團購"
+      }
+    },
+    {
+      "id": "micro_float",
+      "family": "fin",
+      "weight": 0.9,
+      "trend": 0.04,
+      "demand": 0.92,
+      "barrier": 0.74,
+      "competition": 0.85,
+      "stick": 0.6,
+      "skill": 0.65,
+      "capital": 0.7,
+      "reg": 0.95,
+      "declining": false,
+      "field": "fin",
+      "quadrant": "高需求高門檻",
+      "title": "小額週轉過不了銀行的文件",
+      "problem": "小店差的是兩週的現金，不是一筆看不懂的貸款。",
+      "unknown": "你不知道卡關的是信用，還是表格。",
+      "core": "週轉不拿店主的家去賭",
+      "tags": [
+        "fin",
+        "reg",
+        "b2b"
+      ],
+      "work": {
+        "name": "小額週轉",
+        "does": "你做的是小店差的那兩週現金，而不是一筆看不懂的貸款。",
+        "sells": "週轉",
+        "buyer": "過不了銀行文件的小店",
+        "unit": "一筆週轉"
+      }
+    },
+    {
+      "id": "energy_audit",
+      "family": "energy",
+      "weight": 0.8,
+      "trend": 0.05,
+      "demand": 0.7,
+      "barrier": 0.6,
+      "competition": 0.55,
+      "stick": 0.58,
+      "skill": 0.7,
+      "capital": 0.45,
+      "reg": 0.55,
+      "declining": false,
+      "field": "repair",
+      "quadrant": "低需求高門檻",
+      "title": "電費花在哪，沒有人說得清",
+      "problem": "老店與小廠想降電費，找不到肯做小案的節能改造。",
+      "unknown": "你不知道他們要報告，還是要這個月的帳單真的下降。",
+      "core": "先讓帳單下降，再談設備",
+      "tags": [
+        "energy",
+        "b2b",
+        "service"
+      ],
+      "work": {
+        "name": "小案節能",
+        "does": "你做的是讓老店和小廠這個月的電費真的下降。",
+        "sells": "節能",
+        "buyer": "看不懂電費花在哪的店和廠",
+        "unit": "一張帳單"
+      }
+    },
+    {
+      "id": "legacy_data",
+      "family": "enterprise",
+      "weight": 0.85,
+      "trend": 0.045,
+      "demand": 0.8,
+      "barrier": 0.78,
+      "competition": 0.6,
+      "stick": 0.7,
+      "skill": 0.8,
+      "capital": 0.55,
+      "reg": 0.5,
+      "declining": false,
+      "field": "saas",
+      "quadrant": "高需求高門檻",
+      "title": "同一張表，每個月重做一次",
+      "problem": "老公司的數字散在各處，沒有人敢換系統，只好每月手工合併。",
+      "unknown": "你不知道痛在資訊部門，還是在那個每個月加班做表的人。",
+      "core": "同一張表不用再做第二次",
+      "tags": [
+        "enterprise",
+        "digital",
+        "b2b"
+      ],
+      "work": {
+        "name": "同一張表",
+        "does": "你做的是讓老公司散落的數字不用每個月重做一次。",
+        "sells": "報表",
+        "buyer": "每個月加班合併表格的人",
+        "unit": "一張表"
+      }
+    }
   ],
-  "name_a": ["夜燈", "田頭", "短單", "替手", "冷櫃", "舊牌", "第三桌", "未完稿", "小額", "迴路", "剩食", "手帖", "街口", "午後", "紙上", "慢火", "替班", "一樓", "對頁", "雨天"],
+  "name_a": [
+    "夜燈",
+    "田頭",
+    "短單",
+    "替手",
+    "冷櫃",
+    "舊牌",
+    "第三桌",
+    "未完稿",
+    "小額",
+    "迴路",
+    "剩食",
+    "手帖",
+    "街口",
+    "午後",
+    "紙上",
+    "慢火",
+    "替班",
+    "一樓",
+    "對頁",
+    "雨天"
+  ],
   "name_b": {
-    "food": ["食堂", "小館", "灶", "食室"],
-    "retail": ["舖", "選物", "櫃"],
-    "pro": ["事務", "記", "室"],
-    "edu": ["夜課", "學社", "班"],
-    "saas": ["表", "系統", "冊"],
-    "repair": ["修", "班", "號"],
-    "mfg": ["工場", "製作", "箱"],
-    "agri": ["田", "集", "簿"],
-    "care": ["替", "夜班", "手"],
-    "logi": ["送", "驛", "車"],
-    "culture": ["刊", "場", "稿"],
-    "platform": ["集", "中間", "社"],
-    "fin": ["週轉", "據", "冊"],
-    "energy": ["瓦", "帳", "改"],
-    "enterprise": ["表", "檔", "線"]
+    "food": [
+      "食堂",
+      "小館",
+      "灶",
+      "食室"
+    ],
+    "retail": [
+      "舖",
+      "選物",
+      "櫃"
+    ],
+    "pro": [
+      "事務",
+      "記",
+      "室"
+    ],
+    "edu": [
+      "夜課",
+      "學社",
+      "班"
+    ],
+    "saas": [
+      "表",
+      "系統",
+      "冊"
+    ],
+    "repair": [
+      "修",
+      "班",
+      "號"
+    ],
+    "mfg": [
+      "工場",
+      "製作",
+      "箱"
+    ],
+    "agri": [
+      "田",
+      "集",
+      "簿"
+    ],
+    "care": [
+      "替",
+      "夜班",
+      "手"
+    ],
+    "logi": [
+      "送",
+      "驛",
+      "車"
+    ],
+    "culture": [
+      "刊",
+      "場",
+      "稿"
+    ],
+    "platform": [
+      "集",
+      "中間",
+      "社"
+    ],
+    "fin": [
+      "週轉",
+      "據",
+      "冊"
+    ],
+    "energy": [
+      "瓦",
+      "帳",
+      "改"
+    ],
+    "enterprise": [
+      "表",
+      "檔",
+      "線"
+    ]
   },
   "people": {
-    "tw": ["陳可恩", "林柏均", "黃詩涵", "張家維", "吳亭安", "劉子安", "蔡沐橙", "周允浩", "許安然", "鄭以寧", "楊知秋", "賴清和"],
-    "jp": ["佐藤美咲", "高橋蓮", "鈴木陽菜", "田中湊", "伊藤蒼", "渡邊結衣", "山本律", "中村碧", "小林颯", "加藤寧"],
-    "mx": ["Mariana Ortiz", "Diego Salas", "Lucía Navarro", "Andrés Peña", "Camila Rocha", "Javier Mendoza", "Renata Ibarra", "Sofía Delgado", "Emiliano Cruz", "Valeria Nava"]
+    "tw": [
+      "陳可恩",
+      "林柏均",
+      "黃詩涵",
+      "張家維",
+      "吳亭安",
+      "劉子安",
+      "蔡沐橙",
+      "周允浩",
+      "許安然",
+      "鄭以寧",
+      "楊知秋",
+      "賴清和"
+    ],
+    "jp": [
+      "佐藤美咲",
+      "高橋蓮",
+      "鈴木陽菜",
+      "田中湊",
+      "伊藤蒼",
+      "渡邊結衣",
+      "山本律",
+      "中村碧",
+      "小林颯",
+      "加藤寧"
+    ],
+    "mx": [
+      "Mariana Ortiz",
+      "Diego Salas",
+      "Lucía Navarro",
+      "Andrés Peña",
+      "Camila Rocha",
+      "Javier Mendoza",
+      "Renata Ibarra",
+      "Sofía Delgado",
+      "Emiliano Cruz",
+      "Valeria Nava"
+    ]
   },
-  "peer_prefixes": ["對街", "樓上", "舊同學", "晚一季", "同一條供應", "平台上的另一家"],
+  "peer_prefixes": [
+    "對街",
+    "樓上",
+    "舊同學",
+    "晚一季",
+    "同一條供應",
+    "平台上的另一家"
+  ],
   "fields": {
     "food": "餐飲採購或廚房",
     "retail": "零售或門市",
@@ -81,9 +993,21 @@
     "agri": "食品或農產"
   },
   "legal_forms": {
-    "tw": {"limited": "有限公司", "unlimited": "獨資商號", "partial": "合夥"},
-    "jp": {"limited": "株式會社", "unlimited": "個人事業", "partial": "合夥"},
-    "mx": {"limited": "有限公司", "unlimited": "自然人事業", "partial": "合夥"}
+    "tw": {
+      "limited": "有限公司",
+      "unlimited": "獨資商號",
+      "partial": "合夥"
+    },
+    "jp": {
+      "limited": "株式會社",
+      "unlimited": "個人事業",
+      "partial": "合夥"
+    },
+    "mx": {
+      "limited": "有限公司",
+      "unlimited": "自然人事業",
+      "partial": "合夥"
+    }
   },
   "ecosystem_leftovers": {
     "vacant": "空舖與舊招牌還在",
