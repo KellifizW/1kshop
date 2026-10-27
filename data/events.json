@@ -351,9 +351,9 @@
       "grammar": "EQUITY_RAISE",
       "spine": "capital_fork",
       "title": "有人願意把錢放進來",
-      "body": "天使的支票能換跑道。附帶一個席位，和一種更快的時間感。",
+      "body": "天使的支票能換跑道。附帶一個席位，和一種更快的時間感。這是開業之後才上門的第一筆外面的錢。",
       "requires": {"max_investor": 0.4},
-      "weight": 12, "cooldown": 30, "min_month": 8, "major": true,
+      "weight": 16, "cooldown": 30, "min_month": 6, "major": true,
       "choices": [
         {"id": "take", "label": "接受天使", "detail": "確定：公司現金 +4.5，控制權 −18%，董事會出現。", "risk": "下一輪的問題會更早到。", "effects": {"cash": 4.5, "control": -0.18, "board": true, "investor": 0.3}, "drivers": {"capital": 3, "control": -2}, "memory": "first_contract"},
         {"id": "debt", "label": "改借，不賣股份", "detail": "確定：債務 +2，利息按月，控制權不變。", "risk": "還款不看你的情緒。", "effects": {"debt": 2, "cash": 2, "guarantee": 0.5}, "drivers": {"capital": 1, "debt": -2}, "commitment": {"name": "營運借款", "months": 24, "kind": "debt"}},
@@ -367,7 +367,7 @@
       "title": "創投要的是另一種公司",
       "body": "錢很多。條件是增長、董事會，以及你不再是唯一的節奏。",
       "requires": {"min_fit": 0.45, "min_month": 18},
-      "weight": 10, "cooldown": 40, "min_month": 18, "once": true, "major": true,
+      "weight": 12, "cooldown": 40, "min_month": 18, "once": true, "major": true,
       "choices": [
         {"id": "take", "label": "接受", "detail": "確定：現金 +8，控制權降至約五成五若你現在更高，否則 −20%。壓力大幅上升。", "risk": "上市或出售會變成別人的時間表。", "effects": {"cash": 8, "control_to": 0.55, "board": true, "investor": 0.45, "flags": {"vc": true}}, "drivers": {"capital": 3, "control": -3}},
         {"id": "small", "label": "只拿一小筆，拒絕席位", "detail": "確定：現金 +2，控制權 −6%。對方可能不接受，此局仍依你開的條件執行。", "risk": "以後很難再回去談。", "effects": {"cash": 2, "control": -0.06, "investor": 0.1}, "drivers": {"capital": 1, "control": -1}},
@@ -452,7 +452,7 @@
       "spine": "moonlighting",
       "title": "正職那邊有人知道了",
       "body": "你沒有辭職。公司卻已經有了名字。雇主的信不長。",
-      "requires": {"style": ["keep", "part"]},
+      "requires": {"style": ["keep", "part", "test", "handover"]},
       "weight": 16, "cooldown": 40, "min_month": 3, "max_month": 18, "once": true, "major": true,
       "choices": [
         {"id": "quit", "label": "現在辭職", "detail": "確定：外界收入歸零，時間變成全部。", "risk": "生活費立刻改由公司負擔。", "effects": {"outside_set": 0, "hours_set": 1, "will": -0.04, "flags": {"quit_later": true}}, "drivers": {"focus": 2, "personal": -2}, "memory": "unsent_resignation"},

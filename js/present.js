@@ -67,17 +67,53 @@ export function business(data, state) {
   const rev = revId ? data.economy.revenues[revId] : null;
   return {
     name: work.name || gap?.title || "還沒成形的生意",
+    company: work.company || "",
     does: work.does || gap?.problem || "",
     sells: work.sells || gap?.core || "東西",
     buyer: work.buyer || "客人",
     unit: work.unit || "一筆",
+    scale: work.scale || "",
+    hire: work.hire || "",
     industry: fam?.name || "",
     title: gap?.title || "",
     problem: gap?.problem || "",
+    unknown: gap?.unknown || "",
     pulse: rev?.pulse || "入帳",
     ticks: rev?.ticks || 6,
     late: !!rev?.late,
     revenueLabel: rev?.label || "",
+  };
+}
+
+/** 你抽到的那份工作。開局不是從零開始，而是從一份薪水開始。 */
+export function jobLine(data, state) {
+  const job = (data.content.jobs || []).find((j) => j.id === state.founder?.job);
+  if (!job) return { has: false, label: "你現在沒有正職", income: 0, hours: "", notice: "", side: "", severance: 0, learn: "", ladder: "" };
+  return {
+    has: true,
+    label: job.label,
+    income: job.income,
+    hours: job.hours,
+    notice: job.notice,
+    side: job.side,
+    severance: job.severance,
+    learn: job.learn,
+    ladder: job.ladder,
+  };
+}
+
+/** 這種投入方式，對這份工作來說代表甚麼。 */
+export function styleLine(data, state, styleId) {
+  const style = data.economy.commitment_styles[styleId];
+  if (!style) return null;
+  const job = jobLine(data, state);
+  const kept = job.income * (style.outsideShare ?? 0);
+  const severance = Math.max(0, job.severance * job.income * (style.severanceShare ?? 0));
+  return {
+    ...style,
+    salaryKept: kept,
+    severance,
+    timePct: Math.round((style.hours ?? 0) * 100),
   };
 }
 
