@@ -1,0 +1,10 @@
+{
+  "name": "千分之一的店",
+  "short_name": "千分之一",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1c1612",
+  "theme_color": "#1c1612",
+  "lang": "zh-Hant",
+  "icons": [{ "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

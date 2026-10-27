@@ -1,0 +1,943 @@
+{
+  "note": "卡牌效果是平衡參數。人物是否答應、市場是否買單，正文只寫區間與未知，不寫假精確機率。",
+  "events": [
+    {
+      "id": "first_customers",
+      "layer": "generic",
+      "grammar": "OPENING_DEMAND",
+      "spine": "first_customers",
+      "title": "第一批客人是衝著折扣來的",
+      "body": "有人願意試。其中不少張口就問：有沒有開幕價。",
+      "omen": "這幾天有人在門口停過，但沒有進來。",
+      "weight": 30, "cooldown": 999, "min_month": 1, "max_month": 8, "once": true, "major": true,
+      "choices": [
+        {"id": "discount", "label": "用折扣把位子坐滿", "detail": "確定：這個月實收先增約兩成，並留下折扣客的印記。", "risk": "之後不打折，他們可能不來。", "effects": {"cash": 0.35, "market_fit": 0.05, "trust": -0.02, "flags": {"discount": true}}, "drivers": {"demand": 1, "price": -2}, "memory": "discount_slip"},
+        {"id": "hold", "label": "維持原價", "detail": "確定：價格不變。配合度上升較慢。", "risk": "空位會多留一陣。", "effects": {"market_fit": 0.02, "trust": 0.04, "brand": 0.03, "flags": {"price_hold": true}}, "drivers": {"price": 2, "demand": -1}, "memory": "handmade_price"},
+        {"id": "bundle", "label": "不打折，改送一件小的", "detail": "確定：變動成本上升約 4%，信任小幅上升。", "risk": "若被當成慣例，成本會留下。", "effects": {"cost_mod": 0.04, "trust": 0.03, "market_fit": 0.03}, "drivers": {"trust": 1, "margin": -1}}
+      ]
+    },
+    {
+      "id": "rent_hike",
+      "layer": "structure",
+      "grammar": "LEASE",
+      "spine": "redline_rent",
+      "title": "業主把租約攤開",
+      "body": "對方不想逐月吵。要麼鎖兩年，要麼現在就加。",
+      "omen": "物業管理開始用更正式的語氣回你。",
+      "tags_any": ["physical", "premises"],
+      "weight": 24, "cooldown": 24, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "lock", "label": "簽兩年，換租金凍結", "detail": "確定：場地成本鎖定二十四個月。提前解約約等於三個月租金。", "risk": "客流若下滑，你仍要付滿租。", "effects": {"flags": {"lease_locked": true}}, "drivers": {"rent": -1, "flexibility": -2}, "commitment": {"name": "兩年租約", "months": 24, "kind": "lease"}, "memory": "first_contract"},
+        {"id": "short", "label": "改半年約，租金加一成二", "detail": "確定：場地成本 ×1.12，六個月後可離開。", "risk": "下一次加租不會等很久。", "effects": {"fixed_mult": 1.12}, "drivers": {"rent": -2, "flexibility": 2}, "commitment": {"name": "半年租約", "months": 6, "kind": "lease"}},
+        {"id": "move", "label": "搬走，換更便宜的地方", "detail": "確定：場地成本約降三成，人流約降一成半，搬遷花費約 0.4 個月薪資。", "risk": "熟客不一定跟著走。", "effects": {"fixed_mult": 0.72, "revenue_mult": 0.86, "cash": -0.4, "trust": -0.04}, "drivers": {"rent": 2, "demand": -2}, "memory": "empty_shop_photo"}
+      ]
+    },
+    {
+      "id": "churn_wave",
+      "layer": "structure",
+      "grammar": "RETENTION",
+      "spine": "redline_churn",
+      "title": "續約的人變少了",
+      "body": "訂閱還在進，離開的速度卻更快。折扣能留人，也會把價格錨死。",
+      "omen": "最近六成新客只在折扣期間購買。",
+      "weight": 22, "cooldown": 18, "min_month": 6, "once": false, "major": true,
+      "choices": [
+        {"id": "discount", "label": "用三個月折扣換續約", "detail": "確定：月流失下降，價格係數 −8%，為期三個月。", "risk": "他們可能習慣這個價格。", "effects": {"churn": -0.03, "price_mod": -0.08, "for_months": 3, "flags": {"discount": true}}, "drivers": {"retention": 2, "price": -2}},
+        {"id": "fix", "label": "把錢花在離開的原因上", "detail": "確定：現金 −1.2，品質與配合度上升，流失只慢一點。", "risk": "原因可能不是產品。", "effects": {"cash": -1.2, "quality": 0.06, "market_fit": 0.05, "churn": -0.015}, "drivers": {"product": 2, "cash": -1}},
+        {"id": "let", "label": "讓不適合的人離開", "detail": "確定：流失維持，品牌與毛利保住。", "risk": "收入曲線會先向下。", "effects": {"revenue_mult": 0.9, "brand": 0.04, "trust": 0.02}, "drivers": {"price": 1, "demand": -2}}
+      ]
+    },
+    {
+      "id": "subsidy_burn",
+      "layer": "structure",
+      "grammar": "UNIT_ECONOMICS",
+      "spine": "redline_platform",
+      "title": "每一筆交易都在補貼",
+      "body": "單量好看。扣掉補貼、退款與你的時間，單位貢獻是負的。",
+      "omen": "你開始用下一輪的單，去填上一輪的洞。",
+      "weight": 22, "cooldown": 18, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "stop", "label": "停掉補貼", "detail": "確定：單位貢獻轉正，交易量約降三成。", "risk": "供給的一邊可能先走。", "effects": {"revenue_mult": 0.72, "cost_mod": -0.06, "subsidy": 0, "flags": {"subsidy_off": true}}, "drivers": {"unit": 3, "demand": -2}},
+        {"id": "narrow", "label": "只補最容易留下的那一邊", "detail": "確定：成本下降一些，集中度上升。", "risk": "另一邊會抱怨不公平。", "effects": {"cost_mod": -0.03, "concentration_set": 0.48, "trust": -0.03}, "drivers": {"unit": 1, "concentration": -2}},
+        {"id": "raise", "label": "繼續補，去找錢", "detail": "確定：若引入資金會另計股權。此選項先燒 1.5 現金換成長。", "risk": "負單位經濟拖得越久，百年與出售都會被問。", "effects": {"cash": -1.5, "revenue_mult": 1.15, "subsidy_add": 6, "investor": 0.08}, "drivers": {"growth": 2, "unit": -3}}
+      ]
+    },
+    {
+      "id": "big_customer",
+      "layer": "generic",
+      "grammar": "CONCENTRATION",
+      "spine": "redline_customer",
+      "title": "大客戶想包走產能",
+      "body": "對方要六成產能，九十天後才付款。你的小客戶還在。",
+      "omen": "有一張詢問，大得不像你現在的規模。",
+      "weight": 26, "cooldown": 30, "min_month": 8, "major": true, "once": true,
+      "choices": [
+        {"id": "take40", "label": "只接四成", "detail": "確定：最大客戶佔四成，帳期四十五天。收入係數約 ×1.18。", "risk": "他們可能改找能全接的人。", "effects": {"revenue_mult": 1.18, "concentration_set": 0.4, "ar_days": 45, "trust": 0.03}, "drivers": {"revenue": 2, "concentration": -1}, "commitment": {"name": "有限供貨", "months": 12, "kind": "customer"}, "memory": "first_contract"},
+        {"id": "take60", "label": "接下六成與九十天", "detail": "確定：集中度六成，帳期九十天。帳面變大，現金先慢一拍。", "risk": "這一家若不續約，洞會很大。", "effects": {"revenue_mult": 1.42, "concentration_set": 0.6, "ar_days": 90, "cash": -0.7}, "drivers": {"revenue": 3, "concentration": -3, "cash": -2}, "commitment": {"name": "主客戶供貨", "months": 18, "kind": "customer"}},
+        {"id": "no", "label": "婉拒", "detail": "確定：集中度不變。", "risk": "成長會慢。這張單可能落到近場企業。", "effects": {"peer_pressure": 0.06, "will": 0.03, "flags": {"rejected_whale": true}}, "drivers": {"independence": 3, "revenue": -1}, "memory": "rejected_offer"}
+      ]
+    },
+    {
+      "id": "equipment",
+      "layer": "structure",
+      "grammar": "CAPACITY",
+      "spine": "redline_util",
+      "title": "關鍵設備停了",
+      "body": "產線沒有全毀，但最忙的那一台不穩。修、租、或提前換，價格差一截。",
+      "omen": "同一個異音已經出現第三次。",
+      "tags_any": ["factory", "mfg"],
+      "weight": 20, "cooldown": 20, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "repair", "label": "先修，接受兩週減產", "detail": "確定：現金 −0.8，兩個月收入係數 ×0.85。", "risk": "同一台還會再壞。", "effects": {"cash": -0.8, "revenue_mult": 0.92, "quality": -0.02}, "drivers": {"ops": -1}, "memory": "broken_machine"},
+        {"id": "replace", "label": "貸款換新", "detail": "確定：債務 +2.4，產能與品質上升。", "risk": "固定還款不看你的訂單。", "effects": {"debt": 2.4, "cash": 0.4, "quality": 0.05, "complexity": 0.3}, "drivers": {"ops": 2, "debt": -2}, "commitment": {"name": "設備貸款", "months": 36, "kind": "debt"}},
+        {"id": "outsource", "label": "這一段改外判", "detail": "確定：變動成本 +6%，依賴上升，現金支出較小。", "risk": "交期與味道不再完全由你決定。", "effects": {"cost_mod": 0.06, "key_dependency": 0.08, "cash": -0.3}, "drivers": {"flexibility": 1, "quality": -1}}
+      ]
+    },
+    {
+      "id": "cannot_leave",
+      "layer": "structure",
+      "grammar": "FOUNDER_LOAD",
+      "spine": "redline_founder",
+      "title": "你已經不能請假",
+      "body": "連續多月，你不在，事情就停。這不是誇獎。",
+      "omen": "你已連續多月不能離開日常營運。",
+      "weight": 22, "cooldown": 18, "min_month": 5, "major": true,
+      "choices": [
+        {"id": "hire", "label": "請一個人，把每天交出去", "detail": "確定：人力增加一人。你的利用率下降，薪資開始固定流出。", "risk": "請錯人會更累。", "effects": {"headcount": 1, "hours": -0.12, "key_dependency": -0.12, "morale": 0.04}, "drivers": {"team": 2, "cash": -1}, "memory": "first_hire"},
+        {"id": "hours", "label": "縮短對外時間", "detail": "確定：收入係數 ×0.88，健康與意志回一點。", "risk": "客人會以為你不穩。", "effects": {"revenue_mult": 0.88, "health": 0.05, "will": 0.06, "hours": -0.15}, "drivers": {"founder": 2, "demand": -1}},
+        {"id": "push", "label": "再撐一季", "detail": "確定：收入維持。健康 −0.06，意志 −0.05。", "risk": "下一張與身體有關的卡會更早來。", "effects": {"health": -0.06, "will": -0.05, "flags": {"overwork": true}}, "drivers": {"founder": -3, "demand": 1}}
+      ]
+    },
+    {
+      "id": "inventory_stuck",
+      "layer": "structure",
+      "grammar": "INVENTORY",
+      "spine": "redline_returns",
+      "title": "貨還在，客人的退貨也在",
+      "body": "平台把流量給你，也把退貨規則寫死。庫存週轉慢了下來。",
+      "omen": "倉庫角落的箱子，標籤開始褪色。",
+      "weight": 20, "cooldown": 16, "min_month": 5, "major": true,
+      "choices": [
+        {"id": "clear", "label": "降價清掉", "detail": "確定：現金回來約 0.9，品牌 −0.04，庫存壓力下降。", "risk": "下一季客人會等你再降。", "effects": {"cash": 0.9, "brand": -0.04, "inventory": -0.4, "returns": -0.04, "flags": {"discount": true}}, "drivers": {"cash": 2, "brand": -1}, "memory": "returned_goods"},
+        {"id": "offplatform", "label": "把熟客帶回自己的渠道", "detail": "確定：平台依賴下降，短期收入 ×0.9，要花 0.6。", "risk": "平台可能降低你的曝光。", "effects": {"cash": -0.6, "revenue_mult": 0.9, "platform_fee": -0.04, "trust": 0.04}, "drivers": {"independence": 2, "demand": -1}},
+        {"id": "tighter", "label": "縮小品項，只留退得少的", "detail": "確定：退貨率下降，收入 ×0.92。", "risk": "看起來會變小。", "effects": {"returns": -0.06, "revenue_mult": 0.92, "complexity": -0.2}, "drivers": {"ops": 2, "demand": -1}}
+      ]
+    },
+    {
+      "id": "cut_cost",
+      "layer": "structure",
+      "grammar": "CUT_VARIABLE_COST",
+      "title": "有一個更便宜的做法",
+      "body": "成本能降下來。客人未必說得出差別，但差別在。",
+      "omen": "供應商主動提起『也有另一個等級』。",
+      "weight": 16, "cooldown": 20, "min_month": 4, "major": true,
+      "skins": {
+        "food": {"title": "換成較便宜的原料", "body": "豆子、油、菜，都可以降一檔。帳會好看，常客的杯子會先知道。"},
+        "repair": {"title": "使用代用零件", "body": "功能多半還在。保固與口碑不一定。"},
+        "saas": {"title": "把客戶轉到較便宜的運算層", "body": "月費不變的話，毛利回來。尖峰時段可能變慢。"}
+      },
+      "choices": [
+        {"id": "cut", "label": "換，並寫進未來十二個月", "detail": "確定：變動成本 −8%，品質 −0.06，信任略損，為期十二個月。", "risk": "省下的錢可能以退貨與流失回來。", "effects": {"cost_mod": -0.08, "quality": -0.06, "trust": -0.03, "for_months": 12}, "drivers": {"margin": 2, "quality": -2}, "commitment": {"name": "較低成本方案", "months": 12, "kind": "supply"}},
+        {"id": "partial", "label": "只在最不受注意的部分換", "detail": "確定：變動成本 −3%，品質 −0.02。", "risk": "省得不多。", "effects": {"cost_mod": -0.03, "quality": -0.02}, "drivers": {"margin": 1}},
+        {"id": "keep", "label": "維持現在的等級", "detail": "確定：成本與品質不變。", "risk": "現金壓力不會因此減輕。", "effects": {"trust": 0.02, "will": 0.02}, "drivers": {"quality": 2, "margin": -1}}
+      ]
+    },
+    {
+      "id": "platform_exclusive",
+      "layer": "structure",
+      "grammar": "EXCLUSIVE",
+      "title": "平台用較低抽成換十八個月獨家",
+      "body": "抽成下降是寫得死的。獨家也是。期滿之後，費率他們另說。",
+      "omen": "平台的客戶經理忽然變得很好約。",
+      "tags_any": ["digital", "platform"],
+      "weight": 18, "cooldown": 30, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "sign", "label": "簽十八個月獨家", "detail": "確定：平台費率 −4 個百分點，為期十八個月。其他渠道收入先歸零。", "risk": "期滿費率與曝光都不在這張紙上。", "effects": {"platform_fee": -0.04, "revenue_mult": 1.08, "flags": {"exclusive": true}}, "drivers": {"margin": 2, "independence": -3}, "commitment": {"name": "平台獨家", "months": 18, "kind": "platform"}},
+        {"id": "no", "label": "拒絕獨家", "detail": "確定：費率不變。", "risk": "曝光可能被独家的人拿走。", "effects": {"peer_pressure": 0.05, "trust": 0.02}, "drivers": {"independence": 2}},
+        {"id": "short", "label": "只肯六個月", "detail": "確定：費率 −2 個百分點，六個月。對方不一定接受，但你把條件寫出去了。", "risk": "他們可以把流量轉走。", "effects": {"platform_fee": -0.02, "revenue_mult": 0.97}, "drivers": {"independence": 1, "margin": 1}, "commitment": {"name": "短期平台合作", "months": 6, "kind": "platform"}}
+      ]
+    },
+    {
+      "id": "partner_exit",
+      "layer": "generic",
+      "grammar": "CAP_TABLE",
+      "title": "合夥人想按舊估值離開",
+      "body": "對方要走，價格用的是你們還沒變大時的數字。現在的帳比那時複雜。",
+      "omen": "合夥人開始把『我的股份』說成『我的錢』。",
+      "requires": {"ownership": ["partner", "family"]},
+      "weight": 20, "cooldown": 40, "min_month": 10, "once": true, "major": true,
+      "choices": [
+        {"id": "buy", "label": "用現金買回", "detail": "確定：現金 −2.2，你的控制權回到九成以上。", "risk": "跑道會短一截。", "effects": {"cash": -2.2, "control_set": 0.92, "investor": -0.05}, "drivers": {"control": 3, "cash": -2}, "memory": "partner_exit_note"},
+        {"id": "old", "label": "接受舊估值，分期付", "detail": "確定：債務 +1.6，控制權 +0.2。關係停在紙上。", "risk": "以後的投資人會問這筆帳。", "effects": {"debt": 1.6, "control": 0.2, "trust": -0.04}, "drivers": {"control": 1, "debt": -1}, "commitment": {"name": "股權分期", "months": 24, "kind": "equity"}},
+        {"id": "stay", "label": "請對方再留一年，重談職責", "detail": "確定：控制權不變。士氣 −0.05。十二個月內不能再用此方式分手。", "risk": "人還在，心可能已走。", "effects": {"morale": -0.05, "will": -0.03}, "drivers": {"team": -1}, "commitment": {"name": "合夥人留任", "months": 12, "kind": "people"}}
+      ]
+    },
+    {
+      "id": "recall",
+      "layer": "generic",
+      "grammar": "QUALITY_CRISIS",
+      "title": "還沒有人證實受傷",
+      "body": "有一批東西可能有問題。全面召回很貴。不召回，是另一種代價。",
+      "omen": "客訴的用詞，從『失望』變成『害怕』。",
+      "weight": 12, "cooldown": 36, "min_month": 8, "once": true, "major": true,
+      "choices": [
+        {"id": "recall", "label": "全面召回", "detail": "確定：現金 −2。信任先跌後有機會回來。此選項把品質事件關掉。", "risk": "現金可能直接進入救援。", "effects": {"cash": -2, "trust": -0.02, "brand": 0.02, "quality": 0.04, "flags": {"recalled": true}}, "drivers": {"trust": 2, "cash": -3}, "memory": "returned_goods"},
+        {"id": "quiet", "label": "只處理有投訴的", "detail": "確定：現金 −0.4。若之後擴大，信任會再掉。遊戲不會立刻判你有罪。", "risk": "未知會維持未知一段時間。", "effects": {"cash": -0.4, "trust": -0.06, "flags": {"quiet_recall": true}}, "drivers": {"cash": 1, "trust": -2}},
+        {"id": "stop", "label": "先停掉這條產品", "detail": "確定：收入 ×0.8，複雜度下降。", "risk": "這可能就是你最初的那條線。", "effects": {"revenue_mult": 0.8, "complexity": -0.4, "quality": 0.03}, "drivers": {"focus": 2, "demand": -2}}
+      ]
+    },
+    {
+      "id": "key_equity",
+      "layer": "generic",
+      "grammar": "KEY_PERSON",
+      "title": "最可靠的人開口了",
+      "body": "對方要加薪，也要一點股權。沒有威脅，只是把去留放在桌上。",
+      "omen": "關鍵員工開始把工作交給其他人。",
+      "requires": {"min_headcount": 1},
+      "weight": 18, "cooldown": 24, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "both", "label": "加薪並給 8%", "detail": "確定：每月人力上升，你的控制權 −8%。關鍵依賴下降。", "risk": "其他人也會看見這筆帳。", "effects": {"control": -0.08, "morale": 0.1, "key_dependency": -0.15, "wage_mult": 1.12}, "drivers": {"team": 3, "control": -2}, "memory": "badge", "commitment": {"name": "員工股權", "months": 36, "kind": "equity"}},
+        {"id": "pay", "label": "只加薪", "detail": "確定：人力成本 ×1.15，士氣上升較少。", "risk": "人可能仍會走。", "effects": {"wage_mult": 1.15, "morale": 0.04}, "drivers": {"team": 1, "cash": -1}},
+        {"id": "no", "label": "兩樣都沒有", "detail": "確定：成本不變。", "risk": "下個季可能出現離職。", "effects": {"morale": -0.12, "key_dependency": 0.1, "flags": {"underpaid_key": true}}, "drivers": {"cash": 1, "team": -3}}
+      ]
+    },
+    {
+      "id": "family_care",
+      "layer": "generic",
+      "grammar": "CARE",
+      "spine": "family_care",
+      "title": "照護從這個月開始",
+      "body": "這不是突發。日曆上早寫著。公司的班表沒有寫。",
+      "omen": "家里的人開始用短句問你：月底可以嗎。",
+      "requires": {"family": ["elder", "child", "single_parent", "partner"]},
+      "weight": 24, "cooldown": 40, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "self", "label": "你親自接", "detail": "確定：可投入時間下降約兩成。公司不增加人力。", "risk": "營運會更黏在你身上。", "effects": {"hours": -0.22, "care": 0.35, "will": -0.04, "flags": {"caring": true}}, "drivers": {"family": 2, "ops": -2}, "memory": "care_schedule"},
+        {"id": "hire", "label": "請調度或替手，你保留決定", "detail": "確定：人力 +1。時間只下降一點。現金壓力上升。", "risk": "家里可能覺得你用錢代替在場。", "effects": {"headcount": 1, "hours": -0.08, "care": 0.2, "morale": 0.03}, "drivers": {"family": 1, "cash": -1, "team": 1}, "memory": "care_schedule"},
+        {"id": "step", "label": "把公司時間讓出來", "detail": "確定：你的抽取停止四個月，收入係數 ×0.75。", "risk": "顧客與合夥人會重新理解這間公司是誰的。", "effects": {"revenue_mult": 0.75, "draw_zero": 4, "hours": -0.4, "care": 0.4, "flags": {"family_first": true}}, "drivers": {"family": 3, "demand": -2}}
+      ]
+    },
+    {
+      "id": "board_margin",
+      "layer": "generic",
+      "grammar": "GOVERNANCE",
+      "title": "有人要求為了增長先讓毛利",
+      "body": "董事會裡有兩個人把擴張押後的話已經說完了。現在他們要的是相反方向：先衝數字。",
+      "omen": "董事會有人要求延後擴張。另一個人把同一份表讀成相反的結論。",
+      "requires": {"board": true},
+      "weight": 16, "cooldown": 18, "min_month": 18, "major": true,
+      "choices": [
+        {"id": "grow", "label": "接受，毛利換成長", "detail": "確定：收入 ×1.2，變動成本 +5%，投資人壓力上升。", "risk": "上市前的數字會很好看，救援時會很難看。", "effects": {"revenue_mult": 1.2, "cost_mod": 0.05, "investor": 0.12, "price_mod": -0.06}, "drivers": {"growth": 2, "margin": -2}},
+        {"id": "hold", "label": "維持毛利，延後擴張", "detail": "確定：複雜度不增加。壓力上升一些。", "risk": "資金的耐心是有期限的。", "effects": {"investor": 0.06, "trust": 0.03, "flags": {"margin_held": true}}, "drivers": {"margin": 2, "capital": -1}},
+        {"id": "split", "label": "只在新產品上讓價", "detail": "確定：舊線價格不動，新線收入先小。", "risk": "兩套價格會把內部搞亂。", "effects": {"revenue_mult": 1.08, "complexity": 0.4, "cost_mod": 0.02}, "drivers": {"focus": -1, "growth": 1}},
+        {"id": "buytime", "label": "用一份書面節奏換半年", "detail": "確定：半年內不強推增長，你的控制權 −3%。治理事件可以有第四個選項。", "risk": "紙會留下。", "effects": {"control": -0.03, "investor": -0.04}, "drivers": {"control": -1, "governance": 2}, "commitment": {"name": "半年經營節奏", "months": 6, "kind": "board"}}
+      ]
+    },
+    {
+      "id": "acquire_peer",
+      "layer": "generic",
+      "grammar": "ACQUISITION",
+      "title": "可以買下近場的一家",
+      "body": "對方的客人、設備或帳，和你重疊。買下來會變大，也會把兩種做法放進同一扇門。",
+      "omen": "那家的老闆約你，不是來搶客戶的語氣。",
+      "weight": 14, "cooldown": 30, "min_month": 16, "once": true, "major": true,
+      "choices": [
+        {"id": "buy", "label": "用現金與一點股份買下", "detail": "確定：現金 −2.5，控制權 −6%，收入 ×1.25，多兩名員工，複雜度上升。", "risk": "文化與反壟斷的問題不會在簽約日出現。", "effects": {"cash": -2.5, "control": -0.06, "revenue_mult": 1.25, "complexity": 0.8, "headcount": 2, "flags": {"acquired": true}}, "drivers": {"scale": 3, "culture": -2, "cash": -2}, "memory": "loi"},
+        {"id": "hire", "label": "不買公司，只請走會做事的人", "detail": "確定：人力 +1，對方關係變差，近場壓力上升。", "risk": "可能買到對立，而不是能力。", "effects": {"headcount": 1, "peer_pressure": 0.08, "morale": -0.03}, "drivers": {"team": 1, "relation": -1}},
+        {"id": "walk", "label": "不做", "detail": "確定：結構不變。", "risk": "對方可能改賣給你的競爭者。", "effects": {"peer_pressure": 0.04}, "drivers": {"focus": 1}}
+      ]
+    },
+    {
+      "id": "kill_line",
+      "layer": "generic",
+      "grammar": "IDENTITY",
+      "title": "最初的那條產品線",
+      "body": "它已經不賺錢。它仍是別人認得你的原因。停掉它，公司還在，識別可能不在。",
+      "omen": "新同事問：我們為甚麼還留著這個。",
+      "weight": 12, "cooldown": 40, "min_month": 36, "major": true,
+      "choices": [
+        {"id": "keep", "label": "留下，當成核心而不是成長引擎", "detail": "確定：這條線繼續佔一點成本。可識別核心保留。", "risk": "它會一直被拿來質問毛利。", "effects": {"cost_mod": 0.02, "brand": 0.05, "core_kept": true, "flags": {"core_kept": true}}, "drivers": {"identity": 3, "margin": -1}, "memory": "charter_line"},
+        {"id": "stop", "label": "停止", "detail": "確定：變動成本下降，收入略降。最初的核心從章程拿掉。", "risk": "百年條件會少掉『還認得出來』這一條。", "effects": {"cost_mod": -0.03, "revenue_mult": 0.94, "core_drop": true, "brand": -0.04}, "drivers": {"margin": 2, "identity": -3}},
+        {"id": "archive", "label": "停產，但把方法公開留在檔案", "detail": "確定：成本下降，核心以檔案形式保留，品牌小幅上升。", "risk": "別人可以抄，你不能再專有。", "effects": {"cost_mod": -0.02, "revenue_mult": 0.96, "core_kept": true, "brand": 0.03, "flags": {"archived_core": true}}, "drivers": {"identity": 2, "margin": 1}, "memory": "century_recipe"}
+      ]
+    },
+    {
+      "id": "supplier_prepay",
+      "layer": "generic",
+      "grammar": "SUPPLY_TERMS",
+      "title": "供應商要求預付",
+      "body": "貨還能給。條件改了：先付錢，或接受更差的檔期。",
+      "omen": "對方回訊息的速度變慢，句子變短。",
+      "weight": 18, "cooldown": 18, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "prepay", "label": "預付一季", "detail": "確定：現金 −1.3，供貨穩定，變動成本 −3%。", "risk": "對方若失約，這筆錢不是貨。", "effects": {"cash": -1.3, "cost_mod": -0.03, "trust": 0.03}, "drivers": {"supply": 2, "cash": -2}, "commitment": {"name": "預付供貨", "months": 3, "kind": "supply"}, "memory": "debt_note"},
+        {"id": "split", "label": "找第二家，價格較高", "detail": "確定：變動成本 +4%，依賴下降。", "risk": "品質可能不齊。", "effects": {"cost_mod": 0.04, "key_dependency": -0.1, "quality": -0.02}, "drivers": {"supply": 1, "margin": -1}},
+        {"id": "delay", "label": "拖過這個月再說", "detail": "確定：本月變動成本不變，信任 −0.05，下月可能缺貨。", "risk": "缺貨會直接打到實收。", "effects": {"trust": -0.05, "revenue_mult": 0.93, "flags": {"supply_strain": true}}, "drivers": {"cash": 1, "supply": -2}}
+      ]
+    },
+    {
+      "id": "bank_tight",
+      "layer": "generic",
+      "grammar": "CREDIT",
+      "title": "銀行把額度收回去",
+      "body": "不是你的帳突然壞了。是他們的表格改了。循環額度減半。",
+      "omen": "客戶經理換了人，新的人先要三年的數字。",
+      "weight": 14, "cooldown": 24, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "repay", "label": "先還一截，換安靜", "detail": "確定：現金 −1.5，債務 −1.5，壓力下降。", "risk": "跑道變短。", "effects": {"cash": -1.5, "debt": -1.5, "investor": -0.04}, "drivers": {"debt": 2, "cash": -2}},
+        {"id": "guarantee", "label": "用個人擔保換回額度", "detail": "確定：額度留著，個人擔保 +2。", "risk": "公司的牆會破一個口。", "effects": {"guarantee": 2, "debt": 0.5, "flags": {"guaranteed": true}}, "drivers": {"personal": -3, "cash": 1}, "memory": "debt_note"},
+        {"id": "operate", "label": "不補額度，只用客戶的錢運轉", "detail": "確定：不新增債務。若帳期長，現金會更緊。", "risk": "一張大單就可能進救援。", "effects": {"will": 0.03, "flags": {"no_credit": true}}, "drivers": {"independence": 2, "cash": -1}}
+      ]
+    },
+    {
+      "id": "partner_fight",
+      "layer": "generic",
+      "grammar": "DIRECTION",
+      "title": "你們要的公司不是同一間",
+      "body": "一個要再加一條線，一個要把現在這條做完。會議已經開了三次。",
+      "requires": {"ownership": ["partner", "family", "coop"]},
+      "weight": 15, "cooldown": 20, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "you", "label": "按你的方向走", "detail": "確定：控制權感維持，合夥人信任 −0.08。", "risk": "下一步可能是退出信。", "effects": {"trust": -0.08, "will": 0.04, "flags": {"direction_locked": true}}, "drivers": {"control": 1, "team": -2}},
+        {"id": "them", "label": "按對方的方向走一季", "detail": "確定：收入方向改，你的意志 −0.04，信任回升。", "risk": "一季可能變成長期。", "effects": {"trust": 0.05, "will": -0.04, "revenue_mult": 1.05, "complexity": 0.3}, "drivers": {"team": 2, "focus": -1}},
+        {"id": "paper", "label": "把分歧寫成半年的試驗", "detail": "確定：半年期限，指標寫死，誰都可以在期末叫停。", "risk": "試驗會吃掉管理時間。", "effects": {"complexity": 0.2, "trust": 0.03}, "drivers": {"governance": 2}, "commitment": {"name": "方向試驗", "months": 6, "kind": "governance"}}
+      ]
+    },
+    {
+      "id": "key_quit",
+      "layer": "generic",
+      "grammar": "DEPARTURE",
+      "title": "關鍵的人遞了辭呈",
+      "body": "不是今天才想走的。工作已經在交接，只是交給還沒出現的人。",
+      "requires": {"flag": "underpaid_key"},
+      "weight": 20, "cooldown": 30, "min_month": 10, "once": true, "major": true,
+      "choices": [
+        {"id": "match", "label": "用股權與頭銜留下", "detail": "確定：控制權 −5%，士氣回升，人留下。", "risk": "你是在危機裡定價。", "effects": {"control": -0.05, "morale": 0.08, "key_dependency": -0.05, "flags": {"underpaid_key": false}}, "drivers": {"team": 2, "control": -1}},
+        {"id": "letgo", "label": "好好送走", "detail": "確定：支付約 1 個月薪的離開成本，依賴在短期上升。", "risk": "客戶會問人去了哪。", "effects": {"cash": -0.7, "headcount": -1, "key_dependency": 0.12, "trust": 0.02}, "drivers": {"team": -1, "trust": 1}, "memory": "severance_list"},
+        {"id": "bitter", "label": "要求立刻交接，不多給", "detail": "確定：現金保住。信任與士氣下降。", "risk": "交接會不完整。", "effects": {"headcount": -1, "morale": -0.1, "quality": -0.04, "trust": -0.04}, "drivers": {"cash": 1, "team": -2}}
+      ]
+    },
+    {
+      "id": "peer_intro",
+      "layer": "generic",
+      "grammar": "PEER",
+      "spine": "peer_intro",
+      "title": "街上不只有你",
+      "body": "三間近場企業裡，有一家先伸出手。可能是團購、轉介，也可能是來看你的價格。",
+      "weight": 18, "cooldown": 24, "min_month": 3, "max_month": 30, "once": true, "major": true,
+      "choices": [
+        {"id": "coop", "label": "一起買、一起送", "detail": "確定：變動成本 −4%，近場壓力下降，你的數字會被看見。", "risk": "價格默契可能越界。", "effects": {"cost_mod": -0.04, "peer_pressure": -0.06, "trust": 0.03}, "drivers": {"relation": 2, "margin": 1}},
+        {"id": "compete", "label": "把價格與客戶守住", "detail": "確定：不共享。近場壓力上升。", "risk": "他們會去找你的供應商。", "effects": {"peer_pressure": 0.07, "brand": 0.02}, "drivers": {"independence": 1, "relation": -1}},
+        {"id": "refer", "label": "把自己做不完的單轉出去", "detail": "確定：收入略降，信任上升，換一條人情。", "risk": "客人可能留下不回來。", "effects": {"revenue_mult": 0.95, "trust": 0.05, "peer_pressure": -0.03}, "drivers": {"trust": 2, "demand": -1}}
+      ]
+    },
+    {
+      "id": "scale_fork",
+      "layer": "generic",
+      "grammar": "SCALE",
+      "spine": "scale_fork",
+      "title": "現在的規模開始穩了",
+      "body": "再長大就要有中層、第二個據點，或一筆不屬於你的錢。不長大也是一種決定。",
+      "weight": 20, "cooldown": 36, "min_month": 20, "once": true, "major": true,
+      "choices": [
+        {"id": "city", "label": "去第二個城市", "detail": "確定：多兩名員工，固定成本 +0.35 單位，收入 ×1.22，複雜度 +1。", "risk": "你會有一段時間兩邊都不在場。現金若不夠付兩份薪，這一步會先把公司推向最後階段。", "effects": {"fixed_add": 0.35, "revenue_mult": 1.22, "complexity": 1, "headcount": 2, "flags": {"second_city": true}}, "drivers": {"scale": 3, "complexity": -2}, "memory": "second_city_key", "commitment": {"name": "第二據點", "months": 24, "kind": "expansion"}},
+        {"id": "product", "label": "做相鄰的產品", "detail": "確定：收入 ×1.12，品牌延伸，複雜度 +0.6。", "risk": "新的不一定帶得動舊的信任。", "effects": {"revenue_mult": 1.12, "complexity": 0.6, "market_fit": -0.03, "flags": {"new_line": true, "transformed": true}}, "drivers": {"scale": 2, "focus": -1}},
+        {"id": "stay", "label": "維持現在的尺寸", "detail": "確定：不增加固定成本。", "risk": "市場若被更大的人教育過，你的位置會變窄。", "effects": {"brand": 0.03, "will": 0.04, "flags": {"stayed_small": true}}, "drivers": {"focus": 2, "scale": -1}}
+      ]
+    },
+    {
+      "id": "angel_round",
+      "layer": "generic",
+      "grammar": "EQUITY_RAISE",
+      "spine": "capital_fork",
+      "title": "有人願意把錢放進來",
+      "body": "天使的支票能換跑道。附帶一個席位，和一種更快的時間感。",
+      "requires": {"max_investor": 0.4},
+      "weight": 12, "cooldown": 30, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "take", "label": "接受天使", "detail": "確定：公司現金 +4.5，控制權 −18%，董事會出現。", "risk": "下一輪的問題會更早到。", "effects": {"cash": 4.5, "control": -0.18, "board": true, "investor": 0.3}, "drivers": {"capital": 3, "control": -2}, "memory": "first_contract"},
+        {"id": "debt", "label": "改借，不賣股份", "detail": "確定：債務 +2，利息按月，控制權不變。", "risk": "還款不看你的情緒。", "effects": {"debt": 2, "cash": 2, "guarantee": 0.5}, "drivers": {"capital": 1, "debt": -2}, "commitment": {"name": "營運借款", "months": 24, "kind": "debt"}},
+        {"id": "no", "label": "不拿", "detail": "確定：股權結構不變。", "risk": "機會的窗口會關。", "effects": {"will": 0.03, "investor": -0.02}, "drivers": {"independence": 2}}
+      ]
+    },
+    {
+      "id": "vc_round",
+      "layer": "generic",
+      "grammar": "EQUITY_RAISE",
+      "title": "創投要的是另一種公司",
+      "body": "錢很多。條件是增長、董事會，以及你不再是唯一的節奏。",
+      "requires": {"min_fit": 0.45, "min_month": 18},
+      "weight": 10, "cooldown": 40, "min_month": 18, "once": true, "major": true,
+      "choices": [
+        {"id": "take", "label": "接受", "detail": "確定：現金 +8，控制權降至約五成五若你現在更高，否則 −20%。壓力大幅上升。", "risk": "上市或出售會變成別人的時間表。", "effects": {"cash": 8, "control_to": 0.55, "board": true, "investor": 0.45, "flags": {"vc": true}}, "drivers": {"capital": 3, "control": -3}},
+        {"id": "small", "label": "只拿一小筆，拒絕席位", "detail": "確定：現金 +2，控制權 −6%。對方可能不接受，此局仍依你開的條件執行。", "risk": "以後很難再回去談。", "effects": {"cash": 2, "control": -0.06, "investor": 0.1}, "drivers": {"capital": 1, "control": -1}},
+        {"id": "no", "label": "拒絕", "detail": "確定：不稀釋。", "risk": "同賽道拿到錢的人會加速。", "effects": {"peer_pressure": 0.06}, "drivers": {"independence": 2}}
+      ]
+    },
+    {
+      "id": "health_warn",
+      "layer": "generic",
+      "grammar": "HEALTH",
+      "spine": "hidden_health",
+      "title": "身體先給了徵兆",
+      "body": "不是診斷書。是你開始把檢查一延再延。這張卡不告訴你機率。",
+      "weight": 8, "cooldown": 36, "min_month": 12, "once": true, "major": true,
+      "choices": [
+        {"id": "slow", "label": "把每週空出半天", "detail": "確定：可投入時間 −10%，健康回升。", "risk": "有些單會延遲。", "effects": {"hours": -0.1, "health": 0.08, "revenue_mult": 0.95}, "drivers": {"founder": 2, "demand": -1}},
+        {"id": "delegate", "label": "指定一個人在你不在時決定", "detail": "確定：若已有員工，依賴下降；若沒有，此選項仍會迫使你聘一人。", "risk": "決定的風格會變。", "effects": {"headcount_min": 1, "key_dependency": -0.2, "health": 0.04, "control": -0.02}, "drivers": {"founder": 1, "team": 1}},
+        {"id": "ignore", "label": "等這季結束再看", "detail": "確定：本季數字不變。健康 −0.07。", "risk": "下一張不會再這麼輕。", "effects": {"health": -0.07, "flags": {"health_ignored": true}}, "drivers": {"founder": -2}}
+      ]
+    },
+    {
+      "id": "health_crisis",
+      "layer": "generic",
+      "grammar": "HEALTH",
+      "spine": "founder_health_crisis",
+      "title": "你必須離開日常一段時間",
+      "body": "這次不是感覺。你有一段時間不能坐在櫃檯後面。公司要麼有人接，要麼縮小。",
+      "weight": 10, "cooldown": 60, "min_month": 18, "once": true, "major": true,
+      "choices": [
+        {"id": "handoff", "label": "把日常交給已有的人", "detail": "確定：若無人，改為聘請。你的抽取暫停。健康開始恢復。", "risk": "客人會發現聲音變了。", "effects": {"headcount_min": 1, "hours": 0.25, "draw_zero": 6, "health": 0.1, "key_dependency": -0.1, "flags": {"founder_absent": true}}, "drivers": {"founder": 2, "team": 1}},
+        {"id": "shrink", "label": "主動縮小到能暫停", "detail": "確定：收入 ×0.6，固定成本 ×0.7，不新增擔保。", "risk": "縮小之後不一定長得回去。", "effects": {"revenue_mult": 0.6, "fixed_mult": 0.7, "health": 0.08, "flags": {"shrunk": true}}, "drivers": {"founder": 2, "scale": -2}},
+        {"id": "sell", "label": "趁還能談的時候出售", "detail": "確定：進入出售結局。價格按現在的現金與收入估算，不是幻想估值。", "risk": "名字可能留不住。", "effects": {"force_ending": "sale"}, "drivers": {"personal": 2, "identity": -1}}
+      ]
+    },
+    {
+      "id": "compliance_gap",
+      "layer": "regional",
+      "grammar": "COMPLIANCE",
+      "spine": "hidden_compliance",
+      "title": "有一項申報是空的",
+      "body": "不是突襲。是你早就看過的那個空格。現在期限到了。",
+      "weight": 14, "cooldown": 30, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "fix", "label": "補上，並付遲延的代價", "detail": "確定：現金 −0.9。合規旗標清除。", "risk": "代價因城市而異，嚴格的城市會再多一點檢查。", "effects": {"cash": -0.9, "flags": {"compliance_ok": true, "compliance_risk": false}, "reputation": -0.04}, "drivers": {"compliance": 2, "cash": -1}, "memory": "license"},
+        {"id": "advisor", "label": "請人重做制度", "detail": "確定：現金 −1.4，之後合規事件權重下降，帳簿標記為可審計準備。", "risk": "人會看見你以前的洞。", "effects": {"cash": -1.4, "audited": true, "flags": {"compliance_ok": true, "compliance_risk": false}}, "drivers": {"compliance": 3, "cash": -1}},
+        {"id": "wait", "label": "再拖一次", "detail": "確定：本月不付錢。", "risk": "下一張可能是停業，而不再是補件。", "effects": {"flags": {"compliance_risk": true}, "reputation": -0.06}, "drivers": {"compliance": -3}}
+      ]
+    },
+    {
+      "id": "shutdown_threat",
+      "layer": "regional",
+      "grammar": "COMPLIANCE",
+      "title": "牌照被要求暫停",
+      "body": "承辦人沒有罵你。對方只是把條款指給你看。不停業的條件寫在紙上。",
+      "requires": {"flag": "compliance_risk"},
+      "weight": 18, "cooldown": 24, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "comply", "label": "停業整頓一個月", "detail": "確定：下個月收入近乎為零，之後旗標清除。現金要自己撐。", "risk": "客人會流失一批。", "effects": {"revenue_mult": 0.55, "cash": -0.4, "flags": {"compliance_risk": false, "compliance_ok": true}}, "drivers": {"compliance": 2, "demand": -2}},
+        {"id": "close", "label": "就此結業", "detail": "確定：進入合規停業結局。", "risk": "沒有風險區間。這就是結尾。", "effects": {"force_ending": "compliance"}},
+        {"id": "fight", "label": "補件並繼續營業", "detail": "確定：現金 −1.6。若城市牌照嚴格，仍可能失敗並進入停業。", "risk": "嚴格城市的失敗不是隱藏機率，規則寫在城市差異裡。", "effects": {"cash": -1.6, "compliance_city_check": true}, "drivers": {"compliance": 1, "cash": -2}}
+      ]
+    },
+    {
+      "id": "conflict_roles",
+      "layer": "generic",
+      "grammar": "CONFLICT",
+      "spine": "hidden_conflict",
+      "title": "兩個承諾撞在一起",
+      "body": "你答應家裡的時間，和你答應客戶的交期，是同一個晚上。",
+      "weight": 12, "cooldown": 20, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "client", "label": "守住交期", "detail": "確定：信任 +0.04，照護壓力與意志下降。", "risk": "家里會記住這一次。", "effects": {"trust": 0.04, "will": -0.05, "care": 0.08}, "drivers": {"customer": 2, "family": -2}},
+        {"id": "home", "label": "守住家裡", "detail": "確定：交期延遲，信任 −0.05，意志回一點。", "risk": "大客戶尤其會記。", "effects": {"trust": -0.05, "will": 0.05, "revenue_mult": 0.94}, "drivers": {"family": 2, "customer": -2}, "memory": "family_photo"},
+        {"id": "say", "label": "兩邊都說實話，改期", "detail": "確定：收入略降，信任不額外懲罰。", "risk": "有人只接受一種答案。", "effects": {"revenue_mult": 0.96, "trust": 0.01, "will": 0.02}, "drivers": {"trust": 1}}
+      ]
+    },
+    {
+      "id": "moonlight",
+      "layer": "generic",
+      "grammar": "EMPLOYMENT",
+      "spine": "moonlighting",
+      "title": "正職那邊有人知道了",
+      "body": "你沒有辭職。公司卻已經有了名字。雇主的信不長。",
+      "requires": {"style": ["keep", "part"]},
+      "weight": 16, "cooldown": 40, "min_month": 3, "max_month": 18, "once": true, "major": true,
+      "choices": [
+        {"id": "quit", "label": "現在辭職", "detail": "確定：外界收入歸零，時間變成全部。", "risk": "生活費立刻改由公司負擔。", "effects": {"outside_set": 0, "hours_set": 1, "will": -0.04, "flags": {"quit_later": true}}, "drivers": {"focus": 2, "personal": -2}, "memory": "unsent_resignation"},
+        {"id": "stop", "label": "把公司先按掉", "detail": "確定：進入返回上班的結局。公司不開了。", "risk": "沒有。", "effects": {"force_ending": "return_to_job"}},
+        {"id": "disclose", "label": "把兼職攤開談", "detail": "確定：外界收入減半，時間略增。不一定被留下，但你不再躲。", "risk": "仍可能被要求選邊。", "effects": {"outside_mult": 0.5, "hours": 0.1, "will": 0.03}, "drivers": {"personal": -1, "trust": 1}}
+      ]
+    },
+    {
+      "id": "employer_ip",
+      "layer": "generic",
+      "grammar": "IP",
+      "spine": "employer_claim",
+      "title": "前雇主主張這是他們的",
+      "body": "內部創業的界線，在你做出第一筆收入之後變得具體。",
+      "requires": {"style": ["intra"]},
+      "weight": 16, "cooldown": 50, "min_month": 2, "max_month": 20, "once": true, "major": true,
+      "choices": [
+        {"id": "license", "label": "付授權，換乾淨", "detail": "確定：收入的 6% 作為授權金，爭議旗標清除。", "risk": "毛利會薄一層，直到你重做核心。", "effects": {"royalty": 0.06, "flags": {"ip_clear": true}}, "drivers": {"compliance": 2, "margin": -2}, "commitment": {"name": "雇主授權", "months": 24, "kind": "license"}},
+        {"id": "rewrite", "label": "停兩個月，把東西重做", "detail": "確定：現金 −1，兩個月成長停滯，之後旗標清除。", "risk": "客人可能等不及。", "effects": {"cash": -1, "revenue_mult": 0.85, "flags": {"ip_clear": true, "transformed": true}}, "drivers": {"independence": 2, "cash": -1}},
+        {"id": "ignore", "label": "先不做理會", "detail": "確定：本月無現金支出。", "risk": "下一張可能直接限制你營業。", "effects": {"flags": {"ip_risk": true}}, "drivers": {"compliance": -2}}
+      ]
+    },
+    {
+      "id": "test_end",
+      "layer": "generic",
+      "grammar": "TEST_END",
+      "spine": "test_end",
+      "title": "測試的四個月到了",
+      "body": "你說過這只是試。帳簿還在。人也不好意思再問你是不是認真的。",
+      "requires": {"style": ["test"]},
+      "weight": 30, "cooldown": 99, "min_month": 4, "max_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "allin", "label": "辭職，正式開", "detail": "確定：外界收入歸零，時間全給，固定成本恢復。", "risk": "測試期的數字會被放大，包括不好的部分。", "effects": {"outside_set": 0, "hours_set": 1, "fixed_mult": 1.25, "flags": {"tested": true}}, "drivers": {"focus": 2, "personal": -1}},
+        {"id": "part", "label": "改為兼職繼續", "detail": "確定：時間 0.58，外界收入 0.42，成本恢復正常。", "risk": "速度維持慢。", "effects": {"outside_set": 0.42, "hours_set": 0.58, "fixed_mult": 1.15}, "drivers": {"personal": 1, "focus": -1}},
+        {"id": "stop", "label": "測試結束，不開了", "detail": "確定：主動結業。若幾乎沒有員工，這可以是體面的。", "risk": "沒有。", "effects": {"force_ending": "voluntary"}, "memory": "test_notebook"}
+      ]
+    },
+    {
+      "id": "tw_labor",
+      "layer": "regional",
+      "grammar": "LABOR",
+      "title": "勞動檢查看的是排班",
+      "body": "台北與高雄都不是可以口頭約定工時的地方。檢查要的是紀錄。",
+      "cities": ["taipei", "kaohsiung"],
+      "requires": {"min_headcount": 1},
+      "weight": 14, "cooldown": 24, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "comply", "label": "改班表，加班費入帳", "detail": "確定：人力成本 ×1.12。合規上升。", "risk": "毛利變薄，但罰款的尾部被切掉。", "effects": {"wage_mult": 1.12, "flags": {"labor_ok": true}}, "drivers": {"compliance": 2, "margin": -1}},
+        {"id": "shrink", "label": "減到你自己做得完", "detail": "確定：若裁員，城市的離職代價會先扣現金。收入下降。", "risk": "你會回到不能請假的狀態。", "effects": {"fire_to": 0, "revenue_mult": 0.8, "hours": 0.15}, "drivers": {"personal": -1, "compliance": 1}},
+        {"id": "risk", "label": "維持現狀", "detail": "確定：成本不變。", "risk": "下一張罰單不會再給選項。", "effects": {"flags": {"labor_risk": true}}, "drivers": {"compliance": -2}}
+      ]
+    },
+    {
+      "id": "taipei_platform",
+      "layer": "regional",
+      "grammar": "PLATFORM_FEE",
+      "title": "平台抽成通知",
+      "body": "台北的網上訂單走得動，費率通知卻比城市的租金還乾脆。",
+      "cities": ["taipei"],
+      "tags_any": ["digital", "platform", "retail"],
+      "weight": 14, "cooldown": 20, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "pay", "label": "接受新費率", "detail": "確定：平台費 +3 個百分點。", "risk": "這不會是最後一次。", "effects": {"platform_fee": 0.03}, "drivers": {"margin": -2, "demand": 1}},
+        {"id": "own", "label": "把熟客遷到自己的名單", "detail": "確定：花 0.7，平台費下降，短期收入下降。", "risk": "曝光會掉。", "effects": {"cash": -0.7, "platform_fee": -0.03, "revenue_mult": 0.9, "trust": 0.03}, "drivers": {"independence": 2}},
+        {"id": "mix", "label": "提高客單，讓抽成佔比變小", "detail": "確定：價格 +8%，量會掉一點。", "risk": "便利型的客人最敏感。", "effects": {"price_mod": 0.08, "revenue_mult": 0.94}, "drivers": {"price": 2, "demand": -1}}
+      ]
+    },
+    {
+      "id": "khh_season",
+      "layer": "regional",
+      "grammar": "SEASON",
+      "title": "淡季比你記帳時想的更淡",
+      "body": "高雄的旺季把你的固定成本養壞了。這個月的人流明顯少了一截。",
+      "cities": ["kaohsiung"],
+      "weight": 16, "cooldown": 12, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "reserve", "label": "砍可選開支，把現金留下", "detail": "確定：本季推廣停止，現金流出下降。配合度暫停成長。", "risk": "旺季回來時你可能不夠大聲。", "effects": {"cost_mod": -0.02, "market_fit": -0.03, "flags": {"lean_season": true}}, "drivers": {"cash": 2, "demand": -1}},
+        {"id": "push", "label": "用淡季價格把量補回", "detail": "確定：價格 −10%，為期三個月。", "risk": "旺季也收不回來這個錨。", "effects": {"price_mod": -0.1, "for_months": 3, "flags": {"discount": true}}, "drivers": {"demand": 2, "price": -2}},
+        {"id": "b2b", "label": "去接不受季節影響的單", "detail": "確定：帳期變長，收入更穩一點。", "risk": "你會開始有集中度。", "effects": {"ar_days": 40, "revenue_mult": 1.08, "concentration_set": 0.35}, "drivers": {"stability": 2, "cash": -1}}
+      ]
+    },
+    {
+      "id": "khh_port",
+      "layer": "regional",
+      "grammar": "LOGISTICS",
+      "title": "港口延遲了一週",
+      "body": "貨沒有不見。它只是不在你答應客人的那個日子。",
+      "cities": ["kaohsiung"],
+      "tags_any": ["mfg", "logi", "physical"],
+      "weight": 12, "cooldown": 16, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "air", "label": "改走較貴的方式趕上", "detail": "確定：現金 −1，信任保住。", "risk": "這會變成客戶期待的服務水準。", "effects": {"cash": -1, "trust": 0.04}, "drivers": {"trust": 2, "cash": -2}},
+        {"id": "tell", "label": "提前改交期", "detail": "確定：信任 −0.02，成本不變。", "risk": "有罰款條款的單會痛。", "effects": {"trust": -0.02, "reputation": -0.02}, "drivers": {"cash": 1, "trust": -1}},
+        {"id": "buffer", "label": "以後的報價都加緩衝", "detail": "確定：成交變慢，可靠度上升。這是可識別的做法。", "risk": "急單會去找別人。", "effects": {"revenue_mult": 0.94, "trust": 0.05, "flags": {"buffered": true}}, "drivers": {"trust": 2, "demand": -1}, "memory": "storm_log"}
+      ]
+    },
+    {
+      "id": "tokyo_quality",
+      "layer": "regional",
+      "grammar": "QUALITY_BAR",
+      "title": "客人沒有大聲說話",
+      "body": "東京的不滿常常不是怒氣。是下一次不再來，並且不解釋。",
+      "cities": ["tokyo"],
+      "weight": 16, "cooldown": 18, "min_month": 3, "major": true,
+      "choices": [
+        {"id": "raise", "label": "把品質拉回你自己的標準", "detail": "確定：變動成本 +5%，價格 +6%，量下降。", "risk": "現金在標準建立之前會更緊。", "effects": {"cost_mod": 0.05, "price_mod": 0.06, "quality": 0.07, "revenue_mult": 0.92}, "drivers": {"quality": 3, "cash": -1}},
+        {"id": "segment", "label": "承認你不是做給所有人", "detail": "確定：客群變窄，信任在留下的人身上上升。", "risk": "規模上限會更早到。", "effects": {"revenue_mult": 0.86, "brand": 0.06, "trust": 0.04}, "drivers": {"brand": 2, "scale": -1}},
+        {"id": "speed", "label": "用速度補償", "detail": "確定：你的時間再多給一點，品質只回一點。", "risk": "這會加重創辦人利用率。", "effects": {"hours": 0.08, "quality": 0.02, "health": -0.03}, "drivers": {"founder": -2, "demand": 1}}
+      ]
+    },
+    {
+      "id": "tokyo_hire",
+      "layer": "regional",
+      "grammar": "HIRING",
+      "title": "招募掛了一個月",
+      "body": "東京不是沒有人。是肯來小公司、又做得動的人很少。",
+      "cities": ["tokyo"],
+      "requires": {"max_headcount": 8},
+      "weight": 12, "cooldown": 14, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "pay", "label": "把薪資開到留得住", "detail": "確定：該職位薪資 ×1.25，人請到。", "risk": "舊人會知道新的價。", "effects": {"headcount": 1, "wage_mult": 1.1, "morale": 0.02}, "drivers": {"team": 2, "margin": -2}},
+        {"id": "founder", "label": "不請了，縮小承諾", "detail": "確定：不增加人力，收入目標下調。", "risk": "你的利用率維持高位。", "effects": {"revenue_mult": 0.9, "will": -0.02}, "drivers": {"focus": 1, "founder": -1}},
+        {"id": "parttime", "label": "改用兩名兼職", "detail": "確定：人力成本較低，品質穩定度較差，人數 +2 但產能只算 1。", "risk": "排班會變成新的工作。", "effects": {"headcount": 1, "quality": -0.03, "wage_mult": 0.92, "complexity": 0.2}, "drivers": {"flexibility": 1, "quality": -1}}
+      ]
+    },
+    {
+      "id": "osaka_price_war",
+      "layer": "regional",
+      "grammar": "COMPETITION",
+      "title": "對街開始掛更低的價格",
+      "body": "大阪吃與賣的競爭不需要你成功太久才會出現。對方的牌子寫得很直。",
+      "cities": ["osaka"],
+      "weight": 18, "cooldown": 16, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "match", "label": "跟價", "detail": "確定：價格 −8%，量保住，毛利變薄。", "risk": "下一輪還會更低。", "effects": {"price_mod": -0.08, "peer_pressure": 0.04, "flags": {"discount": true}}, "drivers": {"demand": 1, "price": -2}},
+        {"id": "relation", "label": "不跟，把熟客的帳做細", "detail": "確定：價格不變，信任上升，短期量下降。", "risk": "新客仍會比較門口的數字。", "effects": {"revenue_mult": 0.92, "trust": 0.06, "brand": 0.03}, "drivers": {"trust": 2, "demand": -1}},
+        {"id": "differentiate", "label": "改一個他們抄不走的部分", "detail": "確定：成本 +3%，配合度上升。算一次轉型的累積。", "risk": "可能改到客人不在乎的地方。", "effects": {"cost_mod": 0.03, "market_fit": 0.05, "flags": {"transformed": true}}, "drivers": {"product": 2, "margin": -1}}
+      ]
+    },
+    {
+      "id": "cdmx_terms",
+      "layer": "regional",
+      "grammar": "RECEIVABLES",
+      "title": "發票開了，錢沒有到",
+      "body": "墨西哥城的單子不少。六十天在這裡不算失禮。你的租金不會等六十天。",
+      "cities": ["cdmx"],
+      "weight": 20, "cooldown": 14, "min_month": 3, "major": true,
+      "choices": [
+        {"id": "strict", "label": "新單改成預付或很短的帳期", "detail": "確定：帳期降到十五天以內，成交量下降。", "risk": "有些大客戶會直接離開。", "effects": {"ar_days": 15, "revenue_mult": 0.86, "trust": 0.02}, "drivers": {"cash": 3, "demand": -2}},
+        {"id": "factor", "label": "把應收折讓換成現金", "detail": "確定：立刻進帳，但這一批只拿到約七成五。", "risk": "客戶知道你急。", "effects": {"cash": 0.8, "trust": -0.03, "reputation": -0.02}, "drivers": {"cash": 2, "margin": -1}},
+        {"id": "accept", "label": "接受城市的節奏，自己留更多現金", "detail": "確定：帳期維持偏長。你把抽取降到最低來換緩衝。", "risk": "個人生活會先緊。", "effects": {"draw_zero": 3, "will": -0.04, "flags": {"long_ar": true}}, "drivers": {"personal": -2, "stability": 1}}
+      ]
+    },
+    {
+      "id": "cdmx_informal",
+      "layer": "regional",
+      "grammar": "PRICE_PRESSURE",
+      "title": "沒有開發票的價格更低",
+      "body": "客人把另一個數字放在你面前。那個數字沒有稅，也沒有售後。",
+      "cities": ["cdmx", "gdl"],
+      "weight": 14, "cooldown": 16, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "formal", "label": "只做開發票的單", "detail": "確定：稅負維持，客群變小，合規旗標較乾淨。", "risk": "量會明顯少一截。", "effects": {"revenue_mult": 0.84, "flags": {"formal_only": true}, "trust": 0.04}, "drivers": {"compliance": 2, "demand": -2}},
+        {"id": "value", "label": "用售後把價差解釋掉", "detail": "確定：價格不變，服務成本 +3%。", "risk": "不是每個人在乎售後。", "effects": {"cost_mod": 0.03, "trust": 0.03, "revenue_mult": 0.96}, "drivers": {"trust": 1, "margin": -1}},
+        {"id": "down", "label": "把標價降到接近", "detail": "確定：價格 −12%。稅還在。", "risk": "你可能忙著做虧錢的單。", "effects": {"price_mod": -0.12}, "drivers": {"demand": 2, "margin": -3}}
+      ]
+    },
+    {
+      "id": "gdl_storm",
+      "layer": "regional",
+      "grammar": "SHOCK",
+      "title": "暴雨把路線切斷",
+      "body": "瓜達拉哈拉這場雨不是意外的世界觀。你若做食品、農產或製造，今天就是交期。",
+      "cities": ["gdl"],
+      "weight": 16, "cooldown": 14, "min_month": 4, "major": true,
+      "choices": [
+        {"id": "partial", "label": "能送的先送，其餘說實話", "detail": "確定：本月收入 ×0.72，信任上升。", "risk": "數字不好看，關係可能更好看。", "effects": {"revenue_mult": 0.9, "trust": 0.06, "flags": {"storm_kept": true}}, "drivers": {"trust": 3, "cash": -1}, "memory": "storm_log"},
+        {"id": "backup", "label": "啟用較貴的備援", "detail": "確定：現金 −1.1，大部分承諾守住。", "risk": "備援會被要求變成常態。", "effects": {"cash": -1.1, "trust": 0.03, "flags": {"backup": true}}, "drivers": {"trust": 1, "cash": -2}, "commitment": {"name": "物流備援", "months": 12, "kind": "supply"}},
+        {"id": "wait", "label": "等路通", "detail": "確定：成本不增加，信任下降。", "risk": "可追溯的承諾會被記住沒有做到。", "effects": {"trust": -0.06, "revenue_mult": 0.88}, "drivers": {"cash": 1, "trust": -2}}
+      ]
+    },
+    {
+      "id": "gdl_export",
+      "layer": "regional",
+      "grammar": "EXPORT",
+      "title": "外地的訂單比本地大",
+      "body": "本地需求有限。這張單來自外面，量大，規格也更硬。",
+      "cities": ["gdl", "kaohsiung"],
+      "families": ["mfg", "agri", "food"],
+      "weight": 12, "cooldown": 24, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "take", "label": "接，並為規格投資", "detail": "確定：現金 −1.2，收入 ×1.2，監管負荷上升。", "risk": "規格一改，設備就變成沉沒。", "effects": {"cash": -1.2, "revenue_mult": 1.2, "complexity": 0.4, "flags": {"export": true}}, "drivers": {"scale": 2, "complexity": -1}, "memory": "first_contract"},
+        {"id": "small", "label": "只接試單", "detail": "確定：收入 ×1.06，學習一些，不綁死產能。", "risk": "對方可能不要小單。", "effects": {"revenue_mult": 1.06, "market_fit": 0.03}, "drivers": {"learning": 1}},
+        {"id": "local", "label": "留在本地的尺度", "detail": "確定：不增加複雜度。", "risk": "成長上限比較早看見。", "effects": {"will": 0.02, "flags": {"local_only": true}}, "drivers": {"focus": 2, "scale": -1}}
+      ]
+    },
+    {
+      "id": "employee_error",
+      "layer": "generic",
+      "grammar": "MISTAKE",
+      "title": "有人做錯，客戶點名要你",
+      "body": "錯是真的。人不是故意的。客戶在等你的說法，員工也在等。",
+      "requires": {"min_headcount": 1},
+      "weight": 14, "cooldown": 16, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "own", "label": "你出面承擔", "detail": "確定：現金補償 −0.5，信任保住，士氣上升。", "risk": "你會繼續成為唯一的門面。", "effects": {"cash": -0.5, "trust": 0.04, "morale": 0.05, "key_dependency": 0.05}, "drivers": {"trust": 2, "founder": -1}, "memory": "customer_letter"},
+        {"id": "coach", "label": "讓當事人向客戶說明，你在場", "detail": "確定：補償 −0.35，依賴下降。", "risk": "說明可能不夠好看。", "effects": {"cash": -0.35, "trust": 0.02, "key_dependency": -0.08, "morale": 0.03}, "drivers": {"team": 2}},
+        {"id": "blame", "label": "把錯歸給員工", "detail": "確定：你的現金補償較少。", "risk": "士氣與口碑一起掉。", "effects": {"cash": -0.15, "morale": -0.12, "trust": -0.05}, "drivers": {"cash": 1, "team": -2}}
+      ]
+    },
+    {
+      "id": "regulars",
+      "layer": "generic",
+      "grammar": "CUSTOMER",
+      "title": "熟客想要一個別人沒有的條件",
+      "body": "不是大客戶。是那個從第一個月就在的人。對方要的折扣很小，意義不小。",
+      "weight": 12, "cooldown": 20, "min_month": 8, "major": true,
+      "choices": [
+        {"id": "yes", "label": "給，並只給這一個人", "detail": "確定：毛利幾乎不動，信任上升。", "risk": "一旦被看見，就不再只是一個人。", "effects": {"trust": 0.05, "cost_mod": 0.005, "flags": {"favor": true}}, "drivers": {"trust": 2}, "memory": "customer_letter"},
+        {"id": "menu", "label": "做成公開的老客方案", "detail": "確定：價格體系多一層，複雜度上升，流失略降。", "risk": "新客會覺得不公平。", "effects": {"churn": -0.01, "complexity": 0.2, "price_mod": -0.02}, "drivers": {"retention": 1, "focus": -1}},
+        {"id": "no", "label": "同樣的價格，額外的照顧", "detail": "確定：不改價。你的時間多給一點。", "risk": "照顧無法規模化。", "effects": {"hours": 0.04, "trust": 0.03}, "drivers": {"trust": 1, "founder": -1}}
+      ]
+    },
+    {
+      "id": "ipo_books",
+      "layer": "generic",
+      "grammar": "IPO_PREP",
+      "spine": "ipo_prep",
+      "title": "如果要上市，帳簿得換一種寫法",
+      "body": "不是把數字做大。是讓別人審計時，每一筆都回得了原處。",
+      "weight": 10, "cooldown": 60, "min_month": 60, "once": true, "major": true,
+      "choices": [
+        {"id": "change", "label": "換制度，並請財務主管", "detail": "確定：現金 −1.8，人力 +1，標記為可審計。", "risk": "舊的習慣會反抗新的表。", "effects": {"cash": -1.8, "headcount": 1, "audited": true, "complexity": 0.5}, "drivers": {"governance": 3, "cash": -1}, "memory": "license"},
+        {"id": "later", "label": "先不為上市改", "detail": "確定：不支出。上市窗口到時你還沒準備。", "risk": "窗口不會等你。", "effects": {"will": 0.02, "flags": {"ipo_deferred": true}}, "drivers": {"focus": 1}},
+        {"id": "cosmetic", "label": "只改對外的格式", "detail": "確定：花費較少。不可標記為可審計。", "risk": "真的進場時會被退回。", "effects": {"cash": -0.4, "flags": {"cosmetic_books": true}}, "drivers": {"governance": -1}}
+      ]
+    },
+    {
+      "id": "ipo_window",
+      "layer": "generic",
+      "grammar": "IPO",
+      "spine": "ipo_window",
+      "title": "窗口開了，問題也開了",
+      "body": "市場願意聽。保薦的人問：歷史事故、關聯交易、誰還拿著不明確的股份。",
+      "weight": 8, "cooldown": 80, "min_month": 72, "once": true, "major": true,
+      "choices": [
+        {"id": "go", "label": "按現在的樣子申請", "detail": "確定：若條件齊，進入上市。控制權下降，現金增加，紅線改為公眾公司。", "risk": "條件不足就只是一場昂貴的準備，不會假裝成功。", "effects": {"try_ipo": true}, "drivers": {"public": 2}},
+        {"id": "clean", "label": "先清理股份與事故披露，下一個窗口再去", "detail": "確定：現金 −1，控制權 −4%，聲譽較乾淨，本次不上。", "risk": "下一個窗口是未知。", "effects": {"cash": -1, "control": -0.04, "reputation": 0.06, "flags": {"cleaned": true, "disclosed": true}}, "drivers": {"governance": 2, "public": -1}, "memory": "pulled_prospectus"},
+        {"id": "private", "label": "不上市，維持私有", "detail": "確定：不稀釋給公眾。", "risk": "成長資金要另找。", "effects": {"flags": {"stayed_private": true}, "will": 0.03}, "drivers": {"independence": 2}}
+      ]
+    },
+    {
+      "id": "earnings",
+      "layer": "generic",
+      "grammar": "PUBLIC_MARKET",
+      "spine": "earnings",
+      "title": "這季的數字對不上指引",
+      "body": "上市之後，預期本身變成一種債務。你現在看得到差距。",
+      "requires": {"public": true},
+      "weight": 18, "cooldown": 12, "min_month": 1, "major": true,
+      "choices": [
+        {"id": "warn", "label": "提前預警", "detail": "確定：信任與治理加分，短期壓力仍在，不造假。", "risk": "股價會有反應。股價不是你的分數。", "effects": {"reputation": 0.05, "investor": 0.08, "trust": 0.03}, "drivers": {"governance": 2, "market": -1}},
+        {"id": "cut", "label": "砍費用，硬湊進區間", "detail": "確定：成本下降，品質與士氣下降。", "risk": "下一季可能更空。", "effects": {"cost_mod": -0.04, "quality": -0.04, "morale": -0.06}, "drivers": {"margin": 1, "team": -2}},
+        {"id": "guide", "label": "改指引，不改營運", "detail": "確定：壓力略降，聲譽小損。", "risk": "常改的人，之後沒人信。", "effects": {"investor": 0.04, "reputation": -0.03}, "drivers": {"governance": 1}}
+      ]
+    },
+    {
+      "id": "hostile",
+      "layer": "generic",
+      "grammar": "HOSTILE",
+      "title": "一份不想被你喜歡的收購",
+      "body": "價格寫得很清楚。你的控制權不夠單方面拒絕。員工與名字都沒有寫進價格裡。",
+      "requires": {"public": true},
+      "weight": 10, "cooldown": 40, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "fight", "label": "對股東說明為甚麼不賣", "detail": "確定：若控制權仍高，你可以留下。壓力上升。", "risk": "控制權低時，說明不等於否決。", "effects": {"investor": 0.1, "hostile_check": true}, "drivers": {"control": 1}},
+        {"id": "deal", "label": "談條件，保住使命條款或品牌", "detail": "確定：進入出售，但保留使命條款。", "risk": "條款以後仍可能被挑戰。", "effects": {"mission_clause": true, "force_ending": "sale"}, "memory": "mission_clause"},
+        {"id": "accept", "label": "接受，公司換主人", "detail": "確定：敵意收購結局。", "risk": "品牌可能被收進別人的目錄。", "effects": {"force_ending": "hostile"}, "memory": "loi"}
+      ]
+    },
+    {
+      "id": "go_private",
+      "layer": "generic",
+      "grammar": "PRIVATIZE",
+      "title": "有人提議把公司買回私有",
+      "body": "公眾市場的季度壓力可以結束。私有的債務與少數股東不會一起消失。",
+      "requires": {"public": true},
+      "weight": 8, "cooldown": 40, "min_month": 12, "once": true, "major": true,
+      "choices": [
+        {"id": "yes", "label": "私有化", "detail": "確定：上市狀態結束，債務上升，控制權回到較小的圈子。", "risk": "利息會變成新的紅線。", "effects": {"public_off": true, "debt": 4, "investor": -0.2, "control": 0.15, "flags": {"privatized": true}}, "drivers": {"control": 2, "debt": -2}, "memory": "pulled_prospectus"},
+        {"id": "no", "label": "留在公開市場", "detail": "確定：維持上市。", "risk": "提案的人可能改走敵意。", "effects": {"investor": 0.05}, "drivers": {"public": 1}},
+        {"id": "spin", "label": "把最早的業務拆出去", "detail": "確定：複雜度下降，收入下降，核心有機會獨立留下。", "risk": "拆分本身是一場交易。", "effects": {"revenue_mult": 0.75, "complexity": -0.8, "core_kept": true, "cash": 1.5}, "drivers": {"focus": 2, "scale": -2}}
+      ]
+    },
+    {
+      "id": "antitrust",
+      "layer": "regional",
+      "grammar": "ANTITRUST",
+      "title": "有人問你是否限制了別人",
+      "body": "當你開始定規則，規則就不再只是商業模式。調查問的是：農戶、商家或創作者能不能同時去別處。",
+      "requires": {"min_month": 36},
+      "tags_any": ["platform"],
+      "weight": 10, "cooldown": 36, "min_month": 36, "once": true, "major": true,
+      "choices": [
+        {"id": "open", "label": "改成非獨家", "detail": "確定：抽成壓力上升，獨家旗標取消，聲譽上升。", "risk": "單量可能掉。", "effects": {"flags": {"exclusive": false}, "platform_fee": 0.02, "reputation": 0.05, "revenue_mult": 0.92}, "drivers": {"governance": 2, "margin": -1}},
+        {"id": "fight", "label": "主張這是效率", "detail": "確定：法律準備金 −1.2。結果維持未知一段時間，先付成本。", "risk": "未知不會在這張卡上被換成勝率。", "effects": {"cash": -1.2, "flags": {"under_review": true}}, "drivers": {"cash": -1}},
+        {"id": "settle", "label": "承諾調整並寫進章程", "detail": "確定：收入略降，核心承諾被寫下。", "risk": "章程會在你離開後繼續說話。", "effects": {"revenue_mult": 0.95, "core_kept": true, "reputation": 0.04}, "drivers": {"governance": 2}, "memory": "charter_line"}
+      ]
+    },
+    {
+      "id": "transform",
+      "layer": "generic",
+      "grammar": "TRANSFORM",
+      "spine": "transform_due",
+      "title": "原來的市場不再夠用",
+      "body": "需求的方向變了。你可以改商業模式、縮小、把方法留下，或為結束做準備。",
+      "weight": 16, "cooldown": 36, "min_month": 24, "major": true,
+      "choices": [
+        {"id": "model", "label": "改收入方式", "detail": "確定：標記為已轉型。短期配合度下降，趨勢壓力減輕。", "risk": "舊客人可能不認識新的你。", "effects": {"transformed": true, "market_fit": -0.08, "trend_add": 0.04, "complexity": 0.3}, "drivers": {"transform": 3, "demand": -1}},
+        {"id": "shrink", "label": "縮小到還能做好的範圍", "detail": "確定：收入與固定成本一起下降。", "risk": "變小之後，有些牌照與人才會留不住。", "effects": {"revenue_mult": 0.72, "fixed_mult": 0.7, "headcount_delta": -1, "flags": {"shrunk": true}}, "drivers": {"focus": 2, "scale": -2}},
+        {"id": "craft", "label": "把方法交給下一個人", "detail": "確定：若你之後結業，可以走手藝移交。現在先留下物件與旗標。", "risk": "公司本身可能因此不再長大。", "effects": {"flags": {"craft_handoff": true}, "brand": 0.04, "revenue_mult": 0.9}, "drivers": {"identity": 3, "scale": -1}, "memory": "century_recipe"}
+      ]
+    },
+    {
+      "id": "decline_path",
+      "layer": "generic",
+      "grammar": "DECLINE",
+      "title": "這門生意每年都更難一點",
+      "body": "這不是你經營失敗才出現的句子。開局的趨勢就寫著。現在數字開始跟上那句話。",
+      "requires": {"declining": true},
+      "weight": 26, "cooldown": 30, "min_month": 6, "once": true, "major": true,
+      "choices": [
+        {"id": "transform", "label": "轉成還有人要的相鄰問題", "detail": "確定：已轉型。趨勢修正。配合度先掉。", "risk": "你可能轉到另一個你不懂的行業。", "effects": {"transformed": true, "trend_add": 0.06, "market_fit": -0.06}, "drivers": {"transform": 3}},
+        {"id": "preserve", "label": "縮小，並把做法寫下來", "detail": "確定：規模下降，手藝旗標打開。", "risk": "收入可能永遠回不到能請一團隊的程度。", "effects": {"revenue_mult": 0.7, "fixed_mult": 0.65, "flags": {"craft_handoff": true, "decline_preserve": true}}, "drivers": {"identity": 3, "scale": -2}, "memory": "century_recipe"},
+        {"id": "exit", "label": "在還付得起帳的時候結束", "detail": "確定：主動結業。", "risk": "沒有。", "effects": {"force_ending": "voluntary"}}
+      ]
+    },
+    {
+      "id": "succession_card",
+      "layer": "generic",
+      "grammar": "SUCCESSION",
+      "spine": "succession_due",
+      "title": "該把鑰匙交出去了",
+      "body": "不是今天突然老去。徵兆已經有過。公司若要繼續，坐在這個位子上的人得換。",
+      "weight": 20, "cooldown": 80, "min_month": 36, "major": true,
+      "choices": [
+        {"id": "plan", "label": "進入接班", "detail": "確定：打開接班選擇。你不再是日常經營者。", "risk": "你選的人會改寫以後的事件。", "effects": {"open_succession": true}},
+        {"id": "delay", "label": "再留兩年", "detail": "確定：兩年內不強制。健康與治理壓力上升。只能延一次。", "risk": "兩年後的選擇會更少。", "effects": {"health": -0.05, "investor": 0.06, "flags": {"succession_delayed": true}}, "drivers": {"control": 1, "founder": -2}, "commitment": {"name": "創辦人留任", "months": 24, "kind": "succession"}},
+        {"id": "sell", "label": "不接班，改為出售", "detail": "確定：走向出售。", "risk": "買主買的是現金流，不一定是句子。", "effects": {"force_ending": "sale"}}
+      ]
+    },
+    {
+      "id": "century_myth",
+      "layer": "generic",
+      "grammar": "CENTURY",
+      "spine": "century_question",
+      "title": "創辦故事開始比檔案整齊",
+      "body": "對外的版本越來越好聽。早期的工時、失敗與那次召回，在紀念稿裡變短了。",
+      "weight": 12, "cooldown": 60, "min_month": 480, "major": true,
+      "choices": [
+        {"id": "archive", "label": "把不好聽的也放進檔案", "detail": "確定：聲譽更穩，行銷較不光滑。核心保留。", "risk": "有人會拿真實歷史問責。", "effects": {"reputation": 0.04, "brand": 0.02, "core_kept": true, "flags": {"honest_archive": true}}, "drivers": {"identity": 2}, "memory": "century_sign"},
+        {"id": "polish", "label": "用光滑的版本做百年紀念", "detail": "確定：短期品牌上升。", "risk": "內部知道省略了甚麼的人會離開信任。", "effects": {"brand": 0.05, "trust": -0.05, "morale": -0.04}, "drivers": {"brand": 1, "trust": -2}},
+        {"id": "skip", "label": "不做紀念活動", "detail": "確定：不額外花費。", "risk": "沉默也會被解讀。", "effects": {"cash": 0.2, "will": 0.02}, "drivers": {"focus": 1}}
+      ]
+    },
+    {
+      "id": "data_breach",
+      "layer": "structure",
+      "grammar": "TRUST_SHOCK",
+      "title": "名單不在你以為的地方",
+      "body": "客戶資料被放到不該放的位置。你還不知道影響範圍。未知就保持未知。",
+      "tags_any": ["digital", "saas"],
+      "weight": 10, "cooldown": 36, "min_month": 8, "once": true, "major": true,
+      "choices": [
+        {"id": "tell", "label": "通知可能受影響的人", "detail": "確定：現金 −0.8，信任先跌，合規較乾淨。", "risk": "通知會帶來一波離開。", "effects": {"cash": -0.8, "trust": -0.04, "churn": 0.02, "flags": {"disclosed": true}}, "drivers": {"trust": 1, "demand": -2}, "memory": "scandal_clipping"},
+        {"id": "fix", "label": "先補洞，範圍查清再說話", "detail": "確定：現金 −1。若之後被發現你知道卻未說，聲譽再跌。此選項不保證隱藏成功。", "risk": "延遲本身會成為事件。", "effects": {"cash": -1, "quality": 0.03, "reputation": -0.03}, "drivers": {"ops": 1, "trust": -1}},
+        {"id": "minimal", "label": "只做法律最低限度", "detail": "確定：現金 −0.3。", "risk": "最低限度在不同城市不一樣，聲譽受損。", "effects": {"cash": -0.3, "reputation": -0.06, "trust": -0.05}, "drivers": {"cash": 1, "trust": -2}}
+      ]
+    },
+    {
+      "id": "community",
+      "layer": "regional",
+      "grammar": "COMMUNITY",
+      "title": "鄰近的人來問你算不算打擾",
+      "body": "噪音、排隊、包裝、夜間燈。不是網路評論。是會在樓梯口遇到的人。",
+      "tags_any": ["physical"],
+      "weight": 10, "cooldown": 24, "min_month": 6, "major": true,
+      "choices": [
+        {"id": "change", "label": "改時段與做法", "detail": "確定：收入 ×0.92，社區信任上升。", "risk": "最好賺的時段可能就是被抱怨的時段。", "effects": {"revenue_mult": 0.92, "reputation": 0.05, "trust": 0.02}, "drivers": {"community": 2, "demand": -1}},
+        {"id": "legal", "label": "確認你在規定之內，然後維持", "detail": "確定：若牌照齊，維持營運。關係變冷。", "risk": "規定之內仍可能被檢舉。", "effects": {"reputation": -0.03, "flags": {"neighbor_cold": true}}, "drivers": {"compliance": 1, "community": -1}},
+        {"id": "leave", "label": "換地方", "detail": "確定：搬遷 −0.8，固定成本略降，熟客流失一點。", "risk": "新地方有新的鄰居。", "effects": {"cash": -0.8, "fixed_mult": 0.9, "revenue_mult": 0.9}, "drivers": {"community": 1, "cash": -1}}
+      ]
+    },
+    {
+      "id": "wage_wave",
+      "layer": "generic",
+      "grammar": "LABOR_COST",
+      "title": "下面的人一起把數字帶來",
+      "body": "不是一個人談。是一張大家簽過名的紙。上面是生活費，不是口號。",
+      "requires": {"min_headcount": 3},
+      "weight": 12, "cooldown": 20, "min_month": 12, "major": true,
+      "choices": [
+        {"id": "yes", "label": "調薪", "detail": "確定：人力成本 ×1.14，士氣上升。", "risk": "價格若不動，紅線會靠近。", "effects": {"wage_mult": 1.14, "morale": 0.08}, "drivers": {"team": 2, "margin": -2}},
+        {"id": "share", "label": "少調一點，加上分紅規則", "detail": "確定：成本 ×1.06，有盈餘時再分。複雜度上升。", "risk": "虧損的年份會很失望。", "effects": {"wage_mult": 1.06, "morale": 0.05, "complexity": 0.3}, "drivers": {"team": 1, "governance": 1}, "commitment": {"name": "分紅規則", "months": 24, "kind": "people"}},
+        {"id": "no", "label": "拒絕", "detail": "確定：成本不變，士氣下降，離職風險上升。", "risk": "你可能在下個季同時缺人。", "effects": {"morale": -0.12, "key_dependency": 0.08}, "drivers": {"margin": 1, "team": -2}}
+      ]
+    },
+    {
+      "id": "tax_audit",
+      "layer": "regional",
+      "grammar": "TAX",
+      "title": "稅務請你把三年的單據排好",
+      "body": "不是指控。是排列。排不出來的部分，會變成現金。",
+      "weight": 12, "cooldown": 30, "min_month": 12, "major": true,
+      "choices": [
+        {"id": "clean", "label": "補稅與罰款，一次付清", "detail": "確定：現金 −1.3。若已可審計，改為 −0.6。", "risk": "跑道。", "effects": {"tax_hit": true}, "drivers": {"compliance": 1, "cash": -2}},
+        {"id": "install", "label": "申請分期", "detail": "確定：債務 +1，聲譽略損，現金壓力攤開。", "risk": "分期也是承諾。", "effects": {"debt": 1, "reputation": -0.03}, "drivers": {"cash": 1, "debt": -1}, "commitment": {"name": "稅款分期", "months": 12, "kind": "tax"}},
+        {"id": "fight", "label": "對有爭議的部分提出說明", "detail": "確定：先付 −0.4 準備。結果不在這張卡上假裝已經知道。", "risk": "延遲會有利息。", "effects": {"cash": -0.4, "flags": {"tax_open": true}}, "drivers": {"compliance": 1}}
+      ]
+    },
+    {
+      "id": "founder_retire",
+      "layer": "generic",
+      "grammar": "EXIT",
+      "title": "你開始想像沒有班表的週一",
+      "body": "公司還在運轉。你發現自己留下，是因為不放心，不是因為每天都需要你。",
+      "weight": 8, "cooldown": 40, "min_month": 60, "major": true,
+      "choices": [
+        {"id": "retire", "label": "準備交棒", "detail": "確定：進入接班。", "risk": "交棒之後，玩法會變成守護，而不是親自做。", "effects": {"open_succession": true}},
+        {"id": "chair", "label": "退到董事，不碰日常", "detail": "確定：時間下降，抽取下降，控制權保留較多。仍算一次角色轉換。", "risk": "董事不碰日常，是一種很容易破的句子。", "effects": {"hours_set": 0.25, "draw_mult": 0.4, "flags": {"chair": true}, "key_dependency": -0.1}, "drivers": {"founder": 2, "control": 1}},
+        {"id": "stay", "label": "還不走", "detail": "確定：維持。", "risk": "健康與治理的問題會累積。", "effects": {"will": 0.02, "health": -0.02}, "drivers": {"control": 1}}
+      ]
+    },
+    {
+      "id": "merge_offer",
+      "layer": "generic",
+      "grammar": "MERGE",
+      "title": "對等合併的提案",
+      "body": "不是收購。至少紙上這樣寫。兩間公司的名字要合成一個，客戶與員工都要重新認識。",
+      "weight": 8, "cooldown": 40, "min_month": 24, "once": true, "major": true,
+      "choices": [
+        {"id": "merge", "label": "合併", "detail": "確定：進入合併結局。", "risk": "你的核心句子可能變成註腳。", "effects": {"force_ending": "merge"}, "memory": "loi"},
+        {"id": "partner", "label": "不合併，改簽合作", "detail": "確定：成本 −3%，獨立仍在。", "risk": "合作會洩漏你的數字。", "effects": {"cost_mod": -0.03, "trust": 0.02, "peer_pressure": -0.04}, "drivers": {"relation": 2, "independence": 1}},
+        {"id": "no", "label": "拒絕", "detail": "確定：保持現狀。", "risk": "對方可能與你的近場合併。", "effects": {"peer_pressure": 0.05}, "drivers": {"independence": 1}}
+      ]
+    },
+    {
+      "id": "mission_money",
+      "layer": "generic",
+      "grammar": "MISSION",
+      "title": "使命與這一季的現金",
+      "body": "有一筆又大又快的錢。條件是把你最初那句話從對外的頁上拿掉。",
+      "requires": {"positioning": ["mission"]},
+      "weight": 12, "cooldown": 24, "min_month": 10, "major": true,
+      "choices": [
+        {"id": "keep", "label": "留下那句話", "detail": "確定：拒絕這筆錢。品牌與核心保留。", "risk": "現金不會因此變多。", "effects": {"brand": 0.04, "core_kept": true, "will": 0.04}, "drivers": {"identity": 3}, "memory": "mission_clause"},
+        {"id": "clause", "label": "收錢，但寫成不能刪的條款", "detail": "確定：現金 +3，控制權 −10%，使命條款寫入。", "risk": "條款要有人在你離開後仍執行。", "effects": {"cash": 3, "control": -0.1, "mission_clause": true, "core_kept": true}, "drivers": {"capital": 2, "control": -1}, "memory": "mission_clause"},
+        {"id": "take", "label": "拿掉句子，換現金", "detail": "確定：現金 +3.5，核心拿掉，定位漂移。", "risk": "以後的結局文案不會再稱你為使命。", "effects": {"cash": 3.5, "core_drop": true, "brand": -0.05, "flags": {"mission_sold": true}}, "drivers": {"cash": 2, "identity": -3}}
+      ]
+    },
+    {
+      "id": "child_grown",
+      "layer": "generic",
+      "grammar": "FAMILY_SUCCESSION",
+      "title": "家里的下一代問能不能進來",
+      "body": "時間夠久了，孩子不再只是生活費的原因。對方想進公司。能力與血緣是兩件事。",
+      "requires": {"family": ["child", "elder", "partner"]},
+      "weight": 8, "cooldown": 80, "min_month": 180, "once": true, "major": true,
+      "choices": [
+        {"id": "trial", "label": "給一年的職位，不給股份", "detail": "確定：人力 +1，不承諾接班。", "risk": "家里會把職位讀成承諾。", "effects": {"headcount": 1, "morale": 0.02, "flags": {"heir_trial": true}}, "drivers": {"family": 1, "governance": 1}},
+        {"id": "groom", "label": "正式培養為接班候選", "detail": "確定：標記家族候選。你的控制權開始準備移交。", "risk": "其他人會停止想像自己能接。", "effects": {"flags": {"heir": true}, "control": -0.05, "morale": -0.03}, "drivers": {"family": 2, "team": -1}},
+        {"id": "no", "label": "公司不作為家庭的去處", "detail": "確定：不進入。關係變緊。", "risk": "你可能少一條接班路。", "effects": {"will": -0.03, "flags": {"no_heir": true}}, "drivers": {"governance": 2, "family": -1}}
+      ]
+    },
+    {
+      "id": "century_product",
+      "layer": "generic",
+      "grammar": "CENTURY",
+      "title": "最初的產品已經沒有市場",
+      "body": "檔案還在。買的人幾乎不在。百年若要繼續，得承認這一件事，同時決定核心是產品本身，還是產品背後的句子。",
+      "weight": 10, "cooldown": 80, "min_month": 600, "major": true,
+      "choices": [
+        {"id": "sentence", "label": "核心是那句承諾，不是那個 SKU", "detail": "確定：轉型成立，核心以承諾形式保留。", "risk": "外人可能說你什麼都不是了。", "effects": {"transformed": true, "core_kept": true, "revenue_mult": 0.85, "trend_add": 0.03}, "drivers": {"transform": 2, "identity": 2}, "memory": "charter_line"},
+        {"id": "museum", "label": "產品停產，做成檔案與授權", "detail": "確定：轉型，收入改小，品牌還在。", "risk": "授權收入不穩定。", "effects": {"transformed": true, "revenue_mult": 0.7, "brand": 0.05, "core_kept": true}, "drivers": {"identity": 2, "scale": -1}, "memory": "century_recipe"},
+        {"id": "force", "label": "繼續硬賣最初的產品", "detail": "確定：不轉型。趨勢繼續壓你。", "risk": "實質營運可能在百年前變成空殼。", "effects": {"revenue_mult": 0.8, "flags": {"forced_original": true}}, "drivers": {"identity": 1, "demand": -2}}
+      ]
+    }
+  ]
+}
