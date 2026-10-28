@@ -970,6 +970,1157 @@
       0.28
     ]
   },
+  "life": {
+    "note": "這一塊把帳簿數字轉成店內看得見的東西：人、天氣、客流、瓶頸與經營風格。全部是遊戲平衡參數，不是官方統計。",
+    "crew": {
+      "roles": {
+        "food": [
+          "夜班廚師",
+          "外賣員",
+          "收銀",
+          "備料與洗碗"
+        ],
+        "retail": [
+          "門市店員",
+          "倉務",
+          "客服",
+          "選品買手"
+        ],
+        "pro": [
+          "案件承辦",
+          "助理",
+          "客戶窗口",
+          "審稿品管"
+        ],
+        "edu": [
+          "老師",
+          "課程助理",
+          "招生窗口",
+          "教材編輯"
+        ],
+        "saas": [
+          "工程師",
+          "導入與客服",
+          "產品設計",
+          "維運值班"
+        ],
+        "repair": [
+          "技師",
+          "學徒",
+          "調度",
+          "報價客服"
+        ],
+        "mfg": [
+          "產線師傅",
+          "品管",
+          "倉務",
+          "機電維護"
+        ],
+        "agri": [
+          "田間管理",
+          "採後處理",
+          "冷鏈司機",
+          "品管"
+        ],
+        "care": [
+          "照護員",
+          "護理行政",
+          "夜班支援",
+          "家屬窗口"
+        ],
+        "logi": [
+          "司機",
+          "調度",
+          "倉務",
+          "客服"
+        ],
+        "culture": [
+          "編輯設計",
+          "現場執行",
+          "製作助理",
+          "社群"
+        ],
+        "platform": [
+          "業務",
+          "審核",
+          "客服",
+          "資料營運"
+        ],
+        "fin": [
+          "風控",
+          "客戶經理",
+          "帳務",
+          "合規"
+        ],
+        "energy": [
+          "現場工程",
+          "維運",
+          "報價",
+          "安全管理"
+        ],
+        "enterprise": [
+          "解決方案工程",
+          "客戶成功",
+          "資料分析",
+          "專案管理"
+        ]
+      },
+      "traits": [
+        {
+          "id": "fast",
+          "label": "學得快",
+          "skill": 1.18,
+          "stress": 0.95,
+          "loyalty": 0.92,
+          "output": 1.06,
+          "note": "三個月就能獨當一面，也最先被別人看見。"
+        },
+        {
+          "id": "steady",
+          "label": "穩",
+          "skill": 1.0,
+          "stress": 0.8,
+          "loyalty": 1.14,
+          "output": 1.0,
+          "note": "不出錯。出事那天他還在。"
+        },
+        {
+          "id": "brittle",
+          "label": "怕壓力",
+          "skill": 0.94,
+          "stress": 1.32,
+          "loyalty": 0.9,
+          "output": 0.96,
+          "note": "忙起來會出錯，閒下來會自責。"
+        },
+        {
+          "id": "ambitious",
+          "label": "有野心",
+          "skill": 1.08,
+          "stress": 1.05,
+          "loyalty": 0.76,
+          "output": 1.04,
+          "note": "他要的是位子，不只是加薪。"
+        },
+        {
+          "id": "family",
+          "label": "顧家",
+          "skill": 0.98,
+          "stress": 1.1,
+          "loyalty": 1.06,
+          "output": 0.98,
+          "note": "班表比薪水重要。"
+        },
+        {
+          "id": "hands",
+          "label": "手快",
+          "skill": 1.1,
+          "stress": 1.02,
+          "loyalty": 0.96,
+          "output": 1.16,
+          "note": "產能真的會因為他多一截。"
+        },
+        {
+          "id": "quiet",
+          "label": "話少",
+          "skill": 1.02,
+          "stress": 0.9,
+          "loyalty": 1.0,
+          "output": 1.0,
+          "note": "你不會知道他哪一天開始想走。"
+        },
+        {
+          "id": "loyal",
+          "label": "認這間店",
+          "skill": 0.96,
+          "stress": 0.86,
+          "loyalty": 1.32,
+          "output": 0.98,
+          "note": "他留著的理由跟錢不完全有關。"
+        }
+      ],
+      "needs": [
+        "孩子在放學後沒有人接",
+        "每週要陪家里的人回診兩次",
+        "在念夜校，學費是自己付的",
+        "老家還有一筆貸款要還",
+        "伴侶剛失業，家裡只剩一份收入",
+        "住得遠，末班車是十一點",
+        "身體不好，不能連續站超過八小時",
+        "想存錢開自己的店"
+      ],
+      "stress_from_hours": 0.1,
+      "stress_from_load": 0.1,
+      "stress_from_weather": 0.06,
+      "stress_relief": 0.09,
+      "quit_stress": 0.88,
+      "quit_chance": 0.28,
+      "poach_loyalty": 0.34,
+      "poach_skill": 0.72,
+      "raise_loyalty": 0.16,
+      "no_raise_drift": 0.012,
+      "manager_tenure": 26,
+      "manager_loyalty": 0.62,
+      "arc_months": [
+        6,
+        18,
+        40
+      ],
+      "max_shown": 7,
+      "stress_load_pivot": 0.7,
+      "stress_hours_pivot": 0.8,
+      "stress_relief_pivot": 0.75,
+      "stress_natural_relief": 0.008,
+      "quit_loyalty_span": 0.2,
+      "warn_stress": 0.62,
+      "warn_chance": 0.16,
+      "crew_beats_per_month": 1
+    },
+    "weather": {
+      "rain_days": {
+        "rain": [
+          6,
+          13
+        ],
+        "downpour": [
+          14,
+          21
+        ],
+        "storm": [
+          3,
+          7
+        ],
+        "clear": [
+          0,
+          3
+        ],
+        "heat": [
+          0,
+          1
+        ],
+        "cold": [
+          0,
+          2
+        ],
+        "snow": [
+          2,
+          6
+        ]
+      },
+      "kinds": {
+        "clear": {
+          "label": "晴",
+          "demand": 0.03,
+          "cost": 0.0,
+          "stage": "clear",
+          "weight": 44
+        },
+        "rain": {
+          "label": "雨",
+          "demand": -0.07,
+          "cost": 0.008,
+          "stage": "rain",
+          "weight": 24
+        },
+        "downpour": {
+          "label": "暴雨",
+          "demand": -0.16,
+          "cost": 0.026,
+          "stage": "rain",
+          "weight": 9
+        },
+        "storm": {
+          "label": "颱風",
+          "demand": -0.3,
+          "cost": 0.06,
+          "stage": "storm",
+          "weight": 5,
+          "storm_scale": true,
+          "break_risk": 0.18
+        },
+        "heat": {
+          "label": "高溫",
+          "demand": -0.06,
+          "cost": 0.04,
+          "stage": "heat",
+          "weight": 11,
+          "season": "hot"
+        },
+        "cold": {
+          "label": "寒流",
+          "demand": -0.09,
+          "cost": 0.022,
+          "stage": "cold",
+          "weight": 8,
+          "season": "cold"
+        },
+        "snow": {
+          "label": "下雪",
+          "demand": -0.14,
+          "cost": 0.05,
+          "stage": "snow",
+          "weight": 5,
+          "season": "cold",
+          "cities": [
+            "tokyo",
+            "osaka"
+          ]
+        }
+      },
+      "hot_months": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "cold_months": [
+        11,
+        0,
+        1
+      ],
+      "exposure": {
+        "physical": 1.0,
+        "service": 0.7,
+        "mobile": 0.9,
+        "digital": 0.18,
+        "online": 0.42
+      }
+    },
+    "marks": {
+      "grinder": {
+        "label": "慣常壓榨",
+        "blurb": "時間從人身上榨出來，包括你自己。",
+        "tone": "bad",
+        "confirm": 3,
+        "chain": "chain_overwork_wave"
+      },
+      "risk_taker": {
+        "label": "高風險借貸者",
+        "blurb": "你用明天的現金買今天的機會。",
+        "tone": "risk",
+        "confirm": 3,
+        "chain": "chain_bank_call"
+      },
+      "customer_first": {
+        "label": "顧客至上",
+        "blurb": "你寧可少賺，也不讓客人空手離開。",
+        "tone": "good",
+        "confirm": 3,
+        "chain": "chain_customer_loyalty"
+      },
+      "quality_obsessed": {
+        "label": "品質偏執",
+        "blurb": "你退掉過可以賣出去的東西。",
+        "tone": "good",
+        "confirm": 3,
+        "chain": "chain_quality_reputation"
+      },
+      "expansionist": {
+        "label": "擴張狂",
+        "blurb": "你總覺得下一間會更好。",
+        "tone": "risk",
+        "confirm": 3,
+        "chain": "chain_expansion_strain"
+      },
+      "cash_guard": {
+        "label": "保守現金王",
+        "blurb": "你不借錢，也不錯過甚麼。",
+        "tone": "good",
+        "confirm": 3,
+        "chain": "chain_cash_guard_cost"
+      },
+      "platform_leaning": {
+        "label": "把客人交給平台",
+        "blurb": "流量是租來的，客人不是你的。",
+        "tone": "risk",
+        "confirm": 3,
+        "chain": "chain_platform_lock"
+      },
+      "people_keeper": {
+        "label": "保住人",
+        "blurb": "最難的那幾個月，你沒有把人推出去。",
+        "tone": "good",
+        "confirm": 3,
+        "chain": "chain_people_keeper"
+      }
+    },
+    "funnel": {
+      "passerby_per_unit": 7.2,
+      "enter_base": 0.3,
+      "enter_fit_span": 0.34,
+      "enter_brand_span": 0.14,
+      "order_base": 0.52,
+      "order_fit_span": 0.3,
+      "order_price_drag": 0.22,
+      "paid_bad_debt": 0.03,
+      "repeat_base": 0.22,
+      "repeat_trust_span": 0.46,
+      "loyal_share": 0.34
+    },
+    "stage": {
+      "crowd_tiers": [
+        0,
+        3,
+        6,
+        10,
+        15
+      ],
+      "backlog_tiers": [
+        0,
+        2,
+        5,
+        9
+      ],
+      "era_months": 180,
+      "era_max": 4,
+      "brand_tiers": [
+        0.34,
+        0.5,
+        0.66,
+        0.8
+      ],
+      "light_warn": 0.55,
+      "light_crit": 0.3
+    },
+    "kpis": {
+      "median_life_months": 26,
+      "peak_value_unit": 12
+    },
+    "consequences": {
+      "first_customers:discount": {
+        "chain": {
+          "after": 2,
+          "event": "chain_promo_hangover"
+        }
+      },
+      "first_customers:hold": {
+        "marks": {
+          "quality_obsessed": 0.6
+        }
+      },
+      "first_customers:bundle": {
+        "marks": {
+          "customer_first": 0.4
+        }
+      },
+      "cut_cost:cut": {
+        "marks": {
+          "quality_obsessed": -0.8
+        },
+        "chain": {
+          "after": 2,
+          "event": "chain_cheap_supply"
+        }
+      },
+      "cut_cost:partial": {
+        "marks": {
+          "cash_guard": 0.3
+        }
+      },
+      "cut_cost:keep": {
+        "marks": {
+          "quality_obsessed": 1.2
+        }
+      },
+      "platform_exclusive:sign": {
+        "marks": {
+          "platform_leaning": 1.6
+        }
+      },
+      "platform_exclusive:no": {
+        "marks": {
+          "cash_guard": 0.6,
+          "platform_leaning": -0.6
+        }
+      },
+      "platform_exclusive:short": {
+        "marks": {
+          "platform_leaning": 0.6
+        }
+      },
+      "taipei_platform:pay": {
+        "marks": {
+          "platform_leaning": 1.2
+        }
+      },
+      "taipei_platform:own": {
+        "marks": {
+          "customer_first": 0.8,
+          "platform_leaning": -1
+        }
+      },
+      "taipei_platform:mix": {
+        "marks": {
+          "platform_leaning": 0.4
+        }
+      },
+      "key_equity:both": {
+        "marks": {
+          "people_keeper": 1.5
+        }
+      },
+      "key_equity:pay": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "key_equity:no": {
+        "marks": {
+          "grinder": 1.4
+        },
+        "chain": {
+          "after": 3,
+          "event": "chain_denied_leave"
+        }
+      },
+      "key_quit:match": {
+        "marks": {
+          "people_keeper": 1.2
+        }
+      },
+      "key_quit:letgo": {
+        "marks": {
+          "grinder": 0.8
+        }
+      },
+      "key_quit:bitter": {
+        "marks": {
+          "grinder": 1.6
+        },
+        "chain": {
+          "after": 3,
+          "event": "chain_denied_leave"
+        }
+      },
+      "cannot_leave:hire": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "cannot_leave:hours": {
+        "marks": {
+          "grinder": 0.6
+        }
+      },
+      "cannot_leave:push": {
+        "marks": {
+          "grinder": 1.6
+        }
+      },
+      "wage_wave:yes": {
+        "marks": {
+          "people_keeper": 1.6
+        }
+      },
+      "wage_wave:share": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "wage_wave:no": {
+        "marks": {
+          "grinder": 1.6
+        },
+        "chain": {
+          "after": 3,
+          "event": "chain_overwork_wave"
+        }
+      },
+      "tokyo_hire:pay": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "tokyo_hire:founder": {
+        "marks": {
+          "grinder": 1
+        }
+      },
+      "employee_error:own": {
+        "marks": {
+          "customer_first": 1,
+          "people_keeper": 0.8
+        }
+      },
+      "employee_error:coach": {
+        "marks": {
+          "quality_obsessed": 0.6,
+          "people_keeper": 0.4
+        }
+      },
+      "employee_error:blame": {
+        "marks": {
+          "grinder": 1.2
+        }
+      },
+      "health_warn:slow": {
+        "marks": {
+          "cash_guard": 0.3,
+          "people_keeper": 0.3
+        }
+      },
+      "health_warn:delegate": {
+        "marks": {
+          "people_keeper": 0.6
+        }
+      },
+      "health_warn:ignore": {
+        "marks": {
+          "grinder": 1.6
+        }
+      },
+      "bank_tight:repay": {
+        "marks": {
+          "cash_guard": 1.2
+        }
+      },
+      "bank_tight:guarantee": {
+        "marks": {
+          "risk_taker": 1.6
+        },
+        "chain": {
+          "after": 4,
+          "event": "chain_bank_call"
+        }
+      },
+      "bank_tight:operate": {
+        "marks": {
+          "risk_taker": 0.6
+        }
+      },
+      "angel_round:take": {
+        "marks": {
+          "risk_taker": 1,
+          "expansionist": 0.8
+        }
+      },
+      "angel_round:debt": {
+        "marks": {
+          "risk_taker": 1.2,
+          "cash_guard": -0.4
+        },
+        "chain": {
+          "after": 4,
+          "event": "chain_bank_call"
+        }
+      },
+      "angel_round:no": {
+        "marks": {
+          "cash_guard": 1.2
+        }
+      },
+      "vc_round:take": {
+        "marks": {
+          "risk_taker": 1,
+          "expansionist": 1.2
+        }
+      },
+      "vc_round:small": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "vc_round:no": {
+        "marks": {
+          "cash_guard": 1,
+          "expansionist": -0.6
+        }
+      },
+      "supplier_prepay:prepay": {
+        "marks": {
+          "cash_guard": -0.6,
+          "quality_obsessed": 0.4
+        }
+      },
+      "supplier_prepay:delay": {
+        "marks": {
+          "risk_taker": 0.6
+        }
+      },
+      "scale_fork:city": {
+        "marks": {
+          "expansionist": 1.6
+        },
+        "chain": {
+          "after": 3,
+          "event": "chain_expansion_strain"
+        }
+      },
+      "scale_fork:product": {
+        "marks": {
+          "quality_obsessed": 0.6
+        }
+      },
+      "scale_fork:stay": {
+        "marks": {
+          "cash_guard": 1
+        }
+      },
+      "acquire_peer:buy": {
+        "marks": {
+          "expansionist": 1.4
+        }
+      },
+      "acquire_peer:hire": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "recall:recall": {
+        "marks": {
+          "quality_obsessed": 1.6,
+          "customer_first": 1
+        }
+      },
+      "recall:quiet": {
+        "marks": {
+          "quality_obsessed": -1.6
+        },
+        "chain": {
+          "after": 3,
+          "event": "chain_quality_backlash"
+        }
+      },
+      "recall:stop": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "tokyo_quality:raise": {
+        "marks": {
+          "quality_obsessed": 1.2
+        }
+      },
+      "tokyo_quality:segment": {
+        "marks": {
+          "customer_first": 0.6
+        }
+      },
+      "tokyo_quality:speed": {
+        "marks": {
+          "grinder": 0.6
+        }
+      },
+      "regulars:yes": {
+        "marks": {
+          "customer_first": 1.2
+        }
+      },
+      "regulars:menu": {
+        "marks": {
+          "customer_first": 0.6,
+          "quality_obsessed": 0.4
+        }
+      },
+      "regulars:no": {
+        "marks": {
+          "quality_obsessed": 0.4,
+          "customer_first": -0.6
+        }
+      },
+      "churn_wave:discount": {
+        "marks": {
+          "platform_leaning": 0.4
+        }
+      },
+      "churn_wave:fix": {
+        "marks": {
+          "quality_obsessed": 1,
+          "customer_first": 0.8
+        }
+      },
+      "churn_wave:let": {
+        "marks": {
+          "cash_guard": 0.8,
+          "customer_first": -0.8
+        }
+      },
+      "data_breach:tell": {
+        "marks": {
+          "customer_first": 1.4
+        }
+      },
+      "data_breach:minimal": {
+        "marks": {
+          "customer_first": -1.2
+        }
+      },
+      "community:change": {
+        "marks": {
+          "customer_first": 0.8
+        }
+      },
+      "community:legal": {
+        "marks": {
+          "grinder": 0.4
+        }
+      },
+      "mission_money:keep": {
+        "marks": {
+          "customer_first": 0.6
+        }
+      },
+      "mission_money:clause": {
+        "marks": {
+          "customer_first": 1
+        }
+      },
+      "osaka_price_war:match": {
+        "marks": {
+          "grinder": 0.6
+        }
+      },
+      "osaka_price_war:relation": {
+        "marks": {
+          "customer_first": 1
+        }
+      },
+      "osaka_price_war:differentiate": {
+        "marks": {
+          "quality_obsessed": 1
+        }
+      },
+      "gdl_storm:backup": {
+        "marks": {
+          "customer_first": 0.8,
+          "cash_guard": -0.4
+        }
+      },
+      "gdl_storm:wait": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "khh_season:reserve": {
+        "marks": {
+          "cash_guard": 1.2
+        }
+      },
+      "khh_season:push": {
+        "marks": {
+          "grinder": 0.8
+        }
+      },
+      "equipment:repair": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "equipment:replace": {
+        "marks": {
+          "expansionist": 0.6
+        }
+      },
+      "equipment:outsource": {
+        "marks": {
+          "quality_obsessed": -0.4
+        }
+      },
+      "subsidy_burn:stop": {
+        "marks": {
+          "cash_guard": 1
+        }
+      },
+      "subsidy_burn:raise": {
+        "marks": {
+          "quality_obsessed": 0.6
+        }
+      },
+      "rent_hike:lock": {
+        "marks": {
+          "risk_taker": 0.6
+        }
+      },
+      "rent_hike:move": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "big_customer:take60": {
+        "marks": {
+          "risk_taker": 1
+        }
+      },
+      "big_customer:no": {
+        "marks": {
+          "cash_guard": 0.8,
+          "quality_obsessed": 0.4
+        }
+      },
+      "partner_exit:buy": {
+        "marks": {
+          "cash_guard": -0.6,
+          "risk_taker": 0.6
+        }
+      },
+      "partner_fight:you": {
+        "marks": {
+          "expansionist": 0.6
+        }
+      },
+      "partner_fight:paper": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "ipo_books:cosmetic": {
+        "marks": {
+          "risk_taker": 1.4
+        }
+      },
+      "ipo_books:change": {
+        "marks": {
+          "quality_obsessed": 0.8
+        }
+      },
+      "tax_audit:clean": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "tax_audit:fight": {
+        "marks": {
+          "risk_taker": 1
+        }
+      },
+      "compliance_gap:fix": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "compliance_gap:wait": {
+        "marks": {
+          "risk_taker": 1.2
+        }
+      },
+      "shutdown_threat:fight": {
+        "marks": {
+          "risk_taker": 1.2
+        }
+      },
+      "shutdown_threat:comply": {
+        "marks": {
+          "cash_guard": 0.6
+        }
+      },
+      "transform:model": {
+        "marks": {
+          "expansionist": 0.8
+        }
+      },
+      "transform:craft": {
+        "marks": {
+          "quality_obsessed": 1.4
+        }
+      },
+      "decline_path:preserve": {
+        "marks": {
+          "quality_obsessed": 1.2
+        }
+      },
+      "decline_path:exit": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "succession_card:plan": {
+        "marks": {
+          "people_keeper": 0.8
+        }
+      },
+      "succession_card:delay": {
+        "marks": {
+          "grinder": 0.8
+        }
+      },
+      "founder_retire:retire": {
+        "marks": {
+          "people_keeper": 0.6
+        }
+      },
+      "child_grown:groom": {
+        "marks": {
+          "expansionist": 0.4
+        }
+      },
+      "hostile:fight": {
+        "marks": {
+          "risk_taker": 0.8
+        }
+      },
+      "hostile:accept": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "merge_offer:merge": {
+        "marks": {
+          "expansionist": 1
+        }
+      },
+      "antitrust:open": {
+        "marks": {
+          "customer_first": 0.6
+        }
+      },
+      "antitrust:fight": {
+        "marks": {
+          "risk_taker": 1
+        }
+      },
+      "inventory_stuck:tighter": {
+        "marks": {
+          "quality_obsessed": 0.8
+        }
+      },
+      "inventory_stuck:clear": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "khh_port:buffer": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "cdmx_terms:strict": {
+        "marks": {
+          "cash_guard": 1
+        }
+      },
+      "cdmx_informal:formal": {
+        "marks": {
+          "cash_guard": 0.8,
+          "quality_obsessed": 0.4
+        }
+      },
+      "gdl_export:take": {
+        "marks": {
+          "expansionist": 1.2
+        }
+      },
+      "gdl_export:local": {
+        "marks": {
+          "cash_guard": 0.8
+        }
+      },
+      "test_end:allin": {
+        "marks": {
+          "risk_taker": 0.8
+        }
+      },
+      "test_end:stop": {
+        "marks": {
+          "cash_guard": 1
+        }
+      },
+      "moonlight:quit": {
+        "marks": {
+          "risk_taker": 0.6
+        }
+      },
+      "employer_ip:rewrite": {
+        "marks": {
+          "quality_obsessed": 0.8
+        }
+      },
+      "kill_line:keep": {
+        "marks": {
+          "quality_obsessed": 0.8
+        }
+      },
+      "kill_line:archive": {
+        "marks": {
+          "customer_first": 0.4
+        }
+      },
+      "century_myth:archive": {
+        "marks": {
+          "quality_obsessed": 0.6
+        }
+      },
+      "century_product:sentence": {
+        "marks": {
+          "quality_obsessed": 1
+        }
+      },
+      "board_margin:hold": {
+        "marks": {
+          "quality_obsessed": 1,
+          "cash_guard": 0.6
+        }
+      },
+      "board_margin:grow": {
+        "marks": {
+          "expansionist": 1.4
+        }
+      },
+      "earnings:warn": {
+        "marks": {
+          "customer_first": 0.6,
+          "cash_guard": 0.6
+        }
+      },
+      "earnings:cut": {
+        "marks": {
+          "grinder": 1
+        }
+      }
+    },
+    "consequence_note": "「事件 ID：選項 ID」對應兩個東西：marks 是長期標記的加減分，chain 是延遲後果（幾個月後觸發哪一個事件）。40% 的事件應該由玩家過去的決定觸發，這張表就是那個因果。",
+    "mark_affinity": {
+      "grinder": [
+        "FOUNDER_LOAD",
+        "LABOR",
+        "DEPARTURE",
+        "HEALTH",
+        "MISTAKE"
+      ],
+      "risk_taker": [
+        "CREDIT",
+        "EQUITY_RAISE",
+        "LEASE",
+        "CAP_TABLE"
+      ],
+      "customer_first": [
+        "CUSTOMER",
+        "RETENTION",
+        "COMMUNITY",
+        "TRUST_SHOCK"
+      ],
+      "quality_obsessed": [
+        "QUALITY_CRISIS",
+        "QUALITY_BAR",
+        "IDENTITY",
+        "INVENTORY"
+      ],
+      "expansionist": [
+        "SCALE",
+        "ACQUISITION",
+        "MERGE",
+        "GOVERNANCE"
+      ],
+      "cash_guard": [
+        "SEASON",
+        "RECEIVABLES",
+        "UNIT_ECONOMICS",
+        "SUPPLY_TERMS"
+      ],
+      "platform_leaning": [
+        "PLATFORM_FEE",
+        "EXCLUSIVE"
+      ],
+      "people_keeper": [
+        "EMPLOYMENT",
+        "HIRING",
+        "LABOR_COST",
+        "KEY_PERSON",
+        "CONFLICT"
+      ]
+    },
+    "mark_affinity_mult": 1.55,
+    "mark_note": "mark_affinity：當某個長期標記被確認之後，這些 grammar 的事件權重會乘上 mark_affinity_mult。事件因此由玩家的行為生成，而不是完全隨機。"
+  },
   "stages": [
     {
       "id": "spark",

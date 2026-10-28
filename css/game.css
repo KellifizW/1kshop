@@ -517,3 +517,429 @@ button.alt .auto-fill { background: #f4efe4; }
 button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 
 .name-suggest .choice { min-height: 46px; }
+
+/* ══════════════════════════════════════════════════════════
+   v0.2　活的店舖舞台、月結故事、五張圖、紀念卡
+   版面比例：場景 60% ／ 快速狀態 25% ／ 操作 15%
+   ══════════════════════════════════════════════════════════ */
+
+.play-shell { max-width: 1400px; }
+.play-sheet { padding-bottom: 18px; }
+
+.play-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 1080px) {
+  .play-grid { grid-template-columns: minmax(0, 1fr) 336px; gap: 20px; }
+}
+.stage-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* ── 舞台本體 ─────────────────────────────────────────── */
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  background: linear-gradient(#cfe0e4 0 26%, #e7dccb 26% 68%, #c9a87c 68% 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 0, 0, 0.22);
+  isolation: isolate;
+  /* 狀況變壞時，顏色先退，不是先跳紅字 */
+  transition: filter 1.1s ease, background 1.1s ease;
+}
+.stage-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.stage[data-mood="tense"] { filter: saturate(0.72) contrast(0.98) brightness(0.97); }
+.stage[data-mood="crisis"] { filter: saturate(0.48) contrast(0.96) brightness(0.9); }
+.stage[data-mood="closed"] {
+  filter: saturate(0.18) brightness(0.55);
+  background: linear-gradient(#8d949a 0 26%, #6f6a63 26% 68%, #57504a 68% 100%);
+}
+/* 牌子做起來之後，場景自己會亮一點 */
+.stage[data-brand="3"], .stage[data-brand="4"] { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 10px 34px rgba(0, 0, 0, 0.26); }
+.stage[data-era="2"] { filter: saturate(1.04); }
+.stage[data-era="3"], .stage[data-era="4"] { filter: saturate(1.08) contrast(1.03); }
+.stage[data-mood="tense"][data-era="3"], .stage[data-mood="tense"][data-era="4"] { filter: saturate(0.7); }
+.stage[data-mood="crisis"][data-era="3"], .stage[data-mood="crisis"][data-era="4"] { filter: saturate(0.45) brightness(0.9); }
+.stage[data-mood="closed"][data-era="3"], .stage[data-mood="closed"][data-era="4"] { filter: saturate(0.18) brightness(0.55); }
+
+.stage-caption {
+  position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
+  padding: 22px 14px 9px;
+  font-size: 13px; line-height: 1.5; color: var(--paper);
+  background: linear-gradient(transparent, rgba(28, 22, 18, 0.82));
+  pointer-events: none;
+}
+
+/* 燈光：不是開關，是慢慢暗 */
+.ly-light {
+  position: absolute; inset: 0; pointer-events: none;
+  --light: 1;
+  opacity: calc((1 - var(--light)) * 0.94);
+  background:
+    radial-gradient(120% 90% at 50% 8%, rgba(28, 22, 18, 0.1), rgba(28, 22, 18, 0.86) 78%),
+    rgba(28, 22, 18, 0.35);
+  mix-blend-mode: multiply;
+  transition: opacity 1.2s ease;
+}
+
+/* ── 天氣圖層 ─────────────────────────────────────────── */
+
+.ly-weather { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.wx-rain i {
+  position: absolute; inset: -20% -10%;
+  background-image: repeating-linear-gradient(102deg, rgba(190, 214, 224, 0.5) 0 1px, transparent 1px 9px);
+  animation: rain-fall 0.85s linear infinite;
+  opacity: 0.75;
+}
+.wx-rain i:nth-child(2) { animation-duration: 1.25s; opacity: 0.45; background-image: repeating-linear-gradient(100deg, rgba(190, 214, 224, 0.42) 0 1px, transparent 1px 14px); }
+.wx-rain i:nth-child(3) { animation-duration: 0.6s; opacity: 0.3; }
+@keyframes rain-fall { from { transform: translate3d(0, -14px, 0); } to { transform: translate3d(-14px, 14px, 0); } }
+
+.wx-storm { background: rgba(24, 30, 36, 0.34); }
+.wx-storm .flash { position: absolute; inset: 0; background: #fdf6e6; opacity: 0; animation: storm-flash 6.5s ease-out infinite; }
+@keyframes storm-flash { 0%, 91%, 100% { opacity: 0; } 92% { opacity: 0.55; } 93% { opacity: 0.05; } 94.5% { opacity: 0.4; } 96% { opacity: 0; } }
+.wx-storm .wind {
+  position: absolute; left: -30%; right: -30%; height: 2px; top: 34%;
+  background: linear-gradient(90deg, transparent, rgba(240, 240, 235, 0.7), transparent);
+  animation: wind-pass 2.6s linear infinite;
+}
+.wx-storm .wind.w2 { top: 58%; animation-duration: 3.7s; animation-delay: -1.2s; opacity: 0.7; }
+@keyframes wind-pass { from { transform: translate3d(-30%, 0, 0); } to { transform: translate3d(60%, 0, 0); } }
+
+.wx-snow i {
+  position: absolute; top: -8%; left: var(--sx, 20%);
+  width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+  animation: snow-fall 7s linear infinite;
+}
+.wx-snow i:nth-child(2n) { animation-duration: 9.5s; width: 4px; height: 4px; opacity: 0.7; }
+.wx-snow i:nth-child(3n) { animation-duration: 12s; animation-delay: -3s; }
+@keyframes snow-fall { from { transform: translate3d(0, -10px, 0); } to { transform: translate3d(26px, 105%, 0); } }
+
+.wx-heat .shimmer {
+  position: absolute; inset: 0;
+  background: linear-gradient(rgba(255, 196, 110, 0.34), rgba(255, 226, 170, 0.12));
+  animation: heat-pulse 4.5s ease-in-out infinite;
+}
+@keyframes heat-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+.wx-cold { background: linear-gradient(rgba(150, 190, 214, 0.34), rgba(210, 232, 240, 0.12)); }
+
+/* ── 人 ───────────────────────────────────────────────── */
+
+.ly-people { position: absolute; inset: 0; pointer-events: none; }
+.ly-people .slot { position: absolute; bottom: 7%; width: 26px; height: 46px; opacity: 0; transition: opacity 0.7s ease; }
+.ly-people .slot.on { opacity: 1; }
+.ly-people .slot.staff { bottom: 26%; }
+
+.agent { position: absolute; bottom: 0; left: 0; width: 18px; height: 42px; display: block; }
+.agent b {
+  position: absolute; left: 3px; top: 0; width: 12px; height: 12px; border-radius: 50%;
+  background: #e0c3a4; box-shadow: inset -2px -2px 0 rgba(28, 22, 18, 0.18);
+}
+.agent u {
+  position: absolute; left: 0; top: 11px; width: 18px; height: 26px; border-radius: 7px 7px 3px 3px;
+  background: var(--coat, #7a5c4a); text-decoration: none;
+  transform-origin: 50% 100%;
+  animation: agent-bob 1.15s ease-in-out infinite;
+}
+.agent s { position: absolute; left: 14px; top: -8px; font-size: 11px; text-decoration: none; animation: zzz 2.6s ease-in-out infinite; }
+.agent em { position: absolute; left: 14px; top: 14px; width: 12px; height: 11px; background: #c9a87c; border: 1px solid #8f6842; border-radius: 2px; }
+
+.agent.pax { animation: agent-drift var(--dur, 9s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes agent-drift {
+  0% { transform: translate3d(-18px, 0, 0) scale(0.94); opacity: 0; }
+  14% { opacity: 1; }
+  50% { transform: translate3d(8px, -1px, 0) scale(1); }
+  86% { opacity: 1; }
+  100% { transform: translate3d(30px, 0, 0) scale(0.94); opacity: 0; }
+}
+@keyframes agent-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-1.6px) rotate(0.6deg); } }
+@keyframes zzz { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 0.9; transform: translateY(-3px); } }
+
+/* 累的人：動作變慢，偶爾停下來 */
+.agent.is-tired u { animation-duration: 2.6s; }
+.agent.is-tired { filter: saturate(0.7) brightness(0.94); }
+
+/* 員工站在裡面，不四處走 */
+.agent.staff { animation: staff-work 3.4s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes staff-work { 0%, 100% { transform: translate3d(0, 0, 0); } 30% { transform: translate3d(3px, -1px, 0); } 62% { transform: translate3d(-3px, 0, 0); } }
+.slot.staff .tag {
+  position: absolute; left: -6px; top: -14px;
+  font-size: 10px; font-weight: 400; line-height: 1.4; color: var(--paper);
+  background: rgba(28, 22, 18, 0.62); border-radius: 4px; padding: 0 4px; white-space: nowrap;
+}
+
+/* 排隊：門口的人不動，只是站著等 */
+.ly-people .queue { position: absolute; left: 4%; bottom: 5%; display: flex; gap: 3px; }
+.ly-people .queue .agent { position: relative; animation: queue-wait 2.2s ease-in-out infinite; }
+.ly-people .queue .agent:nth-child(2) { animation-delay: -0.5s; }
+.ly-people .queue .agent:nth-child(3) { animation-delay: -1s; }
+.ly-people .queue .agent:nth-child(4) { animation-delay: -1.5s; }
+@keyframes queue-wait { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+
+/* 外送與網店的訊息：不是人走進店裡，是東西被送出去 */
+.agent.rider { animation: rider-pass 4.6s linear infinite; animation-delay: var(--delay, 0s); }
+@keyframes rider-pass {
+  0% { transform: translate3d(-40px, 0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate3d(150px, 0, 0); opacity: 0; }
+}
+.agent.ping { animation: ping-rise 3.4s ease-out infinite; animation-delay: var(--delay, 0s); }
+.agent.ping b { background: var(--seal); width: 9px; height: 9px; left: 5px; top: 6px; }
+.agent.ping u { display: none; }
+@keyframes ping-rise {
+  0% { transform: translate3d(0, 12px, 0) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate3d(6px, -26px, 0) scale(1); opacity: 0; }
+}
+.ly-people .kol { position: absolute; right: 12%; bottom: 8%; }
+.agent.kol { animation: kol-shoot 5.2s ease-in-out infinite; }
+.agent.kol::after {
+  content: ""; position: absolute; left: -4px; top: 8px; width: 26px; height: 18px;
+  background: rgba(255, 246, 230, 0.9); border-radius: 3px; opacity: 0;
+  animation: kol-flash 5.2s ease-out infinite;
+}
+@keyframes kol-shoot { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(-6px, -1px, 0); } }
+@keyframes kol-flash { 0%, 44%, 100% { opacity: 0; } 46% { opacity: 0.95; } 52% { opacity: 0; } }
+
+/* ── 舞台上的即時資訊 ─────────────────────────────────── */
+
+.stage-hud { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.stage-hud .chip {
+  font-size: 11px; line-height: 1.5; color: var(--paper);
+  background: rgba(28, 22, 18, 0.6); border: 1px solid rgba(244, 239, 228, 0.2);
+  border-radius: 999px; padding: 1px 8px; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.stage-hud .chip-cash { margin-left: auto; background: rgba(244, 239, 228, 0.9); color: var(--ink); border-color: transparent; font-weight: 600; }
+
+.stage-alerts { position: absolute; left: 0; right: 0; top: 34%; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.float-chip {
+  font-size: 14px; font-weight: 600; padding: 2px 10px; border-radius: 999px;
+  background: rgba(244, 239, 228, 0.94); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  animation: float-up 1.6s ease-out forwards; font-variant-numeric: tabular-nums;
+}
+.float-chip.out { color: var(--seal); }
+.float-chip.in { color: var(--accent-green); }
+@keyframes float-up { 0% { transform: translateY(10px) scale(0.9); opacity: 0; } 18% { opacity: 1; transform: translateY(0) scale(1); } 100% { transform: translateY(-34px) scale(0.98); opacity: 0; } }
+
+/* 積壓的單多起來時，畫面會輕輕震一下 */
+.stage[data-backlog="5"] .stage-scene, .stage[data-backlog="9"] .stage-scene { animation: backlog-jitter 5s ease-in-out infinite; }
+@keyframes backlog-jitter { 0%, 92%, 100% { transform: translate3d(0, 0, 0); } 94% { transform: translate3d(-1px, 0, 0); } 96% { transform: translate3d(1px, 0, 0); } }
+
+/* 差評通知 */
+.stage[data-reviews="2"] .stage-hud::after, .stage[data-reviews="3"] .stage-hud::after {
+  content: "有人給了差評"; font-size: 11px; color: #ffd9cf;
+  background: rgba(143, 45, 45, 0.85); border-radius: 999px; padding: 1px 8px;
+  animation: review-blink 2.4s ease-in-out infinite;
+}
+@keyframes review-blink { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+/* 結業不是彈窗，是燈一盞一盞關 */
+.stage-wrap.closing .stage { animation: lights-out 6s ease-in forwards; }
+@keyframes lights-out {
+  0% { filter: saturate(0.6) brightness(0.85); }
+  45% { filter: saturate(0.3) brightness(0.62); }
+  100% { filter: saturate(0.12) brightness(0.42); }
+}
+.closing-line { margin: 8px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+
+/* ── 側欄：快速狀態 25% ＋ 操作 15% ────────────────────── */
+
+.rail { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (min-width: 1080px) {
+  .rail { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; padding-right: 2px; }
+}
+.rail-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 7px 10px 8px; display: flex; flex-direction: column; gap: 1px; min-width: 0;
+}
+.kpi[data-id="cash"] { grid-column: span 2; }
+.kpi-label { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+.kpi-value { font-size: 21px; line-height: 1.25; font-variant-numeric: tabular-nums; color: var(--ink); }
+.kpi[data-id="cash"] .kpi-value { font-size: 26px; }
+.kpi-note { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 紅色只留給真的危險的數字 */
+.kpi.warn .kpi-value { color: var(--warn); }
+.kpi.bad .kpi-value { color: var(--seal); }
+.kpi.bad { border-color: #d8b6a6; }
+.kpi-value.tick-up { color: var(--accent-green); }
+.kpi-value.tick-down { color: var(--seal); }
+
+.rail-self { margin: 0; font-size: 12px; color: var(--muted); }
+.rail-card {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 10px 12px; margin: 0;
+}
+.rail-card p { margin: 4px 0; }
+.rail-card .fold-k { margin: 0 0 6px; }
+.rail-forecast summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.rail-forecast[open] summary { margin-bottom: 6px; }
+.rail-decisions .stack { gap: 8px; }
+.rail-decisions .choice b { font-size: 15px; }
+.rail-decisions .choice span { font-size: 13px; }
+.danger-ghost { color: var(--seal); }
+.pill.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ghost-pill { background: transparent; }
+
+.crisis-note, .chain-banner {
+  margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--seal);
+  background: #f8ebe3; border-radius: 0 8px 8px 0; font-size: 14px; color: var(--ink-soft);
+}
+.chain-banner.first { border-left-color: var(--warn); background: #f6efdd; }
+
+/* ── 月結：先故事，後數字 ─────────────────────────────── */
+
+.month-story { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 14px; }
+.story-lines { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+.story-lines li { font-size: 15px; line-height: 1.65; }
+.story-lines li::marker { color: var(--seal); }
+.story-when { display: inline-block; margin-right: 6px; font-size: 12px; color: var(--muted); }
+.chapter-story { font-size: 16px; line-height: 1.7; }
+
+/* ── 選項的三行：最可能／最壞／影響誰 ─────────────────── */
+
+.choice .brief { display: block; margin-top: 5px; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.choice .brief i {
+  font-style: normal; display: inline-block; margin-right: 6px; padding: 0 5px;
+  font-size: 11px; line-height: 1.7; border: 1px solid var(--line); border-radius: 4px; color: var(--ink-soft);
+  vertical-align: 1px; white-space: nowrap;
+}
+.choice .brief .b-down { border-color: #d8b6a6; color: var(--seal); }
+.choice .brief .b-who { border-color: #c3d0d4; color: var(--accent-blue); }
+.choice:focus-visible .brief, .choice:hover .brief { color: var(--ink-soft); }
+
+/* ── 圖表 ─────────────────────────────────────────────── */
+
+.chart-stack { display: flex; flex-direction: column; gap: 14px; margin: 12px 0; }
+.chart { margin: 0; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 14px; }
+.chart figcaption { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-soft); margin-bottom: 8px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart-notes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; font-size: 13px; }
+.chart-notes li { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); }
+.chart-notes b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.chart-notes .worst b { color: var(--seal); }
+.chart-runway[data-level="warn"] figcaption { color: var(--warn); }
+.chart-runway[data-level="crit"] figcaption { color: var(--seal); }
+.chart-rows { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; }
+.chart-rows li { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; border-bottom: 1px dotted var(--line); }
+.chart-rows li:last-child { border-bottom: 0; }
+.chart-rows .down b { color: var(--seal); }
+.chart-rows .up b { color: var(--accent-green); }
+.chart-verdict { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+.chart-verdict b { color: var(--seal); }
+
+.funnel { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.funnel li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.funnel-bar { height: 14px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+.funnel-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-blue), #4a7f8f); border-radius: 99px; transition: width 0.6s ease; }
+.funnel li.leak .funnel-bar i { background: linear-gradient(90deg, var(--seal), #b05a4a); }
+.funnel-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.funnel-meta b { font-weight: 600; }
+.funnel-meta span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.funnel-fix { margin: 0; font-size: 12px; color: var(--muted); }
+
+.cap { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.cap li { display: grid; grid-template-columns: minmax(96px, 38%) 1fr 58px; align-items: center; gap: 8px; font-size: 13px; }
+.cap-label { color: var(--ink-soft); }
+.cap-bar { height: 12px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+.cap-bar i { display: block; height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+.cap-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.mark-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mark-list li { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; color: var(--muted); }
+.mark-list li b { color: var(--ink-soft); font-weight: 600; }
+.mark-list li.mark-crisis { border-color: #d8b6a6; }
+.mark-list li.mark-chain { border-color: #dcc79a; }
+
+/* ── 月初預測 ─────────────────────────────────────────── */
+
+.forecast { margin: 0; }
+.forecast-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.forecast-grid li { display: flex; flex-direction: column; gap: 1px; font-size: 12px; }
+.forecast-grid span { color: var(--muted); }
+.forecast-grid b { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.forecast-grid li.bad b { color: var(--seal); }
+.forecast-risk { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
+.forecast-risk b { color: var(--seal); }
+.forecast p.muted { margin: 4px 0 0; font-size: 12px; }
+
+/* ── 團隊抽屜 ─────────────────────────────────────────── */
+
+.crew-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.crew-row { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; }
+.crew-row.gone { opacity: 0.62; border-style: dashed; }
+.crew-face {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--paper-2); color: var(--ink-soft); font-size: 18px;
+}
+.crew-main b { font-size: 15px; }
+.crew-role { margin-left: 8px; font-size: 12px; color: var(--muted); }
+.crew-main p { margin: 3px 0; }
+.crew-need { color: var(--accent-blue); }
+.crew-bars { display: flex; gap: 8px; margin: 6px 0 2px; }
+.crew-bars .bar, .scores .score-bar {
+  position: relative; flex: 1; height: 8px; background: var(--paper-2); border-radius: 99px; overflow: hidden;
+}
+.crew-bars .bar::before {
+  content: attr(data-k); position: absolute; left: 0; top: -15px; font-size: 10px; color: var(--muted);
+}
+.crew-bars .bar i, .scores .score-bar i { position: absolute; inset: 0 auto 0 0; width: var(--v, 0%); background: var(--accent-green); border-radius: 99px; transition: width 0.5s ease; }
+.crew-bars { padding-top: 14px; }
+.crew-bars .bar[data-k="壓力"] i { background: var(--seal); }
+.crew-bars .bar[data-k="忠誠"] i { background: var(--accent-blue); }
+
+/* ── 結局與紀念卡 ─────────────────────────────────────── */
+
+.epitaph { font-size: 19px; line-height: 1.7; color: var(--ink-soft); border-left: 3px solid var(--seal); padding-left: 12px; margin: 12px 0; }
+.obituary p { margin: 6px 0; font-size: 16px; line-height: 1.75; }
+.card-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 14px 0; }
+.card-stats div { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 8px 10px; }
+.card-stats span { display: block; font-size: 12px; color: var(--muted); }
+.card-stats b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.percentile { font-size: 15px; color: var(--ink-soft); }
+.percentile b { color: var(--seal); font-size: 20px; }
+.scores ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.scores li { display: grid; grid-template-columns: minmax(96px, 34%) 1fr 34px; align-items: center; gap: 10px; font-size: 13px; }
+.scores li b { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.scores .score-bar i { background: var(--ink-soft); }
+.marks-line p:last-child { font-size: 14px; line-height: 1.7; }
+.diagnosis-cause { font-size: 17px; line-height: 1.7; }
+.diagnosis-cause b { color: var(--seal); }
+.fold-k { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); text-transform: none; margin: 0; }
+
+/* ── 靜止與降低動態 ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .agent, .agent u, .agent s, .agent::after, .wx-rain i, .wx-storm .flash, .wx-storm .wind,
+  .wx-snow i, .wx-heat .shimmer, .float-chip, .ly-people .queue .agent,
+  .stage[data-backlog="5"] .stage-scene, .stage[data-backlog="9"] .stage-scene,
+  .stage-wrap.closing .stage, .stage-hud .chip-cash {
+    animation: none !important;
+  }
+  .ly-people .slot { transition: none; }
+  .float-chip { opacity: 1; }
+}
+html.still .agent, html.still .agent u, html.still .agent s, html.still .agent::after,
+html.still .wx-rain i, html.still .wx-storm .flash, html.still .wx-storm .wind,
+html.still .wx-snow i, html.still .wx-heat .shimmer, html.still .float-chip,
+html.still .ly-people .queue .agent, html.still .stage-wrap.closing .stage {
+  animation: none !important;
+}
+html.still .float-chip { opacity: 1; }
+html.still .stage, html.still .ly-light, html.still .funnel-bar i, html.still .cap-bar i { transition: none; }
+
+@media (max-width: 640px) {
+  .stage { aspect-ratio: 4 / 3; }
+  .stage-caption { font-size: 12px; }
+  .rail-kpis { grid-template-columns: 1fr 1fr; }
+  .chart-notes, .forecast-grid { grid-template-columns: 1fr; }
+}

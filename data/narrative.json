@@ -82,6 +82,15 @@
     {"id": "chair_letter", "name": "退任日常的信", "blurb": "你說你不再碰排班。", "weight": 4},
     {"id": "hundred_charter", "name": "百年仍在的章程", "blurb": "第一年的那句話還在裡面。", "weight": 8},
     {"id": "closed_fair", "name": "結業時的清算清單", "blurb": "員工、供應商、你自己，分行寫。", "weight": 5},
+    {"id": "kol_photo", "name": "網紅那天的照片", "blurb": "他拍的是食物。背景裡有人在等。", "weight": 3},
+    {"id": "empty_after_promo", "name": "活動結束後的空店", "blurb": "海報還在玻璃上。人沒有。", "weight": 4},
+    {"id": "credit_call", "name": "被提前收回的額度", "blurb": "來信很短，引用的是你簽過的那一頁。", "weight": 5},
+    {"id": "wage_consent", "name": "減薪同意書", "blurb": "兩個人簽了。第三個人沒有來。", "weight": 5},
+    {"id": "overtime_board", "name": "牆上的加班板", "blurb": "同一個名字連續出現十一個月。", "weight": 4},
+    {"id": "first_manager", "name": "第一位店長的任命", "blurb": "你不再逐件過目，從那天開始。", "weight": 5},
+    {"id": "quality_article", "name": "別人寫你的那篇文章", "blurb": "不是廣告。是他自己付錢買的。", "weight": 4},
+    {"id": "second_lease", "name": "第二個據點的租約", "blurb": "簽的時候很興奮，第三個月開始很貴。", "weight": 4},
+    {"id": "platform_contract", "name": "平台的大促合約", "blurb": "曝光那一欄寫得很大，毛利那一欄沒有。", "weight": 4},
     {"id": "job_return", "name": "回到班表的週一", "blurb": "公司沒有開始。生活還在。", "weight": 3}
   ],
   "symptoms": [
@@ -264,5 +273,214 @@
     {"id": "return_note", "weight": 7, "subject": "客人{customer}", "object": "退回{company}的{sells}", "text": "{customer}退了一筆{sells}。留言寫的是這一次，不是{company}整門生意。", "note": "品質被質疑一點，信任沒有一起掉。", "effects": {"quality": -0.01, "trust": 0.004, "cost": 0.006}},
     {"id": "trade_chat", "weight": 7, "subject": "{city}的同業", "object": "在找{company}的{sells}", "text": "{city}的同業群裡，有人在找{company}做的{sells}。", "note": "配合度上升一點。", "effects": {"market_fit": 0.01, "demand": 0.008}},
     {"id": "hours_heavy", "weight": 8, "subject": "你", "object": "{company}這個月的日常", "text": "你在{company}多留了幾個晚上，沒有人叫你。", "note": "健康被磨掉一點，需求短暫墊高。", "effects": {"health": -0.015, "demand": 0.008, "hours": 0.02}}
-  ]
+  ],
+  "crew_lines": {
+    "join": [
+      "{name}第一天來上班，站在{role}的位置上，還不知道東西放在哪裡。",
+      "{name}來面試{role}，問的第一個問題是班表怎麼排。",
+      "你把{role}的位置交給{name}。這是你第一次為別人的月薪負責。"
+    ],
+    "settle": [
+      "{name}已經不用問東西在哪裡了。",
+      "{name}開始自己處理例外，沒有傳訊息給你。"
+    ],
+    "skill_up": [
+      "{name}做得比三個月前快，也開始教下一個人。",
+      "有人把{name}做的東西拿回來比對，發現比標準更好。"
+    ],
+    "overtime": [
+      "{name}連續加班{overtime}天。他沒有說甚麼，但動作慢了。",
+      "晚上十一點，{name}還在收尾。班表上那一格一直是他。",
+      "{name}這個月的工時比上個月多了{overtime}小時。"
+    ],
+    "sit_down": [
+      "{name}在貨架旁邊坐下來，說休息一下，然後又站起來。",
+      "忙碌的時候，{name}靠了一下牆。"
+    ],
+    "mistake": [
+      "{name}出了一次錯。他自己先發現，也自己先道歉。",
+      "有一單做錯了。是{name}，他知道是哪一步。"
+    ],
+    "quit": [
+      "{name}把圍裙摺好放在櫃檯。他說他撐不住了。",
+      "{name}在你最忙的那一天請辭。通知期寫在紙上，語氣很客氣。",
+      "{name}走了。留下的班表還排到他下個月。"
+    ],
+    "poached": [
+      "{peer}用高出兩成的薪水把{name}挖走。你沒有反價。",
+      "{name}被{peer}接走了。他走之前還把交接寫完。"
+    ],
+    "promote": [
+      "{name}開始排班、叫貨、處理客訴。你不再逐件過目。",
+      "你把{name}寫進職位欄。這間店第一次有第二個能做決定的人。",
+      "{name}成了店長。他第一件事是把班表改成他想要的樣子。"
+    ],
+    "raise": [
+      "你給{name}加了薪。數字不大，他記了很久。",
+      "{name}的薪水改了。他沒有要求過。"
+    ],
+    "no_raise": [
+      "{name}在這間店做了{tenure}個月，薪水還是第一年的那個數字。",
+      "生意長大了。{name}的薪水沒有。"
+    ],
+    "sick": [
+      "{name}請了病假。那天的單，你自己接。",
+      "{name}身體出狀況，請了三天。班表上沒有人能補。"
+    ],
+    "stay_loyal": [
+      "現金最緊的那個月，{name}說薪水可以晚一點。",
+      "{name}沒有走。他後來跟你說，他當時已經在看別的工作。"
+    ],
+    "need": [
+      "{name}要的是{need}。這件事比班表更難改。"
+    ]
+  },
+  "month_story": {
+    "rain": [
+      "這個月下了{rainDays}天雨。",
+      "{rainDays}天在下雨，門口的水痕沒有乾過。",
+      "雨下了{rainDays}天，街對面的人走得比較快。"
+    ],
+    "storm": [
+      "颱風來了{rainDays}天。窗戶封起來，外送停了一半。",
+      "這個月有一次颱風。招牌撐住了，生意沒有。"
+    ],
+    "heat": [
+      "連續高溫。冷氣電費比上個月多，人在中午之後就不想出門。",
+      "熱到下午三點沒有人願意站著等。"
+    ],
+    "cold": [
+      "寒流來了幾天。手會冷，出餐會慢，客人願意等。",
+      "這個月很冷。門開一次，室溫掉一次。"
+    ],
+    "snow": [
+      "下雪了{rainDays}天。路上的人少了，但進來的人都會買。",
+      "雪把門口蓋掉一次。你鏟了兩回。"
+    ],
+    "backlog": [
+      "櫃檯上積了{backlog}張單沒有做完。有人等不及，走了。",
+      "這個月大約{lost}筆需求沒有被接住。不是沒有人要，是做不完。",
+      "產能撐不住。{lost}個人在排隊的時候轉身離開。"
+    ],
+    "smooth": [
+      "需求和你做得完的量差不多對得上。這種月份很少。",
+      "每一單都做完了。櫃檯沒有堆積。"
+    ],
+    "rush": [
+      "客流的峰值出現在同一個時段。人手差一個。",
+      "有幾天忙到沒有人坐下。"
+    ],
+    "cash_tight": [
+      "月底的現金只剩{runway}個月的量。你開始算哪一項可以晚付。",
+      "錢進來得比出去得慢。這個月你親手對過三次帳。"
+    ],
+    "profit_first": [
+      "這是第一次，收進來的蓋過付出去的。",
+      "帳上第一次出現正的數字。你沒有慶祝，只是把它抄下來。"
+    ],
+    "loss_streak": [
+      "已經連續{streak}個月，每一筆交易都在補貼。",
+      "第{streak}個月了。毛利還是負的，只是你不再每天去看它。"
+    ],
+    "crew_tired": [
+      "{name}連續加班{overtime}天，開始考慮辭職。",
+      "{name}的壓力已經寫在臉上。他沒有說，但班表看得出來。"
+    ],
+    "crew_quit": [
+      "{name}在這個月離開。他走的那天，你親自補了他的班。",
+      "{name}辭職了。理由寫得很短。"
+    ],
+    "crew_join": [
+      "{name}加入了{company}，做{role}。",
+      "這個月多了一個人：{name}。"
+    ],
+    "brand_up": [
+      "招牌換過了。包裝也換了。有人開始認得這個樣子。",
+      "你的牌子開始被認出來，不是因為廣告，是因為重複。"
+    ],
+    "bad_review": [
+      "有{reviews}則負評。內容不是罵你貴，是罵你不穩。",
+      "手機上跳出負評通知。你讀完，沒有回覆。"
+    ],
+    "kol": [
+      "有人拿著手機拍了很久。那天之後，門外多了拍照的人。",
+      "一個網紅來過。流量來了，熟客說環境太擠。"
+    ],
+    "commitment_saved": [
+      "上月簽下的{commitment}，這個月開始付錢。它讓你避過虧損。",
+      "如果沒有{commitment}，這個月會是負的。"
+    ],
+    "platform_fees": [
+      "平台抽走了收入的{platformPct}%。客人是它帶來的，帳也是它記的。",
+      "抽成這個月吃掉{platformPct}%。你算不出來該不該離開。"
+    ],
+    "rent": [
+      "場地成本佔了營業額的{rentPct}%。房東沒有降，客流也沒有多。",
+      "這個月租金的比例比上個月高。"
+    ],
+    "expansion": [
+      "第二個據點的帳開始進來。它比你想的貴。",
+      "擴張的固定成本這個月第一次完整出現。"
+    ],
+    "quiet": [
+      "這個月沒有大事。帳簿還是要記。",
+      "三十天，沒有需要停下來的事。",
+      "平常的一個月。後來你會記得它有多貴。"
+    ],
+    "survived": [
+      "你撐過了這個月。撐過的方式，你自己知道。",
+      "這個月結束的時候，公司還在。"
+    ]
+  },
+  "life_endings": {
+    "early_death": {"group": "fail", "title": "開業不足三個月", "line": "它還沒有被記得，就已經不在了。", "cause": "第一個租約還沒走完，現金就不夠了。"},
+    "cash_choke": {"group": "fail", "title": "現金流窒息", "line": "帳上有收入，抽屜裡沒有錢。", "cause": "現金進來的速度，慢過它必須出去的速度。"},
+    "over_expand": {"group": "fail", "title": "過度擴張", "line": "第二間開得比第一間站穩得早。", "cause": "固定成本在收入之前長大。"},
+    "platform_trap": {"group": "fail", "title": "平台抽成陷阱", "line": "客人越來越多，留下來的越來越少。", "cause": "流量是租來的，抽成是固定的。"},
+    "partner_break": {"group": "fail", "title": "合夥人反目", "line": "公司沒有倒，是兩個人先散了。", "cause": "控制權與方向的爭執，比市場更早結束它。"},
+    "trust_collapse": {"group": "fail", "title": "品牌信任崩潰", "line": "沒有人罵你。他們只是不回來。", "cause": "一次品質或誠信的事故，把重複購買切斷了。"},
+    "founder_burnout": {"group": "fail", "title": "創辦人過勞離場", "line": "所有事的名字都是你，包括那件做不完的。", "cause": "身體先於公司停下。"},
+    "rent_squeeze": {"group": "fail", "title": "被租金擠死", "line": "生意在，位置不在了。", "cause": "場地成本佔營業額的比例，超過它能承擔的極限。"},
+    "supply_quality": {"group": "fail", "title": "供應與品質失控", "line": "便宜的那一次，後來最貴。", "cause": "替代供應或壓縮成本，在幾個月後變成投訴與退貨。"},
+    "debt_call": {"group": "fail", "title": "債務提前到期", "line": "借來的時間，被一次收回。", "cause": "高槓桿遇上信用緊縮，還款排在現金之前。"},
+    "compliance_stop": {"group": "fail", "title": "停在牌照上", "line": "門是開著的，但不能營業。", "cause": "合規與申報沒有跟上城市的要求。"},
+    "guarantee_ruin": {"group": "fail", "title": "公司倒了，人還背著", "line": "清算之後，剩下的是一個人的名字。", "cause": "個人擔保把公司的失敗搬到家裡。"},
+    "small_rich": {"group": "neutral", "title": "小富即安", "line": "它養活了一家人，沒有養大一個行業。", "cause": "你選擇了不再長大。"},
+    "sold": {"group": "neutral", "title": "出售公司", "line": "價格很具體，人的去向不是。", "cause": "在還值錢的時候把它交出去。"},
+    "family_business": {"group": "neutral", "title": "家庭生意", "line": "班表上有一半是同一個姓。", "cause": "公司留在家里，也留在家里能給的範圍裡。"},
+    "acquired": {"group": "neutral", "title": "被大型集團收購", "line": "招牌換了字體，做法換了系統。", "cause": "更大的資本買下了你建立的重複性。"},
+    "founder_retire": {"group": "neutral", "title": "創辦人退休", "line": "你離開日常，公司還在營業。", "cause": "你把時間還給自己。"},
+    "succession_fail": {"group": "neutral", "title": "交棒失敗", "line": "它捱過了市場，沒有捱過一次交棒。", "cause": "接班的人沒有拿到能做的決定權，或沒有拿到人。"},
+    "shrink_survive": {"group": "neutral", "title": "縮小到還做得動", "line": "尺寸變小，名字還在。", "cause": "你主動把公司縮回你能承擔的範圍。"},
+    "decline_preserve": {"group": "neutral", "title": "保存一門正在消失的手藝", "line": "需求每年少一點。你還是把它做完。", "cause": "在衰退的行業裡選擇保存，而不是追逐。"},
+    "regional_famous": {"group": "success", "title": "地區名店", "line": "外地人來這條街，會有人叫他們來這裡。", "cause": "重複的品質累積成一個地方的記憶。"},
+    "global_chain": {"group": "success", "title": "全球連鎖", "line": "同一套做法，在不同的時區重複。", "cause": "你把可複製的部分做對了，代價是複雜度。"},
+    "reformer": {"group": "success", "title": "行業改革者", "line": "同行後來都用你那一套。", "cause": "你改了行業的做法，不只是自己的帳。"},
+    "employee_owned": {"group": "success", "title": "員工共同持有", "line": "主人變成複數。", "cause": "控制權被寫進一套規則，而不是留在一個人身上。"},
+    "listed": {"group": "success", "title": "成功上市", "line": "錢進來了，季度也進來了。", "cause": "你通過了公開市場的檢查，也接受了它的節奏。"},
+    "century": {"group": "success", "title": "百年老店", "line": "招牌的字體舊了，店還在。", "cause": "它比創辦人活得久，而且記得自己是誰。"}
+  },
+  "epitaphs": [
+    {"when": {"group": "fail", "flag": "storm_survived"}, "text": "它捱過{storms}次颱風，卻沒有捱過{cause}。"},
+    {"when": {"group": "fail", "flag": "crew_left"}, "text": "{name}跟了它{tenure}個月，最後是在最忙的那天走的。"},
+    {"when": {"group": "fail", "flag": "discount_used"}, "text": "它只存在了{life}。街上有個人還記得它開張那天的折扣。"},
+    {"when": {"group": "fail", "flag": "short_life"}, "text": "它只存在了{life}。沒有人來得及記住它的名字，包括它自己。"},
+    {"when": {"group": "fail", "flag": "long_struggle"}, "text": "它撐了{life}，其中{lossMonths}個月是虧的。撐本身也是一種選擇。"},
+    {"when": {"group": "fail"}, "text": "{company}，{years}。{causeShort}"},
+    {"when": {"group": "neutral", "flag": "crew_kept"}, "text": "它沒有變大。但在那幾年裡，它沒有把任何人推出去。"},
+    {"when": {"group": "neutral", "flag": "sold"}, "text": "它在還值錢的時候被交出去。買家保留了名字，保留了多久是另一件事。"},
+    {"when": {"group": "neutral"}, "text": "{company}，{years}。它養活了一些人，然後停在一個還算體面的地方。"},
+    {"when": {"group": "success", "flag": "crew_promoted"}, "text": "{name}從{role}做到能替它做決定。這件事比營業額難。"},
+    {"when": {"group": "success", "flag": "century"}, "text": "它換過{eras}代招牌、{successions}次接班人，最初的那句話還在章程裡。"},
+    {"when": {"group": "success", "flag": "many_customers"}, "text": "{customers}個人從它手上買過東西。其中一部分，後來帶著別人來。"},
+    {"when": {"group": "success"}, "text": "{company}，{years}。它把一個缺口做成了一門生意，再把生意交給了比它更長的時間。"}
+  ],
+  "crisis_lines": {
+    "cash": "最險的一次是現金：帳上只剩{runway}個月，你在那個月做了{decision}。",
+    "crew": "最險的一次是人：{name}要走，你當時沒有多餘的錢可以留他。",
+    "quality": "最險的一次是品質：{quality}那件事之後，有三個月沒有人願意先付款。",
+    "platform": "最險的一次是平台：抽成上調的那個月，毛利直接變成負的。",
+    "weather": "最險的一次是天氣：{storms}次颱風裡有一次把出貨全部停掉。",
+    "debt": "最險的一次是債務：還款排在收入之前，你在當月賣掉了資產。"
+  }
 }

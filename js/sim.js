@@ -83,6 +83,21 @@ function spineForRedline(type) {
   }[type];
 }
 
+/** 一整局的累積量。結局卡、訃告與圖表都從這裡讀。 */
+function blankKpis() {
+  return {
+    customers: 0, revenueTotal: 0, costTotal: 0, profitTotal: 0,
+    peakCrew: 0, peakCash: 0, worstCash: 0, peakRevenue: 0,
+    lossMonths: 0, profitMonths: 0, rainDays: 0, storms: 0, heatDays: 0,
+    lostTotal: 0, backlogPeak: 0, quits: 0, fired: 0, hires: 0, promotes: 0, raises: 0,
+    crises: [], bestMonth: null, worstMonth: null, rescues: 0,
+  };
+}
+
+function lifeCfg(data) {
+  return econ(data).life || {};
+}
+
 function blankMods() {
   return { revenue: 1, fixed: 1, price: 0, cost: 0, platform: 0, fixedAdd: 0, royalty: 0 };
 }
@@ -271,6 +286,386 @@ export function fillText(data, state, s) {
   return String(s || "").replace(/\{(\w+)\}/g, (_, k) => (names[k] == null || names[k] === "" ? "那個人" : names[k]));
 }
 
+/* ─────────────────────────────────────────────────────────────
+   人。公司的成本不只是一行「工資支出」：每個核心員工有名字、
+   性格、壓力、忠誠、他自己的需要，以及一條會往前走的故事線。
+   ───────────────────────────────────────────────────────────── */
+
+/** 舊存檔沒有 crew／marks／chains 時，在這裡補齊，讓畫面與結算都能讀。 */
+export function ensureCrew(data, state) {
+  if (!state?.team) return state?.crew || [];
+  if (!Array.isArray(state.crew)) state.crew = [];
+  if (!state.marks || typeof state.marks !== "object") state.marks = {};
+  if (!Array.isArray(state.chains)) state.chains = [];
+  if (!state.kpis) state.kpis = blankKpis();
+  const head = Math.max(0, state.team.headcount || 0);
+  let missing = head - state.crew.filter((c) => !c.gone).length;
+  while (missing-- > 0) addCrewMember(data, state, true);
+  let extra = state.crew.filter((c) => !c.gone).length - head;
+  while (extra-- > 0) {
+    const live = state.crew.filter((c) => !c.gone);
+    const last = live[live.length - 1];
+    if (!last) break;
+    last.gone = "left";
+    last.goneMonth = state.month;
+    last.tenure = state.month - last.joined;
+  }
+  return state.crew;
+}
+
+function addCrewMember(data, state, backfill = false) {
+  const cfg = lifeCfg(data).crew || {};
+  const city = cityById(data, state.cityId);
+  const rng = rngOf(state);
+  const fam = state.venture?.family || gapById(data, state.gapId)?.family || "food";
+  const roles = cfg.roles?.[fam] || ["同事"];
+  const idx = Math.max(0, (state.team?.headcount || 1) - 1);
+  const traits = cfg.traits || [];
+  const trait = traits.length ? traits[rng.int(traits.length)] : { id: "steady", label: "穩", skill: 1, stress: 1, loyalty: 1, output: 1, note: "" };
+  const needs = cfg.needs || ["一件他自己的事"];
+  const used = new Set((state.crew || []).filter((c) => !c.gone).map((c) => c.name));
+  let name = "";
+  for (let tryN = 0; tryN < 6; tryN++) {
+    const cand = personName(data, city.country, `${state.seed}:crew:${state.month}:${idx}:${tryN}:${rng.int(997)}`);
+    if (!used.has(cand)) { name = cand; break; }
+    name = name || cand;
+  }
+  const m = {
+    id: `c${state.month}x${idx}x${(state.crew || []).length}`,
+    name,
+    age: 19 + rng.int(40),
+    role: roles[idx % roles.length],
+    trait: trait.id,
+    traitLabel: trait.label,
+    traitNote: trait.note || "",
+    skill: clamp(0.34 + rng.next() * 0.36 + (num(trait.skill, 1) - 1) * 0.6, 0.15, 1),
+    stress: 0.16 + rng.next() * 0.14,
+    loyalty: clamp((0.42 + rng.next() * 0.18) * num(trait.loyalty, 1), 0.08, 1.25),
+    trust: 0.5 + rng.next() * 0.12,
+    output: num(trait.output, 1),
+    stressMult: num(trait.stress, 1),
+    need: needs[rng.int(needs.length)],
+    joined: state.month,
+    tenure: 0,
+    overtimeDays: 0,
+    mistakes: 0,
+    raises: 0,
+    salary: 1,
+    arc: 0,
+    promoted: false,
+    gone: null,
+    goneMonth: 0,
+  };
+  state.crew = state.crew || [];
+  state.crew.push(m);
+  if (!backfill) {
+    state.kpis = state.kpis || blankKpis();
+    state.kpis.hires += 1;
+    pushBeat(data, state, {
+      id: "crew_join",
+      subject: m.name,
+      object: `${m.role}的第一天`,
+      text: crewLine(data, state, "join", m),
+      note: `${m.traitLabel}。${m.need}。`,
+    });
+    award(data, state, m.age < 24 ? "apron" : "first_hire", 1);
+  }
+  return m;
+}
+
+function crewLeave(data, state, m, reason) {
+  m.gone = reason;
+  m.goneMonth = state.month;
+  m.tenure = state.month - m.joined;
+  state.team.headcount = Math.max(0, (state.team.headcount || 0) - 1);
+  const i = (state.team.names || []).indexOf(m.name);
+  if (i >= 0) state.team.names.splice(i, 1);
+  state.team.morale = clamp(state.team.morale - 0.06, 0.05, 0.98);
+  if (state.venture) state.venture.keyDependency = clamp((state.venture.keyDependency || 0.5) + 0.05, 0.05, 0.98);
+  state.kpis = state.kpis || blankKpis();
+  if (reason === "fired") state.kpis.fired += 1;
+  else state.kpis.quits += 1;
+  const key = reason === "poached" ? "poached" : "quit";
+  pushBeat(data, state, {
+    id: "crew_leave",
+    subject: m.name,
+    object: reason === "poached" ? "被同行接走" : reason === "fired" ? "被你請走" : "離開",
+    text: crewLine(data, state, key, m),
+    note: `${m.role}的位置空了。班表上還有他的名字。`,
+  });
+  if (reason === "overwork") addMarks(data, state, { grinder: 0.9 });
+  if (reason === "poached") {
+    addMarks(data, state, { people_keeper: -0.6 });
+    state.flags.underpaid_key = true;
+  }
+  if (reason === "fired") award(data, state, "severance_list", 1);
+  addCrisis(state, { m: state.month, kind: "crew", title: `${m.name}離開`, weight: reason === "overwork" ? 4 : 3 });
+  logEvent(state, "crew_leave", { reason, tenure: m.tenure, stress: round2(m.stress) });
+}
+
+function crewPromote(data, state, m) {
+  m.promoted = true;
+  m.arc = 3;
+  state.kpis = state.kpis || blankKpis();
+  state.kpis.promotes += 1;
+  if (state.venture) state.venture.keyDependency = clamp((state.venture.keyDependency || 0.5) - 0.1, 0.05, 0.98);
+  state.team.morale = clamp(state.team.morale + 0.05, 0.05, 0.98);
+  addMarks(data, state, { people_keeper: 0.8 });
+  award(data, state, "first_manager", 2);
+  pushBeat(data, state, {
+    id: "crew_promote",
+    subject: m.name,
+    object: "開始替你做決定",
+    text: crewLine(data, state, "promote", m),
+    note: "這間店第一次有第二個能拍板的人。",
+  });
+  logEvent(state, "crew_promote", { tenure: m.tenure });
+}
+
+/** 每個月：壓力、忠誠、對老闆的信任、加班天數，以及走不走。 */
+function tickCrew(data, state, rng) {
+  const cfg = lifeCfg(data).crew;
+  if (!cfg || !state.crew?.length) return;
+  const v = state.venture;
+  if (!v) return;
+  const util = clamp(v.utilization || 0.5, 0, 1.4);
+  const hours = state.founder.hours || 0.5;
+  const wx = state.weather;
+  const raisedRecently = state.month - num(state.flags.raised_at, -99) <= 2;
+  const marks = state.marks || {};
+  const grinderOn = (marks.grinder || 0) >= num(cfg.confirm_grinder, 3);
+  const keeperOn = (marks.people_keeper || 0) >= 3;
+  const series = state.series || [];
+  const oldRev = series.length > 5 ? series[series.length - 6].rev : 0;
+  const growing = (state.last?.revenue || 0) > oldRev * 1.05 && oldRev > 0;
+  const arcMonths = cfg.arc_months || [6, 18, 40];
+  const leaving = [];
+  let promotedThisMonth = false;
+  let crewBeat = null;
+  for (const m of state.crew) {
+    if (m.gone) continue;
+    m.tenure = state.month - m.joined;
+    m.arc = m.promoted ? 3 : m.tenure >= (arcMonths[2] || 40) ? 2 : m.tenure >= (arcMonths[0] || 6) ? 1 : 0;
+    const load = Math.max(0, util - num(cfg.stress_load_pivot, 0.7));
+    const wxStress = wx ? Math.abs(num(wx.demand, 0)) * 0.6 + (wx.id === "storm" ? 0.3 : 0) : 0;
+    let d = num(cfg.stress_from_load, 0.1) * load * num(m.stressMult, 1)
+      + num(cfg.stress_from_hours, 0.1) * Math.max(0, hours - num(cfg.stress_hours_pivot, 0.8))
+      + num(cfg.stress_from_weather, 0.06) * wxStress;
+    d -= num(cfg.stress_relief, 0.09) * Math.max(0, num(cfg.stress_relief_pivot, 0.75) - util);
+    d -= num(cfg.stress_natural_relief, 0.008);
+    if (raisedRecently) d -= 0.03;
+    if (grinderOn) d += 0.012;
+    if (keeperOn) d -= 0.008;
+    m.stress = clamp(m.stress + d, 0.02, 1);
+    m.overtimeDays = util > 0.88
+      ? Math.min(60, (m.overtimeDays || 0) + Math.round(4 + util * 7))
+      : Math.max(0, (m.overtimeDays || 0) - 5);
+    let ld = 0;
+    if (!raisedRecently && m.tenure > 18 && growing) ld -= num(cfg.no_raise_drift, 0.012);
+    if (m.stress > 0.72) ld -= 0.007;
+    if (raisedRecently) ld += num(cfg.raise_loyalty, 0.16) * 0.12;
+    if (keeperOn) ld += 0.005;
+    if (grinderOn) ld -= 0.009;
+    m.loyalty = clamp(m.loyalty + ld, 0.05, 1.25);
+    m.trust = clamp(m.trust + (raisedRecently ? 0.03 : 0) - (m.stress > 0.82 ? 0.022 : 0) + (keeperOn ? 0.004 : 0), 0.05, 1);
+    m.skill = clamp(m.skill + 0.004 * (m.arc >= 1 ? 1.4 : 1) * (m.stress > 0.85 ? 0.3 : 1), 0.15, 1);
+    // 一個月最多一句話關於人。多了就變成噪音，玩家會開始跳過。
+    if (!crewBeat && rng.next() < num(cfg.warn_chance, 0.16)) {
+      if (m.stress > 0.8) crewBeat = pushBeat(data, state, { id: "crew_tired", subject: m.name, object: "動作變慢", text: crewLine(data, state, "sit_down", m), note: `壓力 ${Math.round(m.stress * 100)}。他還在做，但速度不一樣了。` });
+      else if (m.stress > num(cfg.warn_stress, 0.62) && m.overtimeDays > 8) crewBeat = pushBeat(data, state, { id: "crew_overtime", subject: m.name, object: "連續加班", text: crewLine(data, state, "overtime", m, { overtime: m.overtimeDays }), note: "這件事會留在他的身體上。" });
+      else if (!raisedRecently && m.tenure > 24 && growing) crewBeat = pushBeat(data, state, { id: "crew_noraise", subject: m.name, object: "薪水沒有動", text: crewLine(data, state, "no_raise", m), note: "忠誠每個月掉一點。" });
+    }
+    // 忠誠高的人撐得比較久。這是一個人留下來的理由，不是一個隨機數。
+    const quitAt = clamp(num(cfg.quit_stress, 0.88) + (m.loyalty - 0.5) * num(cfg.quit_loyalty_span, 0.2), 0.6, 1);
+    if (m.stress > quitAt && rng.next() < num(cfg.quit_chance, 0.28)) leaving.push([m, "overwork"]);
+    else if (m.loyalty < num(cfg.poach_loyalty, 0.34) && m.skill > num(cfg.poach_skill, 0.72) && m.tenure > 10 && rng.next() < 0.24) leaving.push([m, "poached"]);
+    else if (m.loyalty < 0.15 && rng.next() < 0.2) leaving.push([m, "quit"]);
+    if (!promotedThisMonth && !m.promoted && m.tenure >= num(cfg.manager_tenure, 26)
+      && m.loyalty >= num(cfg.manager_loyalty, 0.62) && m.stress < 0.68
+      && (v.marketFit > 0.5 || (state.team.headcount || 0) >= 3) && rng.next() < 0.5) {
+      promotedThisMonth = true;
+      crewPromote(data, state, m);
+    }
+  }
+  for (const [m, reason] of leaving) crewLeave(data, state, m, reason);
+  const live = state.crew.filter((c) => !c.gone);
+  if (live.length) {
+    const moraleAvg = live.reduce((sum, m) => sum + clamp((1 - m.stress * 0.75) * (0.55 + m.loyalty * 0.45), 0, 1), 0) / live.length;
+    state.team.morale = clamp(state.team.morale * 0.6 + moraleAvg * 0.4, 0.05, 0.98);
+    state.crewOutput = clamp(live.reduce((sum, m) => sum + m.output * (0.7 + m.skill * 0.5), 0) / live.length, 0.6, 1.4);
+    state.crewStress = round2(live.reduce((sum, m) => sum + m.stress, 0) / live.length);
+  } else {
+    state.crewOutput = 1;
+    state.crewStress = 0;
+  }
+}
+
+/** 用敘事資料裡的句子講這個人的事。先把人物欄位填進去，再交給 fillText 填世界欄位。 */
+export function crewLine(data, state, key, member, vars = {}) {
+  const pool = data.narrative.crew_lines?.[key] || [];
+  if (!pool.length) return "";
+  const rng = rngOf(state);
+  return fillCrew(data, state, pool[rng.int(pool.length)], member, vars);
+}
+
+export function fillCrew(data, state, raw, member, vars = {}) {
+  const m = member || {};
+  const map = {
+    name: m.name, role: m.role, trait: m.traitLabel, need: m.need,
+    tenure: m.tenure ?? Math.max(0, state.month - (m.joined || 0)),
+    overtime: m.overtimeDays || 0,
+    stress: Math.round((m.stress || 0) * 100),
+    ...vars,
+  };
+  const out = String(raw || "").replace(/\{(\w+)\}/g, (all, k) => (map[k] == null || map[k] === "" ? all : String(map[k])));
+  return fillText(data, state, out);
+}
+
+/* ── 天氣。它不只是一個句子，它改需求、改成本、改場景。 ── */
+
+export function rollWeather(data, state, rng) {
+  const cfg = lifeCfg(data).weather;
+  if (!cfg?.kinds) return null;
+  const city = cityById(data, state.cityId);
+  const calMonth = ((state.calendar?.month || 0) + state.month) % 12;
+  const hot = (cfg.hot_months || []).includes(calMonth);
+  const cold = (cfg.cold_months || []).includes(calMonth);
+  const pool = [];
+  for (const [id, k] of Object.entries(cfg.kinds)) {
+    if (k.cities && !k.cities.includes(state.cityId)) continue;
+    if (k.season === "hot" && !hot) continue;
+    if (k.season === "cold" && !cold) continue;
+    let w = num(k.weight, 1);
+    if (k.storm_scale) w *= clamp(num(city.storm, 0.05) / 0.08, 0.15, 4);
+    if (id === "rain" || id === "downpour") w *= 0.6 + num(city.storm, 0.05) * 4;
+    if (w > 0) pool.push({ id, w, k });
+  }
+  if (!pool.length) return null;
+  const hit = pickWeighted(rng, pool, (x) => x.w);
+  const range = cfg.rain_days?.[hit.id] || [0, 2];
+  const days = range[0] + rng.int(Math.max(1, range[1] - range[0] + 1));
+  return {
+    id: hit.id,
+    label: hit.k.label,
+    stage: hit.k.stage || hit.id,
+    demand: num(hit.k.demand, 0),
+    cost: num(hit.k.cost, 0),
+    breakRisk: num(hit.k.break_risk, 0),
+    days,
+    month: state.month,
+  };
+}
+
+/** 網上生意不太淋雨，街舖會。 */
+export function weatherExposure(data, state) {
+  const cfg = lifeCfg(data).weather?.exposure || {};
+  const v = state.venture;
+  const tags = v?.tags || [];
+  if (tags.includes("digital")) return num(cfg.digital, 0.18);
+  if (v?.venue === "online") return num(cfg.online, 0.42);
+  if (v?.venue === "mobile") return num(cfg.mobile, 0.9);
+  if (tags.includes("service")) return num(cfg.service, 0.7);
+  return num(cfg.physical, 1);
+}
+
+/* ── 長期標記。事件由玩家的行為生成，而不是完全隨機。 ── */
+
+export function addMarks(data, state, marks) {
+  if (!marks || !state) return;
+  const cfg = lifeCfg(data).marks || {};
+  state.marks = state.marks || {};
+  for (const [k, val] of Object.entries(marks)) {
+    const before = num(state.marks[k], 0);
+    const after = clamp(before + num(val, 0), -8, 16);
+    state.marks[k] = Math.round(after * 100) / 100;
+    const th = num(cfg[k]?.confirm, 3);
+    if (before < th && after >= th) confirmMark(data, state, k);
+  }
+}
+
+function confirmMark(data, state, k) {
+  const meta = lifeCfg(data).marks?.[k];
+  if (!meta) return;
+  pushTimeline(state, "你的樣子", `${meta.label}：${meta.blurb}`);
+  logEvent(state, "mark_confirmed", { mark: k });
+  if (meta.chain && !(state.chains || []).some((c) => c.event === meta.chain && !c.done)) {
+    scheduleChain(state, { after: 2 + (state.month % 3), event: meta.chain }, { title: meta.label }, { label: meta.blurb });
+  }
+}
+
+export function confirmedMarks(data, state) {
+  const cfg = lifeCfg(data).marks || {};
+  return Object.entries(state.marks || {})
+    .filter(([k, val]) => val >= num(cfg[k]?.confirm, 3))
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, val]) => ({ id: k, value: round2(val), label: cfg[k]?.label || k, blurb: cfg[k]?.blurb || "", tone: cfg[k]?.tone || "risk" }));
+}
+
+/** 有些標記不是選項造成的，是連續幾個月的做法造成的。 */
+function observeMarks(data, state) {
+  const add = {};
+  const hours = state.founder.hours || 0;
+  const util = state.venture?.utilization || 0;
+  const live = (state.crew || []).filter((c) => !c.gone);
+  const avgStress = live.length ? live.reduce((sum, m) => sum + m.stress, 0) / live.length : 0;
+  if (!state.founder.exited && hours > 0.9 && util > 0.78) add.grinder = 0.3;
+  if (avgStress > 0.7) add.grinder = 0.22;
+  if (live.length && avgStress < 0.55 && state.month > 18) add.people_keeper = 0.05;
+  if ((state.finance.debt || 0) > 3 || state.founder.guarantee > 0.8) add.risk_taker = 0.1;
+  if ((state.finance.runway || 0) > 9 && (state.finance.debt || 0) < 0.4) add.cash_guard = 0.1;
+  if ((state.last?.parts?.platformRate || 0) > 0.1) add.platform_leaning = 0.18;
+  if ((state.venture.trust || 0) > 0.62 && !state.flags.discount) add.customer_first = 0.07;
+  if ((state.venture.quality || 0) > 0.72) add.quality_obsessed = 0.09;
+  if ((state.venture.complexity || 0) > 1.4 || state.flags.second_city) add.expansionist = 0.1;
+  addMarks(data, state, add);
+}
+
+/* ── 延遲後果。第二層：幾個月之後回來收帳。 ── */
+
+function scheduleChain(state, chain, ev, choice) {
+  if (!chain?.event) return;
+  state.chains = state.chains || [];
+  if (state.chains.length > 40) state.chains.shift();
+  state.chains.push({
+    event: chain.event,
+    at: state.month + Math.max(1, num(chain.after, 2)),
+    causeMonth: state.month,
+    cause: ev?.title || "",
+    choice: choice?.label || "",
+    done: false,
+  });
+}
+
+/** 這個月有沒有該回來的後果。 */
+function dueChain(state) {
+  return (state.chains || []).find((c) => !c.done && c.at <= state.month) || null;
+}
+
+function addCrisis(state, c) {
+  const k = (state.kpis = state.kpis || blankKpis());
+  k.crises = k.crises || [];
+  if (k.crises.some((x) => x.m === c.m && x.kind === c.kind)) return;
+  k.crises.push(c);
+  k.crises.sort((a, b) => num(b.weight, 1) - num(a.weight, 1));
+  k.crises = k.crises.slice(0, 6);
+}
+
+function pushBeat(data, state, beat) {
+  const b = {
+    ...beat,
+    m: beat.m ?? state.month,
+    when: beat.when || calendarLabel(state),
+    text: beat.text || "",
+  };
+  state.feed = state.feed || [];
+  state.lastBeats = state.lastBeats || [];
+  state.feed.push(b);
+  if (state.feed.length > 60) state.feed.splice(0, state.feed.length - 60);
+  state.lastBeats.push(b);
+  pushTimeline(state, b.subject || "", `${b.object || ""}。${b.text || ""}`.trim());
+  return b;
+}
+
 export function createRun(data, opts = {}) {
   const modeId = opts.mode || "story";
   const mode = modeOf(data, modeId);
@@ -452,6 +847,13 @@ export function createRun(data, opts = {}) {
     factors: null,
     feed: [],
     ambient: { demand: 0, cost: 0 },
+    weather: null,
+    crew: [],
+    marks: {},
+    chains: [],
+    kpis: blankKpis(),
+    lastOps: null,
+    monthStory: null,
     beatUntil: {},
     initiativeReady: 0,
     negStreak: 0,
@@ -945,6 +1347,7 @@ function potentialRevenue(data, state, noise) {
   if (v.public) unitDemand *= 1.04;
   if (v.licenseLeft > 0) unitDemand *= 0.5;
   if (state.flags.exclusive) unitDemand *= 1.03;
+  unitDemand *= 1 + num(state.weather?.demand, 0) * weatherExposure(data, state);
   const morale = state.team?.morale ?? 0.6;
   const heads = state.team?.headcount || 0;
   const dep = v.keyDependency ?? 0.6;
@@ -954,12 +1357,17 @@ function potentialRevenue(data, state, noise) {
   const fitCap = 0.7 + 0.6 * (v.marketFit || 0.3);
   const operator = state.founder.exited ? (state.operator?.type === "pro" ? 0.9 : 0.74) : 1;
   const founderUnits = timeFactor * (v.skill || 0.55) * E.formula.founder_output * fitCap * operator;
-  const empUnits = heads * E.formula.employee_output * (0.68 + 0.32 * morale) * (1 - 0.28 * dep * (state.founder.exited ? 1 : 0.35));
+  const empUnits = heads * E.formula.employee_output * (0.68 + 0.32 * morale) * (1 - 0.28 * dep * (state.founder.exited ? 1 : 0.35)) * num(state.crewOutput, 1);
   const unitCap = Math.max(0.2, (founderUnits + empUnits) * (ven.capacity || 1));
   const units = Math.min(Math.max(0, unitDemand), unitCap);
   v.utilization = clamp(units / unitCap, 0.05, 1.25);
   const qualityFactor = E.formula.quality_floor_factor + E.formula.quality_span * (v.quality || 0.5);
   const price = pos.price * (city.price_index || 1) * (1 + (mods.price || 0));
+  // 探針：把「需求有多少、人做得完多少、場地接得住多少」留下來，給漏斗與瓶頸圖用。
+  state._probe = {
+    unitDemand, unitCap, units, founderUnits, empUnits,
+    venueCapacity: ven.capacity || 1, price, qualityFactor,
+  };
   return Math.max(0, units * price * qualityFactor);
 }
 
@@ -973,6 +1381,7 @@ function costParts(data, state, revenue, released) {
   const rev = E.revenues[v.revenue];
   const mods = effectiveMods(v);
   const ambientCost = clamp(state.ambient?.cost || 0, -0.08, 0.08);
+  const weather = revenue * num(state.weather?.cost, 0) * weatherExposure(data, state);
   const variable = revenue * clamp(pos.variable + ful.variable_add + mods.cost, 0.12, 0.84) * (1 + ambientCost);
   const premises = ven.fixed * city.rent_index * mods.fixed + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity;
   const platformRate = ven.platform + rev.platform + mods.platform + city.platform_pressure * ven.platform * 0.45;
@@ -991,10 +1400,10 @@ function costParts(data, state, revenue, released) {
   let principal = 0;
   for (const c of state.commitments || []) if (c.kind === "debt" && c.monthsLeft > 0) principal += c.payment || 0;
   const collectedNow = collectNow(state, revenue, city);
-  const profitBase = collectedNow + released - variable - labor - premises - platform - royalty - interest;
+  const profitBase = collectedNow + released - variable - labor - premises - platform - royalty - interest - weather;
   const tax = profitBase > 0 ? profitBase * city.tax_rate : 0;
-  const operating = variable + labor + premises + platform + royalty + interest + tax + draw + principal;
-  return { variable, premises, platform, royalty, labor, draw, interest, principal, tax, collectedNow, releasing: released, operating, platformRate };
+  const operating = variable + labor + premises + platform + royalty + interest + weather + tax + draw + principal;
+  return { variable, premises, platform, royalty, labor, draw, interest, principal, weather, tax, collectedNow, releasing: released, operating, platformRate };
 }
 
 function collectNow(state, revenue, city) {
@@ -1053,9 +1462,12 @@ function settleOne(data, state) {
   if (state.founder.drawPause > 0) state.founder.drawPause -= 1;
   state.venture.timed = (state.venture.timed || []).map((t) => ({ ...t, months: t.months - 1 })).filter((t) => t.months > 0);
 
+  ensureCrew(data, state);
+  state.weather = state._cf ? null : rollWeather(data, state, rng);
   const noiseAmp = state._cf ? 0 : econ(data).formula.noise;
   const noise = (rng.next() - 0.5) * 2 * noiseAmp;
   const revenue = potentialRevenue(data, state, noise);
+  const probe = state._probe || {};
   let released = 0;
   const keep = [];
   for (const q of state.finance.arQueue) {
@@ -1116,8 +1528,11 @@ function settleOne(data, state) {
   state.finance.lastCollected = parts.collectedNow + released;
   state.finance.lastCost = parts.operating;
   state.finance.lastProfit = revenue - parts.variable - parts.labor - parts.premises - parts.platform - parts.royalty;
-  state.last = { month: state.month, line, revenue, collected: state.finance.lastCollected, cost: parts.operating, cash: state.finance.cash, parts };
+  const ops = computeOps(data, state, parts, probe);
+  state.lastOps = ops;
+  state.last = { month: state.month, line, revenue, collected: state.finance.lastCollected, cost: parts.operating, cash: state.finance.cash, parts, ops };
   state.factors = explainFactors(data, state, revenue, parts);
+  state.finance.runway = runwayOf(data, state);
   state.series.push({ m: state.month, cash: round2(state.finance.cash), rev: round2(revenue), cost: round2(parts.operating) });
   if (state.series.length > 1200) state.series.shift();
 
@@ -1126,7 +1541,14 @@ function settleOne(data, state) {
   state.level = rl.level;
   state.redlineSnap = rl;
 
-  if (!state._cf) rollBeats(data, state, rng);
+  if (!state._cf) {
+    rollBeats(data, state, rng);
+    weatherDamage(data, state, rng);
+    tickCrew(data, state, rng);
+    observeMarks(data, state);
+    updateKpis(data, state, revenue, parts, ops);
+    state.monthStory = null;
+  }
   if (state.last && state.lastBeats?.length) state.last.beat = state.lastBeats.map((b) => b.text).join(" ");
 
   if (!state._cf && state.month % 3 === 0) {
@@ -1138,6 +1560,7 @@ function settleOne(data, state) {
     state.phase = "laststand";
     state.rescueLeft = state.rescueLeft || modeOf(data, state.mode).rescue_actions;
     pushTimeline(state, "現金不夠", "公司付不出這一輪。");
+    if (!state._cf) addCrisis(state, { m: state.month, kind: "cash", title: "現金不夠付這一輪", weight: 5 });
     return state;
   }
   if (state.founder.health < 0.2 && !state.founder.exited && !state.flags.crisis_scheduled) {
@@ -1196,6 +1619,107 @@ function monthLine(data, state, revenue, parts) {
   return `${name}沒有大事。賣${sells}的固定帳仍舊要付。`;
 }
 
+/**
+ * 把「一筆收入」換算成人：路過、進店、下單、做完、付錢、再來、變成熟客。
+ * 每一層都對應一個可以改善的手段，所以它不是裝飾，是診斷。
+ */
+function computeOps(data, state, parts, probe) {
+  const cfg = lifeCfg(data).funnel || {};
+  const v = state.venture;
+  const perUnit = num(cfg.passerby_per_unit, 7);
+  const mods = effectiveMods(v);
+  const wxDrag = Math.max(0, -num(state.weather?.demand, 0)) * 0.35;
+  const enterRate = clamp(
+    num(cfg.enter_base, 0.3) + num(cfg.enter_fit_span, 0.3) * num(v.marketFit, 0.3)
+    + num(cfg.enter_brand_span, 0.1) * (num(v.brand, 0.35) - 0.35) - wxDrag,
+    0.06, 0.92,
+  );
+  const orderRate = clamp(
+    num(cfg.order_base, 0.5) + num(cfg.order_fit_span, 0.3) * num(v.marketFit, 0.3)
+    - num(cfg.order_price_drag, 0.2) * Math.max(0, mods.price),
+    0.08, 0.95,
+  );
+  const demandUnits = Math.max(0, num(probe.unitDemand, 0));
+  const servedUnits = Math.max(0, num(probe.units, 0));
+  const orders = demandUnits * perUnit;
+  const served = servedUnits * perUnit;
+  const entered = orders / Math.max(0.05, orderRate);
+  const passersby = entered / Math.max(0.05, enterRate);
+  const paid = Math.max(0, served * (1 - num(cfg.paid_bad_debt, 0.03) - num(v.returnsRate, 0) * 0.5));
+  const repeat = paid * clamp(num(cfg.repeat_base, 0.2) + num(cfg.repeat_trust_span, 0.4) * num(v.trust, 0.4), 0.02, 0.9);
+  const loyal = repeat * num(cfg.loyal_share, 0.34);
+  const handsCap = (num(probe.founderUnits, 0) + num(probe.empUnits, 0)) * perUnit;
+  return {
+    passersby: Math.round(passersby),
+    entered: Math.round(entered),
+    orders: Math.round(orders),
+    served: Math.round(served),
+    paid: Math.round(paid),
+    repeat: Math.round(repeat),
+    loyal: Math.round(loyal),
+    lost: Math.round(Math.max(0, orders - served)),
+    backlog: Math.round(Math.max(0, orders - served)),
+    enterRate: round2(enterRate),
+    orderRate: round2(orderRate),
+    demandUnits: round2(demandUnits),
+    servedUnits: round2(servedUnits),
+    capUnits: round2(num(probe.unitCap, 0)),
+    handsCap: Math.round(handsCap),
+    frontCap: Math.round(handsCap * num(probe.venueCapacity, 1)),
+    utilization: round2(num(v.utilization, 0)),
+    platformRate: round2(num(parts.platformRate, 0)),
+    premisesRate: round2(num(parts.premises, 0) / Math.max(0.05, state.finance?.lastRevenue || 0.05)),
+    weather: state.weather ? { ...state.weather } : null,
+  };
+}
+
+/** 整局的累積量。訃告與紀念卡幾乎全部從這裡讀。 */
+function updateKpis(data, state, revenue, parts, ops) {
+  const k = (state.kpis = state.kpis || blankKpis());
+  const profit = revenue - parts.operating;
+  k.customers += ops.paid;
+  k.revenueTotal += revenue;
+  k.costTotal += parts.operating;
+  k.profitTotal += profit;
+  k.peakCrew = Math.max(k.peakCrew, state.team.headcount || 0);
+  k.peakCash = Math.max(k.peakCash, state.finance.cash);
+  k.worstCash = Math.min(k.worstCash, state.finance.cash);
+  k.peakRevenue = Math.max(k.peakRevenue, revenue);
+  if (profit < 0) k.lossMonths += 1; else k.profitMonths += 1;
+  k.lostTotal += ops.lost;
+  k.backlogPeak = Math.max(k.backlogPeak, ops.backlog);
+  const wx = state.weather;
+  if (wx) {
+    if (["rain", "downpour", "storm", "snow"].includes(wx.id)) k.rainDays += wx.days;
+    if (wx.id === "storm") k.storms += 1;
+    if (wx.id === "heat") k.heatDays += wx.days;
+  }
+  if (!k.bestMonth || profit > k.bestMonth.profit) k.bestMonth = { m: state.month, profit: round2(profit) };
+  if (!k.worstMonth || profit < k.worstMonth.profit) k.worstMonth = { m: state.month, profit: round2(profit) };
+  if (state.level === "crit") addCrisis(state, { m: state.month, kind: "redline", title: state.redlineSnap?.name || "紅線", weight: 3 });
+  if (ops.lost > ops.served * 0.35 && ops.lost > 20) addCrisis(state, { m: state.month, kind: "capacity", title: "做不完的那一個月", weight: 2 });
+  if ((state.last?.parts?.platformRate || 0) > 0.18) addCrisis(state, { m: state.month, kind: "platform", title: "抽成吃掉毛利", weight: 3 });
+}
+
+/** 颱風會弄壞東西。壞了的東西會留在場景裡，直到你修它。 */
+function weatherDamage(data, state, rng) {
+  const wx = state.weather;
+  if (!wx || !wx.breakRisk) return;
+  if (state.flags.equipment_damage) return;
+  if (rng.next() >= wx.breakRisk) return;
+  state.flags.equipment_damage = true;
+  state.venture.perm.fixedAdd = num(state.venture.perm.fixedAdd, 0) + 0.04;
+  pushBeat(data, state, {
+    id: "equipment_damage",
+    subject: state.venture.name,
+    object: `${wx.label}裡壞掉的設備`,
+    text: "外機被吹壞了一台。修好之前，每個月的固定帳會多一點。",
+    note: "在「主動做一件事」裡可以修它。不修，它會一直在那裡。",
+  });
+  award(data, state, "broken_machine", 1);
+  addCrisis(state, { m: state.month, kind: "weather", title: `${wx.label}把設備弄壞`, weight: 3 });
+}
+
 function explainFactors(data, state, revenue, parts) {
   const city = cityById(data, state.cityId);
   const gap = gapById(data, state.gapId);
@@ -1224,6 +1748,18 @@ function isChapter(state) {
 }
 
 function takeEvent(data, state, rng) {
+  // 第二層：幾個月前那個決定的後果，現在回來了。
+  const chain = dueChain(state);
+  if (chain) {
+    const ev = data.events.find((e) => e.id === chain.event);
+    chain.done = true;
+    if (ev && eligible(data, state, ev)) {
+      const decorated = decorate(data, state, ev);
+      decorated.chainCause = chain;
+      logEvent(state, "chain_fire", { id: chain.event, cause: chain.causeMonth });
+      return decorated;
+    }
+  }
   const due = state.spine.find((s) => !s.done && s.month <= state.month);
   if (due) {
     const ev = data.events.find((e) => e.spine === due.id);
@@ -1240,7 +1776,7 @@ function takeEvent(data, state, rng) {
   if (since < stage.decision_gap * 0.6) return null;
   const p = clamp((since - stage.decision_gap * 0.6) / stage.decision_gap, 0, 0.8);
   if (rng.next() > p && since < stage.decision_gap * 1.45) return null;
-  const pool = data.events.filter((e) => !e.spine && eligible(data, state, e));
+  const pool = data.events.filter((e) => !e.spine && !e.chain_only && eligible(data, state, e));
   if (!pool.length) return null;
   const picked = pickWeighted(rng, pool, (e) => weightOf(data, state, e));
   if (!picked || weightOf(data, state, picked) <= 0) return null;
@@ -1285,6 +1821,13 @@ function weightOf(data, state, e) {
     // 正職那邊發現你的機率，取決於你選的投入方式有多藏不住
     const risk = num(econ(data).commitment_styles[state.shape.style]?.sideRisk, 0);
     w *= 0.5 + risk * 2.6;
+  }
+  // 40% 的事件應該由玩家過去的行為觸發：標記確認之後，對應的事件權重上升。
+  const L = lifeCfg(data);
+  const affinity = L.mark_affinity || {};
+  const mult = num(L.mark_affinity_mult, 1.5);
+  for (const m of confirmedMarks(data, state)) {
+    if ((affinity[m.id] || []).includes(e.grammar)) w *= mult;
   }
   if ((state.cooldown[e.id] || 0) > state.month) return 0;
   return w;
@@ -1345,40 +1888,26 @@ function applyBeatEffects(state, effects = {}) {
 
 function rollBeats(data, state, rng) {
   ensureCast(data, state);
+  state.lastBeats = [];
   const pool = (data.narrative.beats || []).filter((b) => beatOk(state, b));
-  if (!pool.length) {
-    state.lastBeats = [];
-    return;
-  }
+  if (!pool.length) return;
   const count = rng.next() < 0.28 ? 2 : 1;
-  const picked = [];
   let rest = pool.slice();
+  state.beatUntil = state.beatUntil || {};
   for (let i = 0; i < count && rest.length; i++) {
     const b = pickWeighted(rng, rest, (x) => x.weight || 1);
     if (!b) break;
-    picked.push(b);
     rest = rest.filter((x) => x.id !== b.id);
-  }
-  state.beatUntil = state.beatUntil || {};
-  state.feed = state.feed || [];
-  const beats = picked.map((b) => {
     applyBeatEffects(state, b.effects || {});
     state.beatUntil[b.id] = state.month + (b.cooldown || 4);
-    const beat = {
+    pushBeat(data, state, {
       id: b.id,
-      m: state.month,
-      when: calendarLabel(state),
       subject: fillText(data, state, b.subject || ""),
       object: fillText(data, state, b.object || ""),
       text: fillText(data, state, b.text || ""),
       note: fillText(data, state, b.note || ""),
-    };
-    pushTimeline(state, beat.subject, `${beat.object}。${beat.text}`);
-    return beat;
-  });
-  state.lastBeats = beats;
-  state.feed.push(...beats);
-  if (state.feed.length > 60) state.feed.splice(0, state.feed.length - 60);
+    });
+  }
 }
 
 export function chooseEvent(data, state, choiceId) {
@@ -1404,6 +1933,12 @@ function applyChoice(data, state, ev, choice) {
   if (choice.drivers) {
     for (const [k, v] of Object.entries(choice.drivers)) state.drivers[k] = (state.drivers[k] || 0) + v;
   }
+  // 第三層：這個決定留下甚麼標記，以及幾個月之後會回來收帳的東西。
+  const cons = lifeCfg(data).consequences?.[`${ev.id}:${choice.id}`] || null;
+  if (choice.marks) addMarks(data, state, choice.marks);
+  if (cons?.marks) addMarks(data, state, cons.marks);
+  const chain = choice.chain || cons?.chain;
+  if (chain) scheduleChain(state, chain, ev, choice);
   if (choice.memory) award(data, state, choice.memory, 2);
   if (choice.commitment) {
     state.commitments.push({
@@ -1561,12 +2096,13 @@ function applyEffects(data, state, effects, ev) {
   state.finance.runway = runwayOf(data, state);
 }
 
+/** 請一個人＝多一個有名字的人。headcount 只是他留下的影子。 */
 function hire(data, state, n) {
-  const city = cityById(data, state.cityId);
+  state.crew = state.crew || [];
   for (let i = 0; i < n; i++) {
     state.team.headcount += 1;
-    const name = personName(data, city.country, state.seed + ":h" + state.month + ":" + state.team.headcount);
-    state.team.names.push(name);
+    const m = addCrewMember(data, state, state._cf === true);
+    state.team.names.push(m.name);
   }
   state.venture.keyDependency = clamp(state.venture.keyDependency - 0.08 * n, 0.1, 0.95);
 }
@@ -1574,9 +2110,17 @@ function hire(data, state, n) {
 function fire(data, state, n) {
   const city = cityById(data, state.cityId);
   for (let i = 0; i < n && state.team.headcount > 0; i++) {
-    state.team.headcount -= 1;
-    state.team.names.pop();
+    const live = (state.crew || []).filter((c) => !c.gone);
+    const victim = live.length
+      ? (live.find((c) => !c.promoted && c.loyalty < 0.4) || live[live.length - 1])
+      : null;
     state.finance.cash -= city.fire_penalty_months * 0.45;
+    if (victim) {
+      crewLeave(data, state, victim, "fired");
+    } else {
+      state.team.headcount -= 1;
+      state.team.names.pop();
+    }
   }
   state.team.morale = clamp(state.team.morale - 0.06, 0.05, 1);
 }
@@ -1757,14 +2301,18 @@ export function initiatives(data, state) {
     list.push({ id: "price_up", label: "加價約 8%", detail: "確定：價格係數上升。量可能下降。" });
     list.push({ id: "price_down", label: "降價約 8%", detail: "確定：價格下降，較容易成交。" });
     if (state.team.headcount < 12) list.push({ id: "hire", label: "聘一個人", detail: "確定：每月多一份薪。產能上升。" });
-    if (state.team.headcount > 0) list.push({ id: "fire", label: "減少一個人", detail: "確定：支付這個城市的離職代價，收入能力下降。" });
+    if (state.team.headcount > 0 && state.finance.cash > 0.35 && state.month - num(state.flags.raised_at, -99) > 6) {
+      list.push({ id: "raise", label: "給團隊加薪", detail: "確定：人事成本上升約 6%。壓力下降，忠誠上升。有些人會因此留下來。" });
+    }
+    if (state.team.headcount > 0) list.push({ id: "fire", label: "減少一個人", detail: "確定：支付這個城市的離職代價，收入能力下降。被請走的是最忠誠度低的那一個。" });
+    if (state.flags.equipment_damage && state.finance.cash > 0.25) list.push({ id: "repair", label: "修好壞掉的設備", detail: "確定：花一筆錢。每月的固定帳回到原來的樣子，場景裡那台機器也會好。" });
     if (state.finance.cash > 0.6) list.push({ id: "market", label: "花一筆讓更多人知道", detail: "確定：現金減少，配合度上升一點。" });
     list.push({ id: "rest", label: "把時間收回一點", detail: "確定：收入略降，健康與意志回升。" });
     if (state.month > 18 && !state.flags.transformed) list.push({ id: "transform", label: "調整做法", detail: "確定：記為一次轉型。短期配合度下降。" });
     if (state.venture.marketFit > 0.5 && state.finance.cash > 2.5 && !state.flags.second_city) list.push({ id: "expand", label: "開第二個據點", detail: "確定：固定成本與複雜度上升，收入上限打開。" });
   }
   const close = { id: "close", label: "考慮結業", detail: "把結束當成一個決定，而不是一場意外。" };
-  const merged = list.slice(0, 4);
+  const merged = list.slice(0, 6);
   if (!merged.some((i) => i.id === "close")) merged.push(close);
   return merged;
 }
@@ -1784,6 +2332,43 @@ export function actInitiative(data, state, id) {
     state.venture.marketFit = clamp(state.venture.marketFit + 0.03, 0, 1);
   } else if (id === "hire") hire(data, state, 1);
   else if (id === "fire") fire(data, state, 1);
+  else if (id === "raise") {
+    state.team.wageMult = num(state.team.wageMult, 1) * 1.06;
+    state.flags.raised_at = state.month;
+    state.kpis = state.kpis || blankKpis();
+    state.kpis.raises += 1;
+    const cfg = lifeCfg(data).crew || {};
+    let first = null;
+    for (const m of state.crew || []) {
+      if (m.gone) continue;
+      first = first || m;
+      m.loyalty = clamp(m.loyalty + num(cfg.raise_loyalty, 0.16) * 0.5, 0.05, 1.25);
+      m.stress = clamp(m.stress - 0.09, 0.02, 1);
+      m.trust = clamp(m.trust + 0.06, 0, 1);
+      m.raises += 1;
+      m.salary = num(m.salary, 1) * 1.06;
+    }
+    addMarks(data, state, { people_keeper: 1.2, grinder: -0.9 });
+    award(data, state, "wage_petition", 1);
+    pushBeat(data, state, {
+      id: "crew_raise",
+      subject: first?.name || "團隊",
+      object: "薪水改了",
+      text: crewLine(data, state, "raise", first || {}),
+      note: "人事成本上升約 6%。有些人把這件事記了很久。",
+    });
+  } else if (id === "repair") {
+    state.finance.cash -= 0.3;
+    state.venture.perm.fixedAdd = Math.max(0, num(state.venture.perm.fixedAdd, 0) - 0.04);
+    state.flags.equipment_damage = false;
+    pushBeat(data, state, {
+      id: "repair_done",
+      subject: state.venture.name,
+      object: "修好的設備",
+      text: "師傅來過，那台機器重新運轉。固定帳回到原來的樣子。",
+      note: "場景裡的那一角不再是壞的。",
+    });
+  }
   else if (id === "market") {
     state.finance.cash -= I.market_cost;
     state.venture.marketFit = clamp(state.venture.marketFit + I.market_fit, 0, 0.95);
@@ -1918,6 +2503,9 @@ export function chooseRescue(data, state, id) {
     return { ok: true, closed: true };
   }
   if (worked) state.finance.cash = Math.max(state.finance.cash, 0.05);
+  state.kpis = state.kpis || blankKpis();
+  state.kpis.rescues += 1;
+  addCrisis(state, { m: state.month, kind: "cash", title: `用了「${id}」撐過這個月`, weight: 4 });
   const proj = potentialRevenue(data, state, 0);
   const parts = costParts(data, state, proj, 0);
   const survive = state.finance.cash > 0.15 && (parts.collectedNow + state.finance.cash > parts.operating * 0.92);
@@ -2112,17 +2700,67 @@ export function symptomIds(data, state) {
   return [market[0], team[0], founder[0]];
 }
 
+/**
+ * 危機選項。每個選項旁邊都要講三件事：
+ * 最可能結果、最大下行風險、誰會受到影響。不要只寫百分比。
+ */
 export function rescueOptions(data, state) {
+  const crewName = (state.crew || []).find((c) => !c.gone)?.name || state.team?.names?.[0] || "你的人";
   return [
-    { id: "shrink", label: "縮規模", detail: "砍固定成本與人手。收入會一起變小。" },
-    { id: "presell", label: "預售", detail: state.venture.trust >= 0.38 ? "信任還夠，可以先收一筆。" : "信任不夠，這一項做不到。" },
-    { id: "delay", label: "談延期", detail: "把最近的承諾往後推，關係會損。" },
-    { id: "asset", label: "出售資產", detail: state.venture.capexBook > 0.3 ? "設備或裝修還能換一點現金。" : "沒有夠大的資產可賣。" },
-    { id: "borrow", label: "借款", detail: "現金進來。個人擔保也進來。" },
-    { id: "equity", label: "引資", detail: "用控制權換跑道。衰退又沒有轉型時，對方不一定要。" },
-    { id: "nodraw", label: "停發自己的錢", detail: "公司鬆一口。家里會緊。" },
-    { id: "process", label: "申請程序", detail: "多一次行動。聲譽下降。問題本身還在。" },
-    { id: "close", label: "主動結業", detail: "在這裡停，比拖到無選項時停更清楚。" },
+    {
+      id: "shrink", label: "縮規模", detail: "砍固定成本與人手。收入會一起變小。",
+      likely: "固定成本降約四分之一，收入降約兩成，跑道拉長兩到三個月。",
+      downside: "被縮掉的那個人可能是唯一做得完那件事的人。",
+      affects: `${crewName}、客人能買到的量、之後重新長大的速度`,
+    },
+    {
+      id: "presell", label: "預售", detail: state.venture.trust >= 0.38 ? "信任還夠，可以先收一筆。" : "信任不夠，這一項做不到。",
+      likely: "現金立刻多約一個月的開銷，接下來三個月收入會被提前吃掉。",
+      downside: "如果三個月後你交不出來，信任會掉得比現在更快。",
+      affects: "先付錢的客人、之後三個月的現金",
+    },
+    {
+      id: "delay", label: "談延期", detail: "把最近的承諾往後推，關係會損。",
+      likely: "這個月的壓力下降，信任小幅下降。",
+      downside: "對方會記住這件事，下一次的條件會更硬。",
+      affects: "供應商、業主、你和他們之間的關係",
+    },
+    {
+      id: "asset", label: "出售資產", detail: state.venture.capexBook > 0.3 ? "設備或裝修還能換一點現金。" : "沒有夠大的資產可賣。",
+      likely: "一次拿到帳面價值約四成的現金，產能下降。",
+      downside: "賣掉的東西之後要用更高的價格買回來。",
+      affects: "產能、品質、之後的擴張",
+    },
+    {
+      id: "borrow", label: "借款", detail: "現金進來。個人擔保也進來。",
+      likely: "現金多兩個月的量，債務與利息上升，個人擔保上升。",
+      downside: "公司如果撐不住，這筆錢會跟著你回家。",
+      affects: "你個人、你的家庭、之後每一次融資",
+    },
+    {
+      id: "equity", label: "引資", detail: "用控制權換跑道。衰退又沒有轉型時，對方不一定要。",
+      likely: "現金多三個月的量，控制權下降約一成半，董事會進來。",
+      downside: "從現在開始，方向不是你一個人決定。",
+      affects: "控制權、治理、你能不能保住原本的做法",
+    },
+    {
+      id: "nodraw", label: "停發自己的錢", detail: "公司鬆一口。家里會緊。",
+      likely: "公司四個月不用付你生活費，你的意志與健康會掉。",
+      downside: "家裡的那件事不會因為你不領錢就消失。",
+      affects: "你自己、家裡的人",
+    },
+    {
+      id: "process", label: "申請程序", detail: "多一次行動。聲譽下降。問題本身還在。",
+      likely: "多一次行動的機會，聲譽下降。",
+      downside: "程序期間，供應商與平台會重新評估你。",
+      affects: "你的名聲、供應關係",
+    },
+    {
+      id: "close", label: "主動結業", detail: "在這裡停，比拖到無選項時停更清楚。",
+      likely: "付得起離職與帳，就是主動結業。",
+      downside: "付不起，就是清算，個人擔保會被追。",
+      affects: "每一個人、你自己、這條街",
+    },
   ];
 }
 
