@@ -827,7 +827,6 @@ export function createRun(data, opts = {}) {
     rejected: [],
     cityId: city.id,
     gapId: gap.id,
-    chosenCompanyType: !!(sandbox?.gap && gapById(data, sandbox.gap)),
     perThousand,
     lifeWeight,
     founder: {
@@ -975,8 +974,6 @@ export function rejectOpportunity(data, state) {
   if (!gaps.length) gaps = data.content.gaps.filter((g) => g.id !== state.gapId);
   const gap = pickWeighted(rng, gaps, (g) => g.weight);
   state.gapId = gap.id;
-  state.chosenCompanyType = false;
-  delete state.chosenRoute; // 相容開發中的舊存檔
   state.openingSupport = null;
   ensureOpeningSupport(data, state);
   state.founder.matched = state.founder.field === gap.field;
@@ -1023,29 +1020,6 @@ export function acceptOpportunity(state) {
   state.phase = "shaping";
   state.shapeStep = 0;
   logEvent(state, "setup_choice", { step: "accept" });
-}
-
-export function companyTypes(data) {
-  return data.content.company_types || [];
-}
-
-/** 企業類型對應一間可營運的公司；沿用所屬行業規則，不新增遊戲模式。 */
-export function selectCompanyType(data, state, id) {
-  const type = companyType(data, id);
-  const gap = type && gapById(data, type.gap_id);
-  if (!gap || gap.company_type !== type.id || gap.family !== type.industry || state.mode === "daily" || state.venture || !["reveal", "opportunity"].includes(state.phase)) {
-    return { ok: false, reason: "現在不能自選這類企業。" };
-  }
-  state.gapId = gap.id;
-  state.chosenCompanyType = true;
-  delete state.chosenRoute; // 相容開發中的舊存檔
-  state.official = false;
-  state.founder.matched = state.founder.field === gap.field;
-  state.openingSupport = null;
-  ensureOpeningSupport(data, state);
-  ensureWork(data, state);
-  logEvent(state, "setup_choice", { step: "company_type", value: id });
-  return { ok: true };
 }
 
 export function setShape(state, key, value) {
