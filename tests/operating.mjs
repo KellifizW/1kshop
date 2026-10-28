@@ -50,8 +50,8 @@ function finishEvent(data, state, id) {
   return result;
 }
 
-// 十個獨立企業類型一對一連接可營運的缺口，沿用母行業規則而不是新模式。
-const types = S.companyTypes(data);
+// 十個企業類型一對一連接可營運的缺口，沿用母行業規則；它們只是開局會抽到的公司，不是新模式。
+const types = data.content.company_types || [];
 assert.equal(types.length, 10);
 assert.deepEqual(types.map((t) => t.id), typeIds);
 assert.equal(new Set(types.map((t) => t.id)).size, 10);
@@ -69,17 +69,8 @@ for (const [i, type] of types.entries()) {
   assert.equal(gap.company_type, id);
   assert.ok(gap.weight > 0);
   for (const key of ["name", "company", "does", "sells", "buyer", "unit", "scale", "hire"]) assert.ok(gap.work[key], `${id} 缺少 ${key}`);
-  const state = S.createRun(data, { mode: "sandbox", seed: 100 + i, sandbox: { city: "taipei", age: 32, assets: 7.5 } });
-  const before = clone({ cityId: state.cityId, family: state.family, founder: state.founder });
-  assert.equal(S.selectCompanyType(data, state, id).ok, true, id);
+  const state = S.createRun(data, { mode: "sandbox", seed: 100 + i, sandbox: { city: "taipei", gap: gap.id, age: 32, assets: 7.5, match: true } });
   assert.equal(state.gapId, gap.id);
-  assert.equal(state.cityId, before.cityId);
-  assert.deepEqual(state.family, before.family);
-  assert.deepEqual({ ...state.founder, matched: before.founder.matched }, before.founder);
-  assert.equal(state.founder.matched, state.founder.field === gap.field);
-  assert.equal(state.founder.job, before.founder.job);
-  assert.equal(state.official, false);
-  assert.equal(state.chosenCompanyType, true);
   assert.equal(S.ensureWork(data, state).company, gap.work.company);
   assert.equal(state.work.companyTypeId, id);
   assert.equal(P.business(data, state).companyType, type.name);
@@ -101,10 +92,9 @@ for (const [i, type] of types.entries()) {
   }
   assert.ok(Number.isFinite(state.finance.cash), id);
   assert.ok(state.month >= 7 && state.last.revenue > 0, `${id} should operate and earn revenue for multiple quarters`);
-  assert.equal(S.selectCompanyType(data, state, id).ok, false, "營運中不可換企業");
 }
 assert.equal(new Set(types.map((type) => S.gapById(data, type.gap_id).work.company)).size, 10);
-// 不自選時，十種企業都能由真實的加權開局抽到。
+// 十種企業都由一般的加權開局抽到，不需要任何額外選項。
 const seenTypes = new Set();
 for (let i = 0; i < 3000 && seenTypes.size < 10; i += 1) {
   const run = S.createRun(data, { mode: "story", seed: `type-sample-${i}` });
@@ -112,25 +102,14 @@ for (let i = 0; i < 3000 && seenTypes.size < 10; i += 1) {
   if (id) seenTypes.add(id);
 }
 assert.deepEqual([...seenTypes].sort(), [...typeIds].sort());
+// 每日世界同樣只有隨機抽取；沒有自選企業的入口或狀態。
 const daily = S.createRun(data, { mode: "daily", seed: "daily-test" });
-const dailyBefore = JSON.stringify(daily);
-assert.equal(S.selectCompanyType(data, daily, typeIds[0]).ok, false);
-assert.equal(JSON.stringify(daily), dailyBefore, "拒絕每日自選不得改狀態");
-const invalid = S.createRun(data, { mode: "sandbox", seed: 3, sandbox: { city: "taipei" } });
-const invalidBefore = JSON.stringify(invalid);
-assert.equal(S.selectCompanyType(data, invalid, "not_a_type").ok, false);
-assert.equal(JSON.stringify(invalid), invalidBefore);
-const rejected = S.createRun(data, { mode: "story", seed: "company-reject" });
-assert.equal(S.selectCompanyType(data, rejected, typeIds[0]).ok, true);
-S.acknowledgeReveal(rejected);
-assert.equal(S.rejectOpportunity(data, rejected).ok, true);
-S.finishReject(rejected);
-assert.equal(rejected.chosenCompanyType, false);
-assert.equal(rejected.official, false, "曾自選企業的局即使換回隨機機會仍非正式");
-assert.equal(rejected.openingSupport.gapId, rejected.gapId);
+assert.ok(S.gapById(data, daily.gapId));
+assert.equal(daily.chosenCompanyType, undefined);
+assert.equal(daily.chosenRoute, undefined);
+assert.equal(S.selectCompanyType, undefined, "不應再提供自選企業類型的介面");
 // 舊存檔缺少產能及企業類型欄位也能繼續；不追補已開業的資金。
 const legacy = opened({ gap: oldGaps[0].id });
-delete legacy.chosenCompanyType;
 delete legacy.venture.companyTypeId;
 delete legacy.venture.perm.capacity;
 delete legacy.venture.perm.fixedAdd;
@@ -144,8 +123,6 @@ assert.equal(legacy.gapId, oldGap);
 assert.equal(legacy.venture.timed[0].months, 1);
 // 開發中保存的企業缺口沒有新 ID 時，從缺口還原識別，不重置帳目。
 const previousTypeSave = opened();
-previousTypeSave.chosenRoute = true;
-delete previousTypeSave.chosenCompanyType;
 delete previousTypeSave.venture.companyTypeId;
 const savedCash = previousTypeSave.finance.cash;
 S.ensureWork(data, previousTypeSave);

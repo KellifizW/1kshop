@@ -33,21 +33,18 @@ async function continueSaved(page) {
  await desk.ctx.setOffline(false);
  await click(p,'[data-act="to-mode"]'); await click(p,'[data-act="pick-mode"][data-id="story"]');
  const before=await state(p); assert.ok(before);
- await click(p,'[data-act="company-types"]');
- assert.equal(await p.locator('[data-act="select-company-type"]').count(),10);
- assert.match(await p.locator('#app').innerText(), /共用同一套經營玩法，並非新模式/);
- assert.match(await p.locator('#app').innerText(), /並非全球排名或現實成功率/);
- await click(p,'[data-act="select-company-type"][data-id="ai_workflow"]');
- const chosen=await state(p);
- assert.equal(chosen.gapId,'ai_workflow'); assert.equal(chosen.chosenCompanyType,true); assert.equal(chosen.official,false);
- assert.equal(chosen.work.companyTypeId,'ai_workflow');
- assert.equal(chosen.cityId,before.cityId); assert.equal(chosen.founder.job,before.founder.job); assert.equal(chosen.personal.cash,before.personal.cash);
- assert.match(await p.locator('#app').innerText(), /自選了企業類型/);
- assert.match(await p.locator('#app').innerText(), /企業類型：AI 自動化服務/);
- // 之前預覽的存檔使用 chosenRoute，開局恢復時仍應標示為自選及非正式。
- await p.evaluate(()=>{const r=JSON.parse(localStorage.getItem('qf-run'));r.chosenRoute=true;delete r.chosenCompanyType;localStorage.setItem('qf-run',JSON.stringify(r));});
+ // 十種企業類型是開局抽到的公司，不是額外選項：開局頁不應有自選入口。
+ assert.equal(await p.locator('[data-act="company-types"],[data-act="select-company-type"]').count(),0);
+ assert.doesNotMatch(await p.locator('#app').innerText(), /探索 10 種|自選企業/);
+ // 模擬抽到其中一種新企業類型：開局頁照樣顯示這間公司，不另開流程。
+ await p.evaluate(()=>{const r=JSON.parse(localStorage.getItem('qf-run'));r.gapId='ai_workflow';delete r.work;delete r.openingSupport;localStorage.setItem('qf-run',JSON.stringify(r));});
  await continueSaved(p);
- assert.match(await p.locator('#app').innerText(), /自選了企業類型/);
+ const chosen=await state(p);
+ assert.equal(chosen.gapId,'ai_workflow');
+ assert.equal(chosen.cityId,before.cityId); assert.equal(chosen.founder.job,before.founder.job); assert.equal(chosen.personal.cash,before.personal.cash);
+ assert.match(await p.locator('#app').innerText(), /你抽到的生意/);
+ assert.match(await p.locator('#app').innerText(), /企業類型：AI 自動化服務/);
+ assert.doesNotMatch(await p.locator('#app').innerText(), /自選了企業類型/);
  await click(p,'[data-act="accept"]');
  await click(p,'[data-act="shape-pick"][data-key="style"][data-value="keep"]');
  await click(p,'[data-act="shape-pick"][data-key="venue"][data-value="home"]');
@@ -71,7 +68,7 @@ async function continueSaved(page) {
  assert.equal((await state(p)).month,1);
 
  // 真實 UI 載入舊存檔缺少新增欄位，仍能結算。
- await p.evaluate(()=>{ const r=JSON.parse(localStorage.getItem('qf-run')); r.phase='play'; r.pendingEvent=null; r.finance.cash=100; delete r.venture.perm.capacity; delete r.venture.perm.fixedAdd; delete r.venture.companyTypeId; delete r.chosenRoute; localStorage.setItem('qf-run',JSON.stringify(r)); });
+ await p.evaluate(()=>{ const r=JSON.parse(localStorage.getItem('qf-run')); r.phase='play'; r.pendingEvent=null; r.finance.cash=100; delete r.venture.perm.capacity; delete r.venture.perm.fixedAdd; delete r.venture.companyTypeId; localStorage.setItem('qf-run',JSON.stringify(r)); });
  await continueSaved(p); await click(p,'[data-act="month-end"]');
  assert.equal((await state(p)).month,2);
  assert.equal((await state(p)).venture.companyTypeId,'ai_workflow');
@@ -109,33 +106,32 @@ async function continueSaved(page) {
  assert.equal(await rescue.count(),0);
  assert.deepEqual(desk.errors, []); await browser.close(); browser=await launch();
 
- // 每日世界不提供自選，手機版目錄無水平溢出。
+ // 每日世界與其他模式一樣只有隨機抽取；手機版目錄無水平溢出。
  const daily=await context(browser,{width:390,height:844});
  await click(daily.page,'[data-act="to-mode"]'); await click(daily.page,'[data-act="pick-mode"][data-id="daily"]');
  assert.equal(await daily.page.locator('[data-act="company-types"]').count(),0);
- assert.match(await daily.page.locator('#app').innerText(),/共同開局/);
+ assert.match(await daily.page.locator('#app').innerText(),/約每一千個開局/);
  assert.deepEqual(daily.errors, []); await browser.close(); browser=await launch();
  const mobile=await context(browser,{width:390,height:844});
  await click(mobile.page,'[data-act="to-mode"]'); await click(mobile.page,'[data-act="pick-mode"][data-id="story"]');
- await click(mobile.page,'[data-act="company-types"]');
- assert.equal(await mobile.page.locator('[data-act="select-company-type"]').count(),10);
+ assert.equal(await mobile.page.locator('[data-act="company-types"]').count(),0);
  const overflow=await mobile.page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
  assert.ok(overflow<=1,`mobile horizontal overflow ${overflow}px`);
  if (process.env.SMOKE_SCREENSHOT) await mobile.page.screenshot({path:process.env.SMOKE_SCREENSHOT,fullPage:true});
  assert.deepEqual(mobile.errors, []); await browser.close(); browser=await launch();
 
- // 沙盒既可直接選缺口，也可在開局頁選其他企業類型。
+ // 沙盒可直接在原有的缺口選單挑一個市場，十種企業類型也在同一個選單裡。
  const sandbox=await context(browser,{width:900,height:700});
  await click(sandbox.page,'[data-act="to-mode"]'); await click(sandbox.page,'[data-act="to-sandbox"]');
+ assert.equal(await sandbox.page.locator('#sb-gap option').count(),35);
  assert.match(await sandbox.page.locator('#sb-gap option[value="solar_install"]').innerText(),/太陽能工程/);
  await sandbox.page.selectOption('#sb-city','taipei');
  await sandbox.page.selectOption('#sb-gap','solar_install');
  await click(sandbox.page,'[data-act="start-sandbox"]');
  assert.equal((await state(sandbox.page)).work.companyTypeId,'solar_install');
  assert.equal((await state(sandbox.page)).official,false);
- await click(sandbox.page,'[data-act="company-types"]');
- await click(sandbox.page,'[data-act="select-company-type"][data-id="cyber_sme"]');
- assert.equal((await state(sandbox.page)).gapId,'cyber_sme');
+ assert.equal(await sandbox.page.locator('[data-act="company-types"]').count(),0);
+ assert.equal((await state(sandbox.page)).gapId,'solar_install');
  assert.equal((await state(sandbox.page)).cityId,'taipei');
  assert.deepEqual(sandbox.errors, []); await browser.close(); browser=await launch();
 

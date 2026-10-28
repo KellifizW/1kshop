@@ -245,8 +245,6 @@ button.ghost { background: transparent; border-color: transparent; color: var(--
 .choice span { display: block; color: var(--muted); font-size: 14px; margin-top: 4px; }
 .choice.warn { border-style: dashed; }
 .choice:disabled { opacity: 0.6; cursor: not-allowed; }
-.company-type-choice { border-left: 4px solid var(--accent-green); }
-.company-type-choice span + span { color: var(--ink-soft); }
 .choice .mark {
   display: inline-block; min-width: 1.4em; margin-right: 6px;
   border: 1px solid currentColor; border-radius: 4px; text-align: center; font-size: 12px;

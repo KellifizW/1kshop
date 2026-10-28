@@ -29,7 +29,7 @@
 - [世界銀行](https://blogs.worldbank.org/en/developmenttalk/digital-technology-is-unlocking-financial-inclusion)討論數碼帳戶與付款普及；[WHO 人口老化資料](https://www.who.int/news-room/fact-sheets/detail/ageing-and-health)顯示照護需求背景，並不證明某種遠距醫療商業模式必定成功。
 - [IEA](https://www.iea.org/reports/global-energy-review-2026/technology-solar-pv-and-wind)記錄 2025 年全球新增再生能源裝置創紀錄，其中太陽能佔主要部分。
 
-故事模式與沙盒可在開局自選這十種企業，或繼續隨機抽取；自選不重抽城市、家庭、個人資產或正職，但會重新計算行業匹配與開局支援，自選局不計入正式統計。每日世界不可自選，保留共同隨機開局。已開業的舊存檔不會追補開局資金；新增產能欄位缺失時按原有產能倍率 1 處理。
+這十種企業只透過一般的加權隨機開局出現：故事模式、每日世界及沙盒（指定缺口或由種子抽取）都走同一條路徑，沒有額外的自選畫面、路線或模式。抽到時沿用母行業的收入、交付、事件及經營規則，開局頁僅多顯示企業類型名稱。已開業的舊存檔不會追補開局資金；新增產能欄位缺失時按原有產能倍率 1 處理，企業類型可由缺口補回。
 
 ## 現金、產能與轉機
 
@@ -65,6 +65,6 @@ node --experimental-default-type=module tests/operating.mjs
 node --experimental-default-type=module tests/long-balance.mjs
 ```
 
-專項測試涵蓋十種企業的資料、母行業、營運、隨機抽取與每日限制，以及舊存檔、可重播的成功／受挫、成本及禁用選項、限期產能、預測、借款、個人帳務、測試期和救援。長期樣本預設 400 組、鎖定原 24 個缺口及種子版本 `1.0.0` 以便配對；`SIM_SEED_VERSION=1.1.0` 可改用新版種子，`ALL_GAPS=1` 可納入新企業缺口，`COMPANY_TYPE=ai_workflow` 等可固定單一企業類型。要比較舊版，可先建立 `/tmp/shop-baseline`，再用 `git archive 3ee37d1 | tar -x -C /tmp/shop-baseline` 將原始版本解到該目錄，最後以 `SHOP_ROOT=/tmp/shop-baseline` 執行同一測試。
+專項測試涵蓋十種企業的資料、母行業、營運、隨機抽取（故事模式與每日世界）及不存在自選介面，以及舊存檔、可重播的成功／受挫、成本及禁用選項、限期產能、預測、借款、個人帳務、測試期和救援。長期樣本預設 400 組、鎖定原 24 個缺口及種子版本 `1.0.0` 以便配對；`SIM_SEED_VERSION=1.1.0` 可改用新版種子，`ALL_GAPS=1` 可納入新企業缺口，`COMPANY_TYPE=ai_workflow` 等可固定單一企業類型。要比較舊版，可先建立 `/tmp/shop-baseline`，再用 `git archive 3ee37d1 | tar -x -C /tmp/shop-baseline` 將原始版本解到該目錄，最後以 `SHOP_ROOT=/tmp/shop-baseline` 執行同一測試。
 
-可選的 `tests/browser-smoke.cjs` 使用 Playwright 與 Chromium，檢查桌面／手機、自選與每日限制、舊存檔、機率畫面、救援及自動選擇；使用方式見 README。
+可選的 `tests/browser-smoke.cjs` 使用 Playwright 與 Chromium，檢查桌面／手機、企業類型顯示、沙盒缺口選單、每日模式的隨機開局、舊存檔、機率畫面、救援及自動選擇；使用方式見 README。

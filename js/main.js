@@ -178,7 +178,6 @@ const views = {
     const canReject = run.rejectsLeft > 0;
     const biz = P.business(data, run);
     const job = P.jobLine(data, run);
-    const chosenCompany = run.chosenCompanyType ?? run.chosenRoute ?? false;
     const n = Math.max(1, run.perThousand);
     const origin = [
       `你向${biz.buyer}了解需要後，一位熟人願意支持你試做${biz.sells}。`,
@@ -187,7 +186,7 @@ const views = {
     ][run.openingSupport?.source ?? 0];
     return sheet(`<p class="kicker">開局${run.rejected.length ? ` · 第 ${run.rejected.length + 1} 個機會` : ""}</p>
       <h1>${$(w.city.name)}</h1>
-      <p class="muted">${$(w.country.name)} · ${chosenCompany ? "你自選了企業類型；此局不計入正式統計。" : `約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。`}</p>
+      <p class="muted">${$(w.country.name)} · 約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。</p>
       <ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>
 
       <div class="dossier">
@@ -199,7 +198,7 @@ const views = {
         </section>
 
         <section class="fold">
-          <p class="fold-k">${chosenCompany ? "你選擇的企業" : "你抽到的企業"} ${companyBadge(run)}</p>
+          <p class="fold-k">你抽到的生意 ${companyBadge(run)}</p>
           <h2>${$(biz.name)}</h2>
           <p class="muted">${biz.companyType ? `企業類型：${$(biz.companyType)} · ` : ""}${$(biz.company)} · 屬於${$(biz.industry)}行業</p>
           <p>${$(biz.does)}</p>
@@ -216,22 +215,12 @@ const views = {
         </section>
       </div>
 
-      <p class="sub">${chosenCompany ? "企業類型由你親自選擇；接下來還要決定怎麼經營。" : `${$(P.rarityLine(n))}。機會本身不算最稀有，稀有的是你拿到之後怎麼經營它。`}</p>
-      ${!run.official && !chosenCompany ? `<p class="muted">此局不計入正式統計。</p>` : ""}
+      <p class="sub">${$(P.rarityLine(n))}。機會本身不算最稀有，稀有的是你拿到之後怎麼經營它。</p>
+      ${!run.official ? `<p class="muted">此局不計入正式統計。</p>` : ""}
       <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。工資與租金是遊戲估算，不是官方統計；${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>
       <button class="go" data-act="accept" data-autofocus>接這個機會，開始塑形</button>
-      ${run.mode !== "daily" ? `<button class="alt" data-act="company-types">探索 10 種新增企業類型</button>` : `<p class="muted">每日世界保持所有人的共同開局；新增企業類型亦會加入隨機抽取。</p>`}
       ${canReject ? `<button class="alt" data-act="reject">拒絕。會經過 ${run.rejectPreview} 季，並付生活費。還剩 ${run.rejectsLeft} 次。</button>` : `<p class="muted">${mode.rejects ? "拒絕已經用完。" : "這個模式不能拒絕。"}</p>`}
       <button class="ghost" data-act="job">${job.has ? `不創業，回去做${$(job.label)}` : "不創業，先回去上班"}</button>`);
-  },
-  companyTypes() {
-    const types = Sim.companyTypes(data).map((type) => ({ type, gap: Sim.gapById(data, type.gap_id) })).filter(({ gap }) => gap);
-    return sheet(`<p class="kicker">企業類型 · ${types.length} 種新增公司</p><h2>選擇想經營的企業</h2>
-      <p>這些是不同的企業類型，與原有公司共用同一套經營玩法，並非新模式。參考真實市場的熱門方向，並非全球排名或現實成功率。自選不會重抽城市、家庭、資產及正職，此局不計入正式統計。</p>
-      <div class="stack company-type-list">${types.map(({ type, gap }) => `<button class="choice company-type-choice${ui.run.gapId === gap.id ? " is-on" : ""}" data-act="select-company-type" data-id="${$(type.id)}">
-        <b>${$(type.name)}</b><span>${$(gap.work.company)} · 客戶：${$(gap.work.buyer)}</span><span>賣甚麼：${$(gap.work.sells)}。${$(gap.unknown)}</span>
-      </button>`).join("")}</div>
-      <button class="ghost" data-act="company-types-back">保留目前的企業</button>`);
   },
   rejected() {
     const r = ui.run.rejectResult;
@@ -924,7 +913,7 @@ function archiveView() {
     if (!item) return sheet(`<p>這一頁已經不在。</p><button class="go" data-act="archive">返回</button>`);
     const comments = (item.comments || []).filter((c) => !c.hidden);
     return sheet(`<p class="kicker">檔案</p><h2>${$(item.name)}</h2><p>${$(item.fact)}</p><p>${$(item.cost)}</p>
-      <p class="muted">${item.official ? "正式紀錄" : "自選企業／沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
+      <p class="muted">${item.official ? "正式紀錄" : "沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
       <h3>留言</h3>
       ${comments.length ? comments.map((c, i) => `<p>${$(c.role)}：${$(c.text)} <button data-act="report" data-i="${i}">隱藏</button></p>`).join("") : `<p>還沒有留言。</p>`}
       <div class="stack">${data.narrative.comments.map((c) => `<button class="alt" data-act="comment" data-role="${$(c.role)}" data-text="${$(c.text)}">以${$(c.role)}的身份留一句</button>`).join("")}</div>
@@ -1016,20 +1005,6 @@ function act(name, ds = {}) {
   }
   if (name === "to-sandbox") { ui.screen = "sandbox"; return render(); }
   if (name === "start-sandbox") return startSandbox();
-  if (name === "company-types") {
-    if (!run || run.mode === "daily" || run.venture) return;
-    ui.screen = "companyTypes";
-    return render();
-  }
-  if (name === "company-types-back") { ui.screen = "opening"; return render(); }
-  if (name === "select-company-type") {
-    const result = Sim.selectCompanyType(data, run, ds.id);
-    if (!result.ok) { say(result.reason); return; }
-    ui.screen = "opening";
-    saveRun();
-    render();
-    return say("已選擇企業類型；城市和個人條件保持不變。");
-  }
   if (name === "accept") {
     Sim.acknowledgeReveal(run);
     Sim.acceptOpportunity(run);
