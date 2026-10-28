@@ -61,6 +61,68 @@
       "name": "大型科技、企業軟件及資料服務"
     }
   ],
+  "company_types": [
+    {
+      "id": "ai_workflow",
+      "name": "AI 自動化服務公司",
+      "industry": "saas",
+      "gap_id": "ai_workflow"
+    },
+    {
+      "id": "vertical_saas",
+      "name": "行業 SaaS 訂閱公司",
+      "industry": "saas",
+      "gap_id": "vertical_saas"
+    },
+    {
+      "id": "d2c_brand",
+      "name": "D2C 電商品牌公司",
+      "industry": "retail",
+      "gap_id": "d2c_brand"
+    },
+    {
+      "id": "creator_marketing",
+      "name": "數碼內容行銷代理公司",
+      "industry": "pro",
+      "gap_id": "creator_marketing"
+    },
+    {
+      "id": "online_skills",
+      "name": "線上教育與技能培訓公司",
+      "industry": "edu",
+      "gap_id": "online_skills"
+    },
+    {
+      "id": "cyber_sme",
+      "name": "中小企網絡安全公司",
+      "industry": "enterprise",
+      "gap_id": "cyber_sme"
+    },
+    {
+      "id": "merchant_payments",
+      "name": "商戶支付對帳公司",
+      "industry": "fin",
+      "gap_id": "merchant_payments"
+    },
+    {
+      "id": "telehealth_support",
+      "name": "遠距醫療支援公司",
+      "industry": "care",
+      "gap_id": "telehealth_support"
+    },
+    {
+      "id": "solar_install",
+      "name": "太陽能工程及維護公司",
+      "industry": "energy",
+      "gap_id": "solar_install"
+    },
+    {
+      "id": "seller_fulfillment",
+      "name": "電商倉儲與履約公司",
+      "industry": "logi",
+      "gap_id": "seller_fulfillment"
+    }
+  ],
   "gaps": [
     {
       "id": "night_service",
@@ -900,6 +962,367 @@
         "scale": "一家客戶站穩之後，下一步是把同一套流程賣給同行業，或把它做成產品。",
         "hire": "第一個要請的是能獨立交付、也肯寫文件的分析師。"
       }
+    },
+    {
+      "id": "ai_workflow",
+      "family": "saas",
+      "field": "saas",
+      "title": "小公司想用 AI，卻沒有工程團隊",
+      "problem": "中小企想減少客服與行政重複工作，卻不知怎樣接入工具並保護資料。",
+      "unknown": "你不知道哪種流程最值得自動化，以及客戶願意付多少維護費。",
+      "core": "讓重複流程可靠地自動完成",
+      "tags": [
+        "digital",
+        "b2b",
+        "ai"
+      ],
+      "trend": 0.08,
+      "demand": 1.08,
+      "barrier": 0.55,
+      "competition": 1.1,
+      "stick": 0.72,
+      "skill": 0.7,
+      "capital": 0.24,
+      "reg": 0.5,
+      "weight": 1.05,
+      "work": {
+        "name": "中小企 AI 流程助理",
+        "company": "替中小企部署 AI 工作流程的軟件公司",
+        "does": "你把客戶服務、文件整理等流程接上 AI 工具，並設人工覆核與資料權限。",
+        "sells": "AI 流程部署與維護",
+        "buyer": "缺少內部工程團隊的中小企",
+        "unit": "一家公司一季的流程服務",
+        "scale": "先做好一類流程，再把可靠的模組賣給更多行業。",
+        "hire": "第一個要請的是懂整合系統與資料安全的工程師。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "ai_workflow"
+    },
+    {
+      "id": "vertical_saas",
+      "family": "saas",
+      "field": "saas",
+      "title": "小型服務商的預約排班還靠訊息",
+      "problem": "健身、寵物及工作室各用不同表格安排預約，臨時取消經常漏掉。",
+      "unknown": "你不知道客戶會否為行業專用功能持續付訂閱費。",
+      "core": "把預約與排班放進同一個系統",
+      "tags": [
+        "digital",
+        "b2b",
+        "subscription"
+      ],
+      "trend": 0.055,
+      "demand": 0.96,
+      "barrier": 0.48,
+      "competition": 1.05,
+      "stick": 0.8,
+      "skill": 0.64,
+      "capital": 0.25,
+      "reg": 0.28,
+      "weight": 0.95,
+      "work": {
+        "name": "小型服務商排班 SaaS",
+        "company": "提供行業預約與排班工具的訂閱軟件公司",
+        "does": "你為小型服務商提供預約、提醒及排班系統，減少漏單。",
+        "sells": "預約排班軟件訂閱",
+        "buyer": "健身、寵物及個人服務商",
+        "unit": "一間商戶一季的訂閱",
+        "scale": "先服務一個行業，再增加適合鄰近行業的功能。",
+        "hire": "第一個要請的是能處理客戶導入的產品工程師。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "vertical_saas"
+    },
+    {
+      "id": "d2c_brand",
+      "family": "retail",
+      "field": "retail",
+      "title": "消費者想直接買到有特色的日用品",
+      "problem": "獨立消費品牌想透過網店直接與客人建立關係，但庫存和退貨難估。",
+      "unknown": "你不知道首批客人是否會在廣告以外再次購買。",
+      "core": "做出有人願意再買的日用品",
+      "tags": [
+        "digital",
+        "retail",
+        "physical"
+      ],
+      "trend": 0.05,
+      "demand": 1.05,
+      "barrier": 0.36,
+      "competition": 1.2,
+      "stick": 0.58,
+      "skill": 0.48,
+      "capital": 0.42,
+      "reg": 0.4,
+      "weight": 1.05,
+      "work": {
+        "name": "獨立日用品直銷品牌",
+        "company": "透過電商直銷自有品牌的零售公司",
+        "does": "你設計日用品、安排生產並在網店直接銷售，處理庫存與售後。",
+        "sells": "自有品牌日用品",
+        "buyer": "尋找特色日用品的網購客人",
+        "unit": "一件日用品",
+        "scale": "先測試一款產品，再擴展系列或批發到其他店。",
+        "hire": "第一個要請的是懂供應鏈與庫存的營運人員。"
+      },
+      "quadrant": "高需求低門檻",
+      "declining": false,
+      "company_type": "d2c_brand"
+    },
+    {
+      "id": "creator_marketing",
+      "family": "pro",
+      "field": "culture",
+      "title": "小品牌拍了內容，卻找不到客人",
+      "problem": "小商戶需要社交媒體內容和廣告投放，但沒有專職行銷團隊。",
+      "unknown": "你不知道曝光能否轉成持續付費的客戶。",
+      "core": "把品牌內容變成可衡量的客戶聯繫",
+      "tags": [
+        "service",
+        "digital",
+        "b2b"
+      ],
+      "trend": 0.045,
+      "demand": 1.02,
+      "barrier": 0.32,
+      "competition": 1.18,
+      "stick": 0.55,
+      "skill": 0.55,
+      "capital": 0.16,
+      "reg": 0.25,
+      "weight": 1.0,
+      "work": {
+        "name": "小品牌數碼行銷工作室",
+        "company": "替中小企製作內容和管理數碼推廣的代理公司",
+        "does": "你替商戶策劃短片、社交內容及廣告，並回報實際推廣效果。",
+        "sells": "內容製作與推廣服務",
+        "buyer": "沒有專職行銷團隊的小品牌",
+        "unit": "一間品牌一季的推廣服務",
+        "scale": "把有效的製作流程標準化，再服務更多品牌或細分行業。",
+        "hire": "第一個要請的是能獨立完成內容的製作人。"
+      },
+      "quadrant": "高需求低門檻",
+      "declining": false,
+      "company_type": "creator_marketing"
+    },
+    {
+      "id": "online_skills",
+      "family": "edu",
+      "field": "edu",
+      "title": "在職人士想在自己的時間學新技能",
+      "problem": "工作者需要實用技能與回饋，但上班時間難以參加固定實體課。",
+      "unknown": "你不知道學員會否完成課程，或願否為持續輔導付費。",
+      "core": "讓學員在工作之餘練出新技能",
+      "tags": [
+        "digital",
+        "edu",
+        "service"
+      ],
+      "trend": 0.05,
+      "demand": 0.96,
+      "barrier": 0.36,
+      "competition": 1.1,
+      "stick": 0.58,
+      "skill": 0.58,
+      "capital": 0.2,
+      "reg": 0.3,
+      "weight": 0.95,
+      "work": {
+        "name": "線上技能培訓學院",
+        "company": "為在職人士提供線上課程和輔導的教育公司",
+        "does": "你設計可按自己時間學習的課程，提供練習及導師回饋。",
+        "sells": "線上技能課程與輔導",
+        "buyer": "想轉職或提升技能的在職人士",
+        "unit": "一名學員的一期課程",
+        "scale": "先驗證一門課，再培訓講師及拓展企業培訓。",
+        "hire": "第一個要請的是能設計練習與照顧學員的課程導師。"
+      },
+      "quadrant": "高需求低門檻",
+      "declining": false,
+      "company_type": "online_skills"
+    },
+    {
+      "id": "cyber_sme",
+      "family": "enterprise",
+      "field": "enterprise",
+      "title": "小公司沒有專職人手管理網絡安全",
+      "problem": "中小企使用雲端和網店，卻缺少人手處理帳戶安全、備份與應變。",
+      "unknown": "你不知道客戶會否持續投資防護，而不是等事故後才付錢。",
+      "core": "讓小公司的帳戶和資料更安全",
+      "tags": [
+        "digital",
+        "b2b",
+        "security"
+      ],
+      "trend": 0.065,
+      "demand": 1.0,
+      "barrier": 0.62,
+      "competition": 0.9,
+      "stick": 0.78,
+      "skill": 0.72,
+      "capital": 0.25,
+      "reg": 0.6,
+      "weight": 0.95,
+      "work": {
+        "name": "中小企網絡安全服務公司",
+        "company": "提供日常安全管理的企業技術服務公司",
+        "does": "你替客戶管理帳戶權限、備份與安全警報，並協助制訂事故應變。",
+        "sells": "網絡安全監測與維護",
+        "buyer": "沒有專職安全團隊的中小企",
+        "unit": "一家公司一季的安全服務",
+        "scale": "將監測和支援流程標準化，再請專員服務更多客戶。",
+        "hire": "第一個要請的是懂雲端安全與事故處理的工程師。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "cyber_sme"
+    },
+    {
+      "id": "merchant_payments",
+      "family": "fin",
+      "field": "fin",
+      "title": "多個支付渠道的款項難以對帳",
+      "problem": "小商戶同時收卡、轉帳及平台款，月底逐筆核對費時又容易出錯。",
+      "unknown": "你不知道商戶最重視即時對帳、費率還是整合原有系統。",
+      "core": "讓商戶看清每筆支付與結算",
+      "tags": [
+        "digital",
+        "fin",
+        "b2b"
+      ],
+      "trend": 0.055,
+      "demand": 1.0,
+      "barrier": 0.62,
+      "competition": 1.0,
+      "stick": 0.76,
+      "skill": 0.7,
+      "capital": 0.28,
+      "reg": 0.78,
+      "weight": 0.95,
+      "work": {
+        "name": "商戶支付對帳平台",
+        "company": "連接持牌支付夥伴的商戶金融科技公司",
+        "does": "你整合支付渠道和帳簿，協助商戶核對收款；實際清算由持牌夥伴處理。",
+        "sells": "支付整合與對帳服務",
+        "buyer": "使用多種支付方式的小商戶",
+        "unit": "一間商戶一季的對帳服務",
+        "scale": "先接好主要支付夥伴，再擴展到更多商戶及系統。",
+        "hire": "第一個要請的是懂支付整合和合規的產品工程師。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "merchant_payments"
+    },
+    {
+      "id": "telehealth_support",
+      "family": "care",
+      "field": "care",
+      "title": "慢性病患者難以安排覆診與跟進",
+      "problem": "患者、家屬和診所需要更順暢的預約及遠距跟進，但資料私隱要求高。",
+      "unknown": "你不知道診所願意採用新流程，還是繼續用原有安排。",
+      "core": "讓患者更容易安排合適的跟進",
+      "tags": [
+        "digital",
+        "care",
+        "service",
+        "privacy"
+      ],
+      "trend": 0.06,
+      "demand": 0.98,
+      "barrier": 0.65,
+      "competition": 0.85,
+      "stick": 0.72,
+      "skill": 0.68,
+      "capital": 0.32,
+      "reg": 0.82,
+      "weight": 0.95,
+      "work": {
+        "name": "遠距醫療支援服務",
+        "company": "協助持牌醫療機構管理遠距跟進的服務公司",
+        "does": "你提供預約、提醒及遠距跟進工具；診斷與治療由持牌醫護負責。",
+        "sells": "患者跟進與預約支援",
+        "buyer": "提供遠距服務的診所和醫療機構",
+        "unit": "一間診所一季的支援服務",
+        "scale": "先與一間診所驗證私隱及流程，再擴展到更多機構。",
+        "hire": "第一個要請的是熟悉醫療流程與資料私隱的營運人員。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "telehealth_support"
+    },
+    {
+      "id": "solar_install",
+      "family": "energy",
+      "field": "repair",
+      "title": "小型樓宇想安裝太陽能但不懂維護",
+      "problem": "商戶與樓宇業主想降低能源開支，卻難找到安裝與後續保養的團隊。",
+      "unknown": "你不知道屋頂條件、審批和客戶預算能否讓每個案子成立。",
+      "core": "把可用屋頂變成可維護的能源設施",
+      "tags": [
+        "physical",
+        "energy",
+        "b2b"
+      ],
+      "trend": 0.06,
+      "demand": 0.95,
+      "barrier": 0.65,
+      "competition": 0.9,
+      "stick": 0.66,
+      "skill": 0.7,
+      "capital": 0.5,
+      "reg": 0.72,
+      "weight": 0.9,
+      "work": {
+        "name": "屋頂太陽能工程公司",
+        "company": "設計、協調安裝及保養太陽能系統的工程公司",
+        "does": "你評估屋頂、安排合資格承辦商安裝系統，並提供後續保養。",
+        "sells": "太陽能安裝與維護工程",
+        "buyer": "希望降低能源開支的樓宇業主和商戶",
+        "unit": "一套安裝或一季維護服務",
+        "scale": "先建立可靠工程團隊，再增加保養合約及合作安裝商。",
+        "hire": "第一個要請的是熟悉電力安全的合資格工程人員。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "solar_install"
+    },
+    {
+      "id": "seller_fulfillment",
+      "family": "logi",
+      "field": "logi",
+      "title": "網店訂單多了，包裝和退貨跟不上",
+      "problem": "獨立網店想專心賣貨，卻需要可靠的小批量倉儲、出貨與退貨處理。",
+      "unknown": "你不知道訂單量是否穩定到足以支付倉儲和人手。",
+      "core": "讓小網店準時交付每一張訂單",
+      "tags": [
+        "physical",
+        "logi",
+        "b2b"
+      ],
+      "trend": 0.055,
+      "demand": 1.04,
+      "barrier": 0.48,
+      "competition": 1.05,
+      "stick": 0.7,
+      "skill": 0.6,
+      "capital": 0.42,
+      "reg": 0.38,
+      "weight": 1.0,
+      "work": {
+        "name": "小網店倉配履約公司",
+        "company": "替小型電商提供倉儲、包裝與出貨的物流公司",
+        "does": "你替網店管理存貨、包裝訂單、交給配送夥伴並處理退貨。",
+        "sells": "倉儲與訂單履約服務",
+        "buyer": "沒有自建倉庫的獨立網店",
+        "unit": "一筆完成出貨的訂單",
+        "scale": "先服務一批穩定商戶，再擴充倉位及串接更多物流夥伴。",
+        "hire": "第一個要請的是能管理庫存準確度的倉務主管。"
+      },
+      "quadrant": "高需求高門檻",
+      "declining": false,
+      "company_type": "seller_fulfillment"
     }
   ],
   "name_a": [

@@ -117,7 +117,7 @@ const views = {
     return sheet(`
       <div class="hero"><div><p class="kicker">1 IN 1,000</p><h1>千分之一<br>的店</h1></div><div class="seal" aria-hidden="true">千分<br>之一</div></div>
       <p class="sub">你抽到的世界，你選擇的生意。</p>
-      <p>大多數店撐不過第一個租約。你不能挑選完美的城市。你能決定它成為甚麼，以及最後留下甚麼。</p>
+      <p>你不能挑選完美的城市，但每個決定都可能打開新機會。管理風險、尋找轉機，決定這間公司能走多遠。</p>
       <button class="go" data-act="to-mode" data-autofocus>開始這一局</button>
       ${cont ? `<button class="alt" data-act="continue">繼續未合上的帳簿</button>` : `<p class="muted">沒有未完成的帳簿。</p>`}
       ${ui.corrupt ? `<button class="alt" data-act="drop-save">存檔對不上了。丟掉它，紀念館仍可保留。</button>` : ""}
@@ -156,7 +156,10 @@ const views = {
   },
   sandbox() {
     const cities = data.world.cities.map((c) => `<option value="${c.id}">${$(c.name)}</option>`).join("");
-    const gaps = data.content.gaps.map((g) => `<option value="${g.id}">${$(g.title)}</option>`).join("");
+    const gaps = data.content.gaps.map((g) => {
+      const type = Sim.companyType(data, g.company_type);
+      return `<option value="${$(g.id)}">${type ? `${$(type.name)} · ` : ""}${$(g.title)}</option>`;
+    }).join("");
     return sheet(`<p class="kicker">創作者沙盒 · 不計入正式統計</p><h2>自訂這一局的條件</h2>
       <label>種子<input id="sb-seed" value="${$(ui.seedDraft || Math.floor(Math.random() * 1e6))}"></label>
       <label>城市<select id="sb-city"><option value="">由種子決定</option>${cities}</select></label>
@@ -175,6 +178,7 @@ const views = {
     const canReject = run.rejectsLeft > 0;
     const biz = P.business(data, run);
     const job = P.jobLine(data, run);
+    const chosenCompany = run.chosenCompanyType ?? run.chosenRoute ?? false;
     const n = Math.max(1, run.perThousand);
     const origin = [
       `你向${biz.buyer}了解需要後，一位熟人願意支持你試做${biz.sells}。`,
@@ -183,7 +187,7 @@ const views = {
     ][run.openingSupport?.source ?? 0];
     return sheet(`<p class="kicker">開局${run.rejected.length ? ` · 第 ${run.rejected.length + 1} 個機會` : ""}</p>
       <h1>${$(w.city.name)}</h1>
-      <p class="muted">${$(w.country.name)} · 約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。</p>
+      <p class="muted">${$(w.country.name)} · ${chosenCompany ? "你自選了企業類型；此局不計入正式統計。" : `約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。`}</p>
       <ul class="symptoms">${w.city.diffs.map((d) => `<li>${$(d)}</li>`).join("")}</ul>
 
       <div class="dossier">
@@ -195,9 +199,9 @@ const views = {
         </section>
 
         <section class="fold">
-          <p class="fold-k">你抽到的生意 ${companyBadge(run)}</p>
+          <p class="fold-k">${chosenCompany ? "你選擇的企業" : "你抽到的企業"} ${companyBadge(run)}</p>
           <h2>${$(biz.name)}</h2>
-          <p class="muted">${$(biz.company)} · 屬於${$(biz.industry)}行業</p>
+          <p class="muted">${biz.companyType ? `企業類型：${$(biz.companyType)} · ` : ""}${$(biz.company)} · 屬於${$(biz.industry)}行業</p>
           <p>${$(biz.does)}</p>
           <p>你賣的是<b>${$(biz.sells)}</b>，付錢的是${$(biz.buyer)}，一筆交易交付${$(biz.unit)}。</p>
           <p><b>怎麼長大：</b>${$(biz.scale)}${biz.hire ? `要長大，${$(biz.hire)}` : ""}</p>
@@ -212,11 +216,22 @@ const views = {
         </section>
       </div>
 
-      <p class="sub">${$(P.rarityLine(n))}。機會本身不算最稀有，稀有的是你拿到之後怎麼經營它。</p>
+      <p class="sub">${chosenCompany ? "企業類型由你親自選擇；接下來還要決定怎麼經營。" : `${$(P.rarityLine(n))}。機會本身不算最稀有，稀有的是你拿到之後怎麼經營它。`}</p>
+      ${!run.official && !chosenCompany ? `<p class="muted">此局不計入正式統計。</p>` : ""}
       <p class="muted">可見的人：${run.contacts.filter((c) => c.known).map((c) => `${$(c.role)} ${$(c.name)}`).join("、") || "暫時沒有"}。其餘保持未知。工資與租金是遊戲估算，不是官方統計；${$(w.city.name)}的一單位約 ${$(P.money(data, run, 1))}。</p>
       <button class="go" data-act="accept" data-autofocus>接這個機會，開始塑形</button>
+      ${run.mode !== "daily" ? `<button class="alt" data-act="company-types">探索 10 種新增企業類型</button>` : `<p class="muted">每日世界保持所有人的共同開局；新增企業類型亦會加入隨機抽取。</p>`}
       ${canReject ? `<button class="alt" data-act="reject">拒絕。會經過 ${run.rejectPreview} 季，並付生活費。還剩 ${run.rejectsLeft} 次。</button>` : `<p class="muted">${mode.rejects ? "拒絕已經用完。" : "這個模式不能拒絕。"}</p>`}
       <button class="ghost" data-act="job">${job.has ? `不創業，回去做${$(job.label)}` : "不創業，先回去上班"}</button>`);
+  },
+  companyTypes() {
+    const types = Sim.companyTypes(data).map((type) => ({ type, gap: Sim.gapById(data, type.gap_id) })).filter(({ gap }) => gap);
+    return sheet(`<p class="kicker">企業類型 · ${types.length} 種新增公司</p><h2>選擇想經營的企業</h2>
+      <p>這些是不同的企業類型，與原有公司共用同一套經營玩法，並非新模式。參考真實市場的熱門方向，並非全球排名或現實成功率。自選不會重抽城市、家庭、資產及正職，此局不計入正式統計。</p>
+      <div class="stack company-type-list">${types.map(({ type, gap }) => `<button class="choice company-type-choice${ui.run.gapId === gap.id ? " is-on" : ""}" data-act="select-company-type" data-id="${$(type.id)}">
+        <b>${$(type.name)}</b><span>${$(gap.work.company)} · 客戶：${$(gap.work.buyer)}</span><span>賣甚麼：${$(gap.work.sells)}。${$(gap.unknown)}</span>
+      </button>`).join("")}</div>
+      <button class="ghost" data-act="company-types-back">保留目前的企業</button>`);
   },
   rejected() {
     const r = ui.run.rejectResult;
@@ -467,6 +482,7 @@ function playView() {
     </header>
     ${autoChrome()}
     ${crisisNote}
+    ${outcomeBanner(run)}
     <div class="play-grid">
       <div class="stage-col">
         ${Stage.stageHtml(data, run)}
@@ -486,7 +502,7 @@ function playView() {
             <small class="kpi-note" id="kpi-${m.id}-note">${$(m.note)}</small>
           </div>`).join("")}</section>
         ${Charts.cashflowPanel(data, run, fc)}
-        <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%</p>
+        <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%<br>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}${run.personal?.lastDebtPayment > 0.01 ? `（上季還款 ${$(P.money(data, run, run.personal.lastDebtPayment))}）` : ""}</p>
         <section class="rail-card redline-card ${rl.level}">
           <p class="fold-k">結構紅線</p>
           <p><b class="redline-icon">${$(rl.mark)}</b> ${$(rl.name || "尚未結算")}</p>
@@ -545,14 +561,24 @@ function journalHtml(run, story) {
 /** 以 modal 集中所有行動；不刪減可用選項。 */
 function initiativeModal(run) {
   const list = Sim.initiatives(data, run);
-  const items = list.map((it) => `<button class="choice${it.id === "close" ? " warn" : ""}" data-act="initiative" data-id="${$(it.id)}"><b>${$(it.label)}</b><span>${$(it.detail)}</span></button>`).join("");
+  const items = list.map((it) => `<button class="choice${it.id === "close" ? " warn" : ""}" data-act="initiative" data-id="${$(it.id)}" ${it.disabled ? "disabled" : ""}>
+    <b>${$(it.label)}${it.disabled ? " · 現金不足" : ""}</b><span>${$(it.detail)}</span>
+    ${it.chance != null ? `<span class="brief"><i class="b-likely">成功 ${Math.round(it.chance * 100)}%</i>${$(it.success)}</span><span class="brief"><i class="b-down">受挫</i>${$(it.setback)}</span>` : ""}
+  </button>`).join("");
   return `<div class="initiative-overlay">
     <button class="initiative-backdrop" data-act="close-drawer" aria-label="關閉經營行動"></button>
     <section class="initiative-dialog" role="dialog" aria-modal="true" aria-labelledby="initiative-title" tabindex="-1">
       <header class="initiative-head"><div><p class="fold-k">時間已暫停 · 第 ${run.month} 季</p><h2 id="initiative-title">經營行動</h2><p>選擇一項行動，或關閉後繼續觀察。</p></div><button class="modal-close" data-act="close-drawer" aria-label="關閉經營行動" data-autofocus>✕</button></header>
+      <p class="small">成功機率是遊戲內估算，會受配合度、信任和現金影響；實際收入仍受需求及產能限制。</p>
       <div class="initiative-list stack">${items || `<p>目前沒有可執行的行動。</p>`}</div>
     </section>
   </div>`;
+}
+
+function outcomeBanner(run) {
+  const result = run.lastOutcome;
+  if (!result || result.month !== run.month) return "";
+  return `<p class="opportunity-result ${result.success ? "success" : "setback"}" role="status"><b>${result.success ? "機會開花" : "這次未如預期"}</b> · ${$(result.text)}</p>`;
 }
 
 /** 時間按停的原因。事件不是隨機跳出來的，它要講得出是哪一件事引來的。 */
@@ -573,13 +599,13 @@ function pauseNote(run) {
 function companyBadge(run) {
   const gap = data.content.gaps.find(g=>g.id===run.gapId);
   const fam = gap ? (data.content.industries.find(i=>i.id===gap.family)?.name || gap.family) : "";
-  const title = gap ? gap.title : "未定";
+  const title = gap ? (Sim.companyType(data, gap.company_type)?.name || gap.title) : "未定";
   return `<span class="company-badge" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#f4efe4;border:1px solid #d8c9b4;font-size:12px;"><i style="width:8px;height:8px;border-radius:50%;background:#8f2d2d;display:inline-block;"></i>${$(title)}${fam ? " · " + $(fam) : ""} ${gap?.declining ? "<small style='color:#8f2d2d;'>衰退中</small>" : ""}</span>`;
 }
 function businessStrip(run) {
   const b = P.business(data, run);
   const pay = b.revenueLabel ? `收入方式是${b.revenueLabel}，畫面上會按「${b.pulse}」的頻率跳動。` : "開業之後，進帳會按你選的方式跳動。";
-  return `<section class="trade"><p class="kicker">你的生意 ${companyBadge(run)}</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">客群：${$(b.buyer)} · 交易單位：${$(b.unit)} · 行業：${$(b.industry)}。${$(pay)}</p></section>`;
+  return `<section class="trade"><p class="kicker">你的企業 ${companyBadge(run)}</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">${b.companyType ? `企業類型：${$(b.companyType)} · ` : ""}客群：${$(b.buyer)} · 交易單位：${$(b.unit)} · 行業：${$(b.industry)}。${$(pay)}</p></section>`;
 }
 
 function speedLabel() {
@@ -653,7 +679,8 @@ function drawerHtml() {
   let body = "";
   if (id === "ledger") {
     const rows = (run.factors || []).map(([k, v]) => `<tr><th>${$(k)}</th><td>${$(v)}</td></tr>`).join("");
-    body = `<h2>詳細帳簿</h2><p>現金 ${$(P.money(data, run, run.finance.cash))} · 債務 ${$(P.money(data, run, run.finance.debt))}</p>
+    body = `<h2>詳細帳簿</h2><p>公司現金 ${$(P.money(data, run, run.finance.cash))} · 公司債務 ${$(P.money(data, run, run.finance.debt))}</p>
+      <p>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}。生活費付清並預留一季生活費後，個人盈餘的一半會用來還個人債務，不計入公司支出。</p>
       <p>法律形式：${$(P.legalLabel(data, run))}。這是遊戲規則，不是法律意見。</p>
       <table>${rows || `<tr><td>結算一次之後，這裡會列出收入怎麼來。</td></tr>`}</table>
       ${sparkTable()}`;
@@ -731,11 +758,14 @@ function eventView() {
   const run = ui.run;
   const ev = run.pendingEvent;
   const cause = ev.chainCause;
+  const firstAvailable = ev.choices.findIndex((c) => !Sim.eventChoiceDisabled(data, run, c));
   const choices = ev.choices.map((c, i) => {
     const b = Story.choiceBrief(data, run, ev, c);
-    return `<button class="choice ${c.effects?.force_ending ? "warn" : ""}" data-act="choice" data-id="${$(c.id)}" ${i === 0 ? "data-autofocus" : ""}>
-      <b><span class="mark">${i + 1}</span>${$(c.label)}</b>
+    const disabled = Sim.eventChoiceDisabled(data, run, c);
+    return `<button class="choice ${c.effects?.force_ending ? "warn" : ""}" data-act="choice" data-id="${$(c.id)}" ${i === firstAvailable ? "data-autofocus" : ""} ${disabled ? "disabled" : ""}>
+      <b><span class="mark">${i + 1}</span>${$(c.label)}${disabled ? " · 現金不足" : ""}</b>
       <span>${$(c.detail)}</span>
+      ${c.outcome ? `<span class="brief"><i class="b-likely">成功 ${Math.round(Sim.boldChance(data, run, c.outcome.base_chance) * 100)}%</i>${$(c.outcome.success.text)}</span><span class="brief"><i class="b-down">受挫</i>${$(c.outcome.setback.text)}</span>` : ""}
       <span class="brief"><i class="b-likely">最可能</i>${$(b.likely)}</span>
       <span class="brief"><i class="b-down">最壞</i>${$(b.downside)}</span>
       <span class="brief"><i class="b-who">影響</i>${$(b.affects)}</span>
@@ -751,13 +781,14 @@ function eventView() {
     ${who}
     ${ev.omen ? `<p class="muted">事前的徵兆：${$(ev.omen)}</p>` : ""}
     <p>${$(ev.body)}</p><div class="stack">${choices}</div>
-    <p class="small">「最可能」是這張合約寫死的部分；「最壞」與「影響」是它可能帶走的東西。人物與市場的未知，不換成機率。</p>`);
+    <p class="small">確定的合約成本會照付；有標示機率的結果由本局種子決定，並受配合度、信任和現金影響。這是遊戲機率，不是現實成功率。</p>`);
 }
 
 function lastView() {
   const run = ui.run;
   const opts = Sim.rescueOptions(data, run);
   return sheet(`${businessStrip(run)}<p class="kicker">最後階段</p><h2>現金不夠付這一輪</h2>
+    ${outcomeBanner(run)}
     <p>帳上 ${$(P.money(data, run, run.finance.cash))}。以日計，這個模式大約還有 ${run.rescueDays} 天的緩衝，行動還剩 ${run.rescueLeft} 次。</p>
     <p>短期周轉只是爭取時間；長期重整才有機會改善每季的收支。重整不能憑空填補眼前欠款，選錯仍可能倒閉。</p>
     <div class="stack">${opts.map((o) => `<button class="choice ${o.id === "close" ? "warn" : ""}" data-act="rescue" data-id="${o.id}">
@@ -893,7 +924,7 @@ function archiveView() {
     if (!item) return sheet(`<p>這一頁已經不在。</p><button class="go" data-act="archive">返回</button>`);
     const comments = (item.comments || []).filter((c) => !c.hidden);
     return sheet(`<p class="kicker">檔案</p><h2>${$(item.name)}</h2><p>${$(item.fact)}</p><p>${$(item.cost)}</p>
-      <p class="muted">${item.official ? "正式紀錄" : "沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
+      <p class="muted">${item.official ? "正式紀錄" : "自選企業／沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
       <h3>留言</h3>
       ${comments.length ? comments.map((c, i) => `<p>${$(c.role)}：${$(c.text)} <button data-act="report" data-i="${i}">隱藏</button></p>`).join("") : `<p>還沒有留言。</p>`}
       <div class="stack">${data.narrative.comments.map((c) => `<button class="alt" data-act="comment" data-role="${$(c.role)}" data-text="${$(c.text)}">以${$(c.role)}的身份留一句</button>`).join("")}</div>
@@ -985,6 +1016,20 @@ function act(name, ds = {}) {
   }
   if (name === "to-sandbox") { ui.screen = "sandbox"; return render(); }
   if (name === "start-sandbox") return startSandbox();
+  if (name === "company-types") {
+    if (!run || run.mode === "daily" || run.venture) return;
+    ui.screen = "companyTypes";
+    return render();
+  }
+  if (name === "company-types-back") { ui.screen = "opening"; return render(); }
+  if (name === "select-company-type") {
+    const result = Sim.selectCompanyType(data, run, ds.id);
+    if (!result.ok) { say(result.reason); return; }
+    ui.screen = "opening";
+    saveRun();
+    render();
+    return say("已選擇企業類型；城市和個人條件保持不變。");
+  }
   if (name === "accept") {
     Sim.acknowledgeReveal(run);
     Sim.acceptOpportunity(run);
@@ -1056,12 +1101,18 @@ function act(name, ds = {}) {
   }
   if (name === "choice") {
     if (run.pendingEvent?.major) ui.seenMajor = true;
-    Sim.chooseEvent(data, run, ds.id);
+    const result = Sim.chooseEvent(data, run, ds.id);
     ui.quiet = 0;
     afterStep();
+    if (result.message) say(result.message);
     return;
   }
-  if (name === "rescue") { Sim.chooseRescue(data, run, ds.id); afterStep(); return; }
+  if (name === "rescue") {
+    Sim.chooseRescue(data, run, ds.id);
+    afterStep();
+    if (run.lastOutcome?.month === run.month) say(run.lastOutcome.text);
+    return;
+  }
   if (name === "successor") { Sim.chooseSuccessor(data, run, ds.id); afterStep(); return; }
   if (name === "chapter-go") { Sim.continueChapter(run); ui.screen = "play"; saveRun(); return render(); }
   if (name === "ack-summary") { Sim.ackSummary(run); ui.screen = "play"; saveRun(); return render(); }
@@ -1076,6 +1127,7 @@ function act(name, ds = {}) {
     return modalTransition(() => {
       ui.drawer = null;
       afterStep();
+      if (result.message) say(result.message);
       if (run.phase === "play") app.querySelector('[data-act="initiative-open"]')?.focus();
     });
   }
@@ -1422,7 +1474,10 @@ function shapeTarget(run) {
     ownership: poor ? ["partner", "family", "coop", "sole"] : ["sole", "partner", "family"],
     positioning: ["easy", "relation", "efficient", "pro"],
   };
-  const id = preferKey(prefer[key], dict);
+  const allowed = key === "revenue" ? Sim.allowedRevenue(data, run)
+    : key === "fulfillment" ? Sim.allowedFulfillment(data, run) : null;
+  const available = allowed ? Object.fromEntries(Object.entries(dict).filter(([id]) => allowed.includes(id))) : dict;
+  const id = preferKey(prefer[key], available);
   if (!id) return null;
   return {
     key: `shape:${idx}:${key}:${id}`,
@@ -1436,11 +1491,12 @@ function shapeTarget(run) {
 function suggestRescueId(run, opts) {
   const trust = run.venture?.trust || 0;
   const order = [];
-  order.push("collect_early");
+  order.push("collect_early", "bridge_support", "equity");
   if (trust >= 0.38) order.push("presell");
-  order.push("delay", "nodraw", "shrink");
+  order.push("delay");
   if ((run.finance?.debt || 0) < 6) order.push("borrow");
   if ((run.venture?.capexBook || 0) > 0.3) order.push("asset");
+  order.push("turnaround_lean", "shrink", "nodraw");
   return order.find((id) => opts.some((o) => o.id === id)) || opts.find((o) => o.id !== "close")?.id || opts[0]?.id;
 }
 
@@ -1462,7 +1518,7 @@ function autoTarget() {
   if (screen !== "play") return null;
   if (ui.drawer && run.phase === "play") return null;
   if (run.phase === "event" && run.pendingEvent?.choices?.length) {
-    const id = Sim.suggestEventChoice(run.pendingEvent, run);
+    const id = Sim.suggestEventChoice(run.pendingEvent, run, data);
     const choice = run.pendingEvent.choices.find((c) => c.id === id) || run.pendingEvent.choices[0];
     if (!choice) return null;
     return { key: `event:${run.pendingEvent.id}:${run.month}`, act: "choice", ds: { id: choice.id }, sel: attrSel("choice", { id: choice.id }), label: choice.label };
@@ -1679,7 +1735,7 @@ function archiveThis() {
     at: Date.now(),
   });
   write(KEY.archive, list.slice(0, 40));
-  ui.shareNote = run.official === false ? "已放入紀念館，並標成沙盒。" : "已匿名放入紀念館。";
+  ui.shareNote = run.official === false ? "已放入紀念館，並標成非正式紀錄。" : "已匿名放入紀念館。";
   render();
 }
 

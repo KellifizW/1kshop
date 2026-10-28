@@ -1,4 +1,4 @@
-import { cityById, gapById, industry, calendarLabel, lifeLabel, computeRedline, symptomIds, endingFlags, topDrivers, describeWorld, stageOf, fillText } from "./sim.js";
+import { cityById, gapById, industry, companyType, calendarLabel, lifeLabel, computeRedline, symptomIds, endingFlags, topDrivers, describeWorld, stageOf, fillText } from "./sim.js";
 
 export { calendarLabel };
 
@@ -75,6 +75,7 @@ export function business(data, state) {
     scale: work.scale || "",
     hire: work.hire || "",
     industry: fam?.name || "",
+    companyType: companyType(data, gap?.company_type)?.name || work.companyTypeName || "",
     title: gap?.title || "",
     problem: gap?.problem || "",
     unknown: gap?.unknown || "",
