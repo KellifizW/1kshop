@@ -1,0 +1,696 @@
+{
+  "events": [
+    {
+      "id": "life_first_repeat",
+      "layer": "life",
+      "grammar": "LIFE_SPARK",
+      "title": "第一份試做意見",
+      "body": "{company}拿出第一份{sells}試做樣本，{customer}提出了意見。你能從第一位潛在客人的反應開始學習。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 1,
+      "max_month": 4,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "多聽客人說完",
+          "detail": "花 0.15 單位聽取意見，市場配合度上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "market_fit": 0.04,
+            "cash": -0.15
+          }
+        },
+        {
+          "id": "hold",
+          "label": "先按原來的方式做",
+          "detail": "不增加開支，信任略升。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "trust": 0.01
+          }
+        }
+      ],
+      "spine": "first_customers"
+    },
+    {
+      "id": "life_opening_promise",
+      "layer": "life",
+      "grammar": "LIFE_SPARK",
+      "title": "第一個交付承諾",
+      "body": "{buyer}問{company}能不能在更短時間交付{unit}。這可能是機會，也會佔用你原本的時間。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 1,
+      "max_month": 4,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "接下並調整流程",
+          "detail": "配合度上升，但創辦人的健康下降。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "market_fit": 0.03,
+            "health": -0.04
+          }
+        },
+        {
+          "id": "hold",
+          "label": "只承諾做得到的期限",
+          "detail": "不追趕交期，信任略升。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "trust": 0.02
+          }
+        }
+      ],
+      "spine": "first_customers"
+    },
+    {
+      "id": "life_repeat_order",
+      "layer": "life",
+      "grammar": "LIFE_EARLY",
+      "title": "熟客提出固定合作",
+      "body": "{customer}願意持續向{company}購買{sells}，但希望流程更一致。這次不是第一張單，而是能否持續交付。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 5,
+      "max_month": 20,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "整理交付流程",
+          "detail": "投入 0.25 單位，品質上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.25,
+            "quality": 0.04
+          }
+        },
+        {
+          "id": "hold",
+          "label": "先維持彈性",
+          "detail": "不增加固定開支，配合度略升。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "market_fit": 0.01
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_early_identity",
+      "layer": "life",
+      "grammar": "LIFE_EARLY",
+      "title": "大家開始問你專長什麼",
+      "body": "客人對{company}有了印象，但不同人想要的{sells}並不相同。你需要決定先照顧哪一群人。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 5,
+      "max_month": 20,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "聚焦最熟悉的客群",
+          "detail": "配合度上升，需求係數下降 4%。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "market_fit": 0.05,
+            "revenue_mult": 0.96
+          }
+        },
+        {
+          "id": "hold",
+          "label": "繼續接受不同需求",
+          "detail": "需求係數上升 4%，複雜度增加。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "complexity": 0.15,
+            "revenue_mult": 1.04
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_growth_handoff",
+      "layer": "life",
+      "grammar": "LIFE_GROWTH",
+      "title": "你不在時也要交付",
+      "body": "{company}的訂單走得比開業時遠。{buyer}希望即使你不在，也有人知道如何交付{unit}。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 21,
+      "max_month": 60,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "寫下交付標準",
+          "detail": "投入 0.4 單位，品質上升，對個人的依賴下降。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.4,
+            "quality": 0.04,
+            "key_dependency": -0.08
+          }
+        },
+        {
+          "id": "hold",
+          "label": "繼續由你親自把關",
+          "detail": "信任上升，你的健康下降。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "health": -0.04,
+            "trust": 0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_growth_customer_mix",
+      "layer": "life",
+      "grammar": "LIFE_GROWTH",
+      "title": "大客戶與小客戶的時間",
+      "body": "{buyer}提出更多要求，原本的小客人卻也在等{sells}。成長讓排優先次序變得困難。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 21,
+      "max_month": 60,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "調整流程照顧不同客群",
+          "detail": "投入 0.3 單位，配合度上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.3,
+            "market_fit": 0.04
+          }
+        },
+        {
+          "id": "hold",
+          "label": "把時間集中在大訂單",
+          "detail": "需求係數上升 6%，信任下降。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "revenue_mult": 1.06,
+            "trust": -0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_mature_old_system",
+      "layer": "life",
+      "grammar": "LIFE_MATURE",
+      "title": "舊系統仍然能用",
+      "body": "{company}多年的資料和流程都在舊系統裡。它沒有壞，但新人花越來越多時間才能理解。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 61,
+      "max_month": 160,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "分階段整理",
+          "detail": "投入 0.6 單位，變動成本率下降 3 個百分點。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.6,
+            "cost_mod": -0.03
+          }
+        },
+        {
+          "id": "hold",
+          "label": "繼續沿用",
+          "detail": "不花現金，複雜度增加，信任略升。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "complexity": 0.2,
+            "trust": 0.01
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_mature_supplier",
+      "layer": "life",
+      "grammar": "LIFE_MATURE",
+      "title": "老供應商準備退休",
+      "body": "合作多年的{supplier}準備退出。{company}需要在熟悉的品質和新供應來源之間找平衡。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 61,
+      "max_month": 160,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "培養替代供應",
+          "detail": "投入 0.35 單位，品質上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.35,
+            "quality": 0.03
+          }
+        },
+        {
+          "id": "hold",
+          "label": "先選成本較低的供應",
+          "detail": "變動成本率下降 3 個百分點，信任下降。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "cost_mod": -0.03,
+            "trust": -0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_legacy_archive",
+      "layer": "life",
+      "grammar": "LIFE_LEGACY",
+      "title": "一份舊客戶紀錄",
+      "body": "{company}的舊紀錄裡有第一批{buyer}的名字。新一代想知道，當年承諾過的事情現在還算不算數。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 161,
+      "max_month": 300,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "整理承諾並讓新人學習",
+          "detail": "投入 0.35 單位，信任上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.35,
+            "trust": 0.04
+          }
+        },
+        {
+          "id": "hold",
+          "label": "留下檔案，讓現在的團隊自行決定",
+          "detail": "配合度上升，保留更多調整空間。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "market_fit": 0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_legacy_successor",
+      "layer": "life",
+      "grammar": "LIFE_LEGACY",
+      "title": "交接之後的不同做法",
+      "body": "公司經過多年，{company}的新經營者想用不同方式交付{sells}。留下的是名字，還是做事的方法？",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 161,
+      "max_month": 300,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "允許試行新做法",
+          "detail": "投入 0.3 單位，配合度上升，信任稍降。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.3,
+            "market_fit": 0.05,
+            "trust": -0.02
+          }
+        },
+        {
+          "id": "hold",
+          "label": "先保留既有流程",
+          "detail": "品質上升，需求係數下降 4%。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "quality": 0.02,
+            "revenue_mult": 0.96
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_century_names",
+      "layer": "life",
+      "grammar": "LIFE_CENTURY",
+      "title": "多年來換了名字的人",
+      "body": "{company}仍在，第一批客人與同事早已不在。今天有人希望知道，這間公司對{buyer}還有什麼意義。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 301,
+      "max_month": 400,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "把故事交給今天的團隊",
+          "detail": "投入 0.4 單位，品牌及士氣上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.4,
+            "brand": 0.04,
+            "morale": 0.03
+          }
+        },
+        {
+          "id": "hold",
+          "label": "把資源留給現在的交付",
+          "detail": "不花現金，品質上升。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "quality": 0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "life_century_relevance",
+      "layer": "life",
+      "grammar": "LIFE_CENTURY",
+      "title": "下一代還需要{sells}嗎",
+      "body": "市場已經改變多年。{company}能否繼續，不只看名字，也看今天是否還能為{buyer}解決問題。",
+      "omen": "這個問題來自公司走到現在的階段。",
+      "weight": 18,
+      "min_month": 301,
+      "max_month": 400,
+      "once": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "重新研究客人的需要",
+          "detail": "投入 0.5 單位，配合度上升。",
+          "risk": "投入的資源未必立即換來成果。",
+          "effects": {
+            "cash": -0.5,
+            "market_fit": 0.06
+          }
+        },
+        {
+          "id": "hold",
+          "label": "守住現有做法",
+          "detail": "信任上升，需求係數下降 5%。",
+          "risk": "這個選擇也會改變之後的營運。",
+          "effects": {
+            "trust": 0.03,
+            "revenue_mult": 0.95
+          }
+        }
+      ]
+    }
+  ],
+  "beats": [
+    {
+      "id": "life_sample",
+      "weight": 12,
+      "stages": [
+        "spark"
+      ],
+      "subject": "{company}",
+      "object": "第一份樣本",
+      "text": "{customer}看完{company}的{sells}，指出一個沒有想到的小地方。",
+      "note": "意見讓配合度略升。",
+      "effects": {
+        "market_fit": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_packing",
+      "weight": 12,
+      "stages": [
+        "spark"
+      ],
+      "subject": "{company}",
+      "object": "第一次交付",
+      "text": "你把{unit}交到{buyer}手上，回頭才發現清單上還有一格忘了填。",
+      "note": "多做了一次確認，健康略降。",
+      "effects": {
+        "health": -0.003
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_opening_help",
+      "weight": 12,
+      "stages": [
+        "spark"
+      ],
+      "subject": "{company}",
+      "object": "一個幫忙",
+      "text": "{mentor}問起{company}的第一季，你把還沒算好的問題也說了出來。",
+      "note": "意志略升。",
+      "effects": {
+        "will": 0.006
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_regular_question",
+      "weight": 12,
+      "stages": [
+        "early"
+      ],
+      "subject": "{company}",
+      "object": "熟客的新問題",
+      "text": "{customer}不只買{sells}，還問起下次能不能提前安排。",
+      "note": "市場配合度略升。",
+      "effects": {
+        "market_fit": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_supplier_routine",
+      "weight": 12,
+      "stages": [
+        "early"
+      ],
+      "subject": "{company}",
+      "object": "逐漸熟悉的合作",
+      "text": "{supplier}已經知道{company}什麼時候需要準備交付{unit}。",
+      "note": "成本壓力略降。",
+      "effects": {
+        "cost": -0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_first_routine",
+      "weight": 12,
+      "stages": [
+        "early"
+      ],
+      "subject": "{company}",
+      "object": "重複的一天",
+      "text": "你發現{company}有些事不必再從頭摸索了。",
+      "note": "品質略升。",
+      "effects": {
+        "quality": 0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_handover_note",
+      "weight": 12,
+      "stages": [
+        "growth"
+      ],
+      "subject": "{company}",
+      "object": "交接的紙條",
+      "text": "{company}的交付多了幾個步驟，你開始把例外記在同一份清單上。",
+      "note": "品質略升。",
+      "effects": {
+        "quality": 0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_new_buyer",
+      "weight": 12,
+      "stages": [
+        "growth"
+      ],
+      "subject": "{company}",
+      "object": "不認識的買家",
+      "text": "一位不認識你的人，因為別人的介紹來問{company}的{sells}。",
+      "note": "需求略升。",
+      "effects": {
+        "demand": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_growth_limits",
+      "weight": 12,
+      "stages": [
+        "growth"
+      ],
+      "subject": "{company}",
+      "object": "不夠用的時間",
+      "text": "你看著排在一起的訂單，第一次需要決定哪些事情要等。",
+      "note": "意志略降。",
+      "effects": {
+        "will": -0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_old_file",
+      "weight": 12,
+      "stages": [
+        "mature"
+      ],
+      "subject": "{company}",
+      "object": "舊檔案",
+      "text": "{company}找到一份多年前的訂單，裡面的交付方式與今天不同。",
+      "note": "團隊重新檢視品質。",
+      "effects": {
+        "quality": 0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_long_relation",
+      "weight": 12,
+      "stages": [
+        "mature"
+      ],
+      "subject": "{company}",
+      "object": "多年的關係",
+      "text": "{supplier}仍記得{company}最早一次訂購{sells}的情況。",
+      "note": "信任略升。",
+      "effects": {
+        "trust": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_old_promise",
+      "weight": 12,
+      "stages": [
+        "mature"
+      ],
+      "subject": "{company}",
+      "object": "很久以前的承諾",
+      "text": "{customer}提起{company}曾經答應過的小事，現在仍有人記得。",
+      "note": "信任略升。",
+      "effects": {
+        "trust": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_legacy_note",
+      "weight": 12,
+      "stages": [
+        "legacy"
+      ],
+      "subject": "{company}",
+      "object": "舊人的筆記",
+      "text": "{company}留下的一本筆記傳到今天，裡面記著如何交付{unit}。",
+      "note": "品質略升。",
+      "effects": {
+        "quality": 0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_different_era",
+      "weight": 12,
+      "stages": [
+        "legacy"
+      ],
+      "subject": "{company}",
+      "object": "不一樣的時代",
+      "text": "今天的{buyer}問的問題，和{company}剛開始時已經不同。",
+      "note": "配合度略升。",
+      "effects": {
+        "market_fit": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_familiar_name",
+      "weight": 12,
+      "stages": [
+        "legacy"
+      ],
+      "subject": "{company}",
+      "object": "熟悉的名字",
+      "text": "有人認得{company}的名字，卻不知道{sells}從哪裡開始。",
+      "note": "品牌信任略升。",
+      "effects": {
+        "trust": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_century_file",
+      "weight": 12,
+      "stages": [
+        "century"
+      ],
+      "subject": "{company}",
+      "object": "一頁泛黃紀錄",
+      "text": "有人翻到{company}早年的紀錄，當時交付的{unit}與今天已經不同。",
+      "note": "品質略升。",
+      "effects": {
+        "quality": 0.004
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_century_customer",
+      "weight": 12,
+      "stages": [
+        "century"
+      ],
+      "subject": "{company}",
+      "object": "新的客人",
+      "text": "{buyer}仍在尋找解決問題的方法，只是問法已經和以前不同。",
+      "note": "配合度略升。",
+      "effects": {
+        "market_fit": 0.005
+      },
+      "cooldown": 20
+    },
+    {
+      "id": "life_century_memory",
+      "weight": 12,
+      "stages": [
+        "century"
+      ],
+      "subject": "{company}",
+      "object": "留下來的一句話",
+      "text": "有人把{company}早年的故事講給新同事聽，故事裡已經沒有一個人還在工作。",
+      "note": "士氣略升。",
+      "effects": {
+        "morale": 0.005
+      },
+      "cooldown": 20
+    }
+  ]
+}

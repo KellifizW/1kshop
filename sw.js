@@ -1,4 +1,4 @@
-const CACHE = "qianfen-v10";
+const CACHE = "qianfen-v12";
 const FILES = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const FILES = [
   "./data/content.json",
   "./data/events.json",
   "./data/narrative.json",
+  "./data/life-events.json",
   "./assets/favicon.svg",
   "./assets/fonts/DroidSansFallbackFull.ttf",
   "./manifest.webmanifest",

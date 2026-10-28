@@ -136,7 +136,7 @@
   "endings": {
     "return_to_job": {"title": "回到上班", "stamp": "未開業"},
     "liquidate": {"title": "現金耗盡", "stamp": "清算"},
-    "guarantee_ruin": {"title": "公司倒了，人還背著", "stamp": "擔保"},
+    "guarantee_ruin": {"title": "公司倒閉，個人仍要還債", "stamp": "擔保"},
     "compliance": {"title": "停在牌照上", "stamp": "合規"},
     "voluntary": {"title": "你選擇結束", "stamp": "結業"},
     "preserve_craft": {"title": "手藝留下", "stamp": "移交"},
@@ -244,7 +244,7 @@
     "TRANSFORM": {"subject": "{company}", "object": "舊做法還做不做"},
     "DECLINE": {"subject": "{city}裡變少的客人", "object": "{company}要縮小還是轉型"},
     "SUCCESSION": {"subject": "下一個坐日常的人", "object": "{company}在你離開之後還在不在"},
-    "CENTURY": {"subject": "{company}", "object": "一百年後還認不認得出最初那樣"},
+    "CENTURY": {"subject": "{company}", "object": "如今還認不認得出最初那樣"},
     "TRUST_SHOCK": {"subject": "客人{customer}", "object": "對{company}還剩多少信任"},
     "COMMUNITY": {"subject": "{city}的鄰居", "object": "{company}還能不能開在這裡"},
     "LABOR_COST": {"subject": "{employee}", "object": "{company}付得出的薪水"},
@@ -371,16 +371,16 @@
       "有幾天忙到沒有人坐下。"
     ],
     "cash_tight": [
-      "月底的現金只剩{runway}個月的量。你開始算哪一項可以晚付。",
+      "公司現金約可支撐{runway}季。你開始算哪一項可以晚付。",
       "錢進來得比出去得慢。這一季你親手對過三次帳。"
     ],
     "profit_first": [
-      "這是第一次，收進來的蓋過付出去的。",
-      "帳上第一次出現正的數字。你沒有慶祝，只是把它抄下來。"
+      "這是第一次，帳面收入蓋過當季支出。",
+      "帳面收入第一次蓋過當季支出。你沒有慶祝，只是把它抄下來。"
     ],
     "loss_streak": [
-      "已經連續{streak}個月，每一筆交易都在補貼。",
-      "第{streak}個月了。毛利還是負的，只是你不再每天去看它。"
+      "已經連續{streak}季，每一筆交易都在補貼。",
+      "第{streak}季了。毛利還是負的，只是你不再每天去看它。"
     ],
     "crew_tired": [
       "{name}連續加班{overtime}天，開始考慮辭職。",
@@ -424,7 +424,7 @@
     ],
     "quiet": [
       "這一季沒有大事。帳簿還是要記。",
-      "三十天，沒有需要停下來的事。",
+      "一季過去，沒有需要停下來的事。",
       "平常的一季。後來你會記得它有多貴。"
     ],
     "survived": [
@@ -444,7 +444,7 @@
     "supply_quality": {"group": "fail", "title": "供應與品質失控", "line": "便宜的那一次，後來最貴。", "cause": "替代供應或壓縮成本，在幾個月後變成投訴與退貨。"},
     "debt_call": {"group": "fail", "title": "債務提前到期", "line": "借來的時間，被一次收回。", "cause": "高槓桿遇上信用緊縮，還款排在現金之前。"},
     "compliance_stop": {"group": "fail", "title": "停在牌照上", "line": "門是開著的，但不能營業。", "cause": "合規與申報沒有跟上城市的要求。"},
-    "guarantee_ruin": {"group": "fail", "title": "公司倒了，人還背著", "line": "清算之後，剩下的是一個人的名字。", "cause": "個人擔保把公司的失敗搬到家裡。"},
+    "guarantee_ruin": {"group": "fail", "title": "公司倒閉，個人仍要還債", "line": "公司清算後，創辦人仍要承擔部分債務。", "cause": "因個人擔保或無限責任，公司倒閉後，創辦人仍需負責部分債務。"},
     "small_rich": {"group": "neutral", "title": "小富即安", "line": "它養活了一家人，沒有養大一個行業。", "cause": "你選擇了不再長大。"},
     "sold": {"group": "neutral", "title": "出售公司", "line": "價格很具體，人的去向不是。", "cause": "在還值錢的時候把它交出去。"},
     "family_business": {"group": "neutral", "title": "家庭生意", "line": "班表上有一半是同一個姓。", "cause": "公司留在家里，也留在家里能給的範圍裡。"},

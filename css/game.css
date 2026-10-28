@@ -1288,3 +1288,57 @@ html.still .stage, html.still .ly-light, html.still .funnel-bar i, html.still .c
   .cashflow-history-head { align-items: flex-start; flex-direction: column; gap: 2px; }
   .cashflow-legend { margin-left: auto; }
 }
+
+/* 公司生活：主畫面為故事留空間，行動在有焦點管理的對話框內進行。 */
+.company-journal {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: clamp(16px, 2vw, 24px); min-width: 0;
+}
+.journal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.journal-head h3 { margin: 0 0 4px; font-size: 21px; }
+.journal-head p:not(.fold-k) { margin: 0; color: var(--muted); font-size: 13px; }
+.journal-head .ghost { flex-shrink: 0; }
+.journal-recap { margin: 16px 0; padding: 12px 15px; border-radius: 10px; background: #f4eee2; border-left: 3px solid #ae7f54; }
+.journal-recap b { font-size: 13px; color: var(--ink-soft); }
+.journal-recap ul { margin: 6px 0 0; padding-left: 20px; }
+.journal-recap li { font-size: 14px; line-height: 1.65; }
+.journal-list { margin: 12px 0 0; padding: 0; list-style: none; max-height: 720px; overflow-y: auto; overscroll-behavior: contain; }
+.journal-entry { position: relative; padding: 14px 10px 14px 20px; border-left: 1px solid #d8cbbb; }
+.journal-entry + .journal-entry { border-top: 1px solid var(--line); }
+.journal-entry::before { content: ""; position: absolute; left: -5px; top: 20px; width: 9px; height: 9px; border-radius: 50%; background: #ab9987; }
+.journal-entry[data-kind="decision"]::before { background: var(--seal); }
+.journal-entry[data-kind="quarter"]::before { background: #7a896f; }
+.journal-entry h4 { font-size: 16px; line-height: 1.4; margin: 6px 0 4px; }
+.journal-entry p { margin: 3px 0; font-size: 14px; line-height: 1.65; }
+.journal-meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.journal-tag { padding: 2px 6px; border-radius: 5px; background: #eee8dc; color: var(--ink-soft); }
+.journal-entry[data-kind="decision"] .journal-tag { background: #f4e2dc; color: #873f35; }
+.journal-entry[data-kind="quarter"] .journal-tag { background: #e8ede3; color: #52684d; }
+.journal-subject, .journal-note { color: var(--muted); }
+.journal-choice { font-weight: 600; color: var(--seal); }
+.journal-numbers { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.journal-empty { margin: 16px 0 0; }
+.initiative-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.initiative-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; }
+.initiative-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; background: rgba(21, 17, 14, .65); cursor: pointer; }
+.initiative-dialog {
+  position: relative; width: min(720px, 100%); max-height: min(85dvh, 850px); overflow-y: auto;
+  overscroll-behavior: contain; background: var(--paper); color: var(--ink); color-scheme: light;
+  border: 1px solid var(--line); border-radius: 20px; padding: clamp(18px, 3vw, 30px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .4); animation: initiative-enter .2s ease-out both;
+}
+.initiative-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; position: sticky; top: -30px; z-index: 1; background: var(--paper); padding: 8px 0 16px; }
+.initiative-head h2 { margin: 0 0 4px; }
+.initiative-head p:not(.fold-k) { font-size: 14px; color: var(--muted); margin: 0; }
+.modal-close { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 18px; cursor: pointer; }
+.initiative-list { gap: 9px; }
+@keyframes initiative-enter { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (min-width: 960px) { .stage-col > .stage { aspect-ratio: 16 / 7; max-height: 420px; } }
+@media (max-width: 600px) {
+  .initiative-overlay { padding: 0; align-items: end; }
+  .initiative-dialog { width: 100%; max-height: 88dvh; border-radius: 20px 20px 0 0; padding-bottom: max(22px, env(safe-area-inset-bottom)); }
+  .journal-head { flex-wrap: wrap; }
+  .journal-list { max-height: 560px; }
+}
+@media (prefers-reduced-motion: reduce) { .initiative-dialog { animation: none; } }
+.still .initiative-dialog { animation: none; }
