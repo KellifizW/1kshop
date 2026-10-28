@@ -39,13 +39,13 @@
     {"id": "peer_brand", "name": "買下的舊招牌", "blurb": "鄰居的名字在你的倉庫裡。", "weight": 4},
     {"id": "charter_line", "name": "寫進章程的那句話", "blurb": "它比口號難改。", "weight": 6},
     {"id": "last_payroll", "name": "最後一次薪資", "blurb": "人數比創業時多，或只剩你。", "weight": 4},
-    {"id": "test_notebook", "name": "試營運的筆記本", "blurb": "四個月的句子，有些被畫掉。", "weight": 3},
+    {"id": "test_notebook", "name": "試營運的筆記本", "blurb": "一季的句子，有些被畫掉。", "weight": 3},
     {"id": "quiet_ledger", "name": "沒有大事的那一頁", "blurb": "平常的月份。後來證明它很貴。", "weight": 2},
     {"id": "price_hold_slip", "name": "你不肯改的價格", "blurb": "三次相似的決定，疊在一起。", "weight": 4},
     {"id": "investor_term", "name": "投資條款摘要", "blurb": "席位、清算、以及誰決定節奏。", "weight": 4},
     {"id": "board_minutes", "name": "董事會紀錄", "blurb": "反對意見在最後一段。", "weight": 3},
     {"id": "recall_notice", "name": "召回通知", "blurb": "寄出之前你讀了兩遍。", "weight": 4},
-    {"id": "exclusive_pdf", "name": "獨家條款", "blurb": "十八個月，或更短。", "weight": 3},
+    {"id": "exclusive_pdf", "name": "獨家條款", "blurb": "六季，或更短。", "weight": 3},
     {"id": "invoice_stack", "name": "一疊已開未收的發票", "blurb": "帳面是真的，現金還沒到。", "weight": 4},
     {"id": "night_roster", "name": "夜班表", "blurb": "有一格始終寫著同一個名字。", "weight": 3},
     {"id": "tool_ledger", "name": "工具租借簿", "blurb": "誰借走、何時歸還、有沒有保險。", "weight": 2},
@@ -86,21 +86,21 @@
     {"id": "empty_after_promo", "name": "活動結束後的空店", "blurb": "海報還在玻璃上。人沒有。", "weight": 4},
     {"id": "credit_call", "name": "被提前收回的額度", "blurb": "來信很短，引用的是你簽過的那一頁。", "weight": 5},
     {"id": "wage_consent", "name": "減薪同意書", "blurb": "兩個人簽了。第三個人沒有來。", "weight": 5},
-    {"id": "overtime_board", "name": "牆上的加班板", "blurb": "同一個名字連續出現十一個月。", "weight": 4},
+    {"id": "overtime_board", "name": "牆上的加班板", "blurb": "同一個名字連續出現四季。", "weight": 4},
     {"id": "first_manager", "name": "第一位店長的任命", "blurb": "你不再逐件過目，從那天開始。", "weight": 5},
     {"id": "quality_article", "name": "別人寫你的那篇文章", "blurb": "不是廣告。是他自己付錢買的。", "weight": 4},
-    {"id": "second_lease", "name": "第二個據點的租約", "blurb": "簽的時候很興奮，第三個月開始很貴。", "weight": 4},
+    {"id": "second_lease", "name": "第二個據點的租約", "blurb": "簽的時候很興奮，第一季開始很貴。", "weight": 4},
     {"id": "platform_contract", "name": "平台的大促合約", "blurb": "曝光那一欄寫得很大，毛利那一欄沒有。", "weight": 4},
     {"id": "job_return", "name": "回到班表的週一", "blurb": "公司沒有開始。生活還在。", "weight": 3}
   ],
   "symptoms": [
     {"id": "discount", "axis": "market", "text": "最近大約六成新客只在折扣期間才購買。"},
     {"id": "cash_lag", "axis": "market", "text": "帳上有收入。現金要等別人的付款習慣。"},
-    {"id": "rent", "axis": "market", "text": "場地吃掉的比例，比上個月更高。"},
+    {"id": "rent", "axis": "market", "text": "場地吃掉的比例，比上季更高。"},
     {"id": "churn", "axis": "market", "text": "進來的人還有，留下的人變少。"},
-    {"id": "concentration", "axis": "market", "text": "{customer}大到能決定{company}這一個月。"},
+    {"id": "concentration", "axis": "market", "text": "{customer}大到能決定{company}這一季。"},
     {"id": "platform", "axis": "market", "text": "你的客人在平台上，不在你這裡。"},
-    {"id": "decline", "axis": "market", "text": "需求不是這個月突然壞的。它每年都少一點。"},
+    {"id": "decline", "axis": "market", "text": "需求不是這一季突然壞的。它每年都少一點。"},
     {"id": "quality", "axis": "market", "text": "客人沒有怒鳴。他們只是不回來。"},
     {"id": "peer", "axis": "market", "text": "{peer}在用價格換{company}的客人。"},
     {"id": "delegate", "axis": "team", "text": "{employee}開始把{company}的工作交給其他人。"},
@@ -114,15 +114,15 @@
     {"id": "board_grow", "axis": "founder", "text": "董事會把增長讀成義務。"},
     {"id": "care", "axis": "founder", "text": "{kinWho}要的是{kinNeed}。這件事比{company}的排班更難改。"},
     {"id": "health", "axis": "founder", "text": "你開始把疲倦當成正常。"},
-    {"id": "strain", "axis": "founder", "text": "生活費這個月沒有準時從你自己的口袋離開。"},
+    {"id": "strain", "axis": "founder", "text": "生活費這一季沒有準時從你自己的口袋離開。"},
     {"id": "compliance", "axis": "founder", "text": "{city}要{company}補的那一項申報，還是空的。"},
     {"id": "control", "axis": "founder", "text": "你還在，但已經不能單獨決定方向。"},
-    {"id": "calm_market", "axis": "market", "text": "客人和上個月差不多。"},
+    {"id": "calm_market", "axis": "market", "text": "客人和上季差不多。"},
     {"id": "calm_team", "axis": "team", "text": "沒有人把辭呈放在桌上。"},
-    {"id": "calm_founder", "axis": "founder", "text": "你這個月睡得著。"}
+    {"id": "calm_founder", "axis": "founder", "text": "你這一季睡得著。"}
   ],
   "atmosphere": [
-    "這個月沒有人來敲門。帳簿還是要記。",
+    "這一季沒有人來敲門。帳簿還是要記。",
     "供應商的訊息只有報價，沒有寒暄。",
     "你把發票對到半夜，差一分，後來在抽屜裡找到。",
     "有人把你的店名說錯，但仍舊找對了門。",
@@ -201,7 +201,7 @@
     "FOUNDER_LOAD": {"subject": "你自己", "object": "{company}離不開你的日常"},
     "INVENTORY": {"subject": "{company}倉庫裡的貨", "object": "{customer}退回來的那一批"},
     "CUT_VARIABLE_COST": {"subject": "供應商{supplier}", "object": "{company}要不要換成便宜一檔"},
-    "EXCLUSIVE": {"subject": "平台", "object": "{company}要不要簽十八個月獨家"},
+    "EXCLUSIVE": {"subject": "平台", "object": "{company}要不要簽六季獨家"},
     "CAP_TABLE": {"subject": "想入股的人", "object": "{company}的控制權"},
     "QUALITY_CRISIS": {"subject": "{customer}手上的成品", "object": "{company}這一批的品質"},
     "KEY_PERSON": {"subject": "{employee}", "object": "在{company}的薪水與股權"},
@@ -221,7 +221,7 @@
     "CONFLICT": {"subject": "客人{customer}與{kinWho}", "object": "同一個晚上的交期，對上{kinNeed}"},
     "EMPLOYMENT": {"subject": "你還沒辭的雇主", "object": "你已經在做的{company}"},
     "IP": {"subject": "原雇主", "object": "{company}的做法算誰的"},
-    "TEST_END": {"subject": "你", "object": "{company}測完這四個月還開不開"},
+    "TEST_END": {"subject": "你", "object": "{company}測完這一季還開不開"},
     "LABOR": {"subject": "{employee}", "object": "{company}的加班與薪水"},
     "PLATFORM_FEE": {"subject": "平台", "object": "從{company}每筆單抽走的錢"},
     "SEASON": {"subject": "{city}的淡季", "object": "{company}的現金"},
@@ -231,7 +231,7 @@
     "COMPETITION": {"subject": "{peer}", "object": "{company}的價格"},
     "RECEIVABLES": {"subject": "客人{customer}", "object": "還沒付給{company}的帳"},
     "PRICE_PRESSURE": {"subject": "客人{customer}", "object": "{company}的報價"},
-    "SHOCK": {"subject": "{city}", "object": "{company}這個月還開不開得了門"},
+    "SHOCK": {"subject": "{city}", "object": "{company}這一季還開不開得了門"},
     "EXPORT": {"subject": "出口的客戶", "object": "{company}的規格與文件"},
     "MISTAKE": {"subject": "{company}", "object": "交到{customer}手上的那一次錯"},
     "CUSTOMER": {"subject": "客人{customer}", "object": "還願不願意再來{company}"},
@@ -255,24 +255,24 @@
     "FAMILY_SUCCESSION": {"subject": "家里的下一代", "object": "要不要進{company}做事"}
   },
   "beats": [
-    {"id": "regular", "weight": 14, "subject": "客人{customer}", "object": "又向{company}買{sells}", "text": "{customer}又來了，向{company}買的還是{sells}。", "note": "熟客把信任留下一點，下個月的需求會鬆一點。", "effects": {"trust": 0.012, "market_fit": 0.005, "demand": 0.01}},
+    {"id": "regular", "weight": 14, "subject": "客人{customer}", "object": "又向{company}買{sells}", "text": "{customer}又來了，向{company}買的還是{sells}。", "note": "熟客把信任留下一點，下季的需求會鬆一點。", "effects": {"trust": 0.012, "market_fit": 0.005, "demand": 0.01}},
     {"id": "referral", "weight": 8, "subject": "客人{customer}", "object": "把{company}的{sells}介紹給另一個人", "text": "{customer}把{company}的{sells}介紹給另一個人。沒有合約，只有一句話。", "note": "配合度上升一點。這種介紹會疊加。", "effects": {"trust": 0.01, "market_fit": 0.008, "demand": 0.012}},
     {"id": "late_goods", "weight": 10, "subject": "供應商{supplier}", "object": "給{company}的貨晚了兩天", "text": "{supplier}的貨晚了兩天，{company}只好先用較貴的替代。", "note": "變動成本被墊高一點，會留到後面幾個月。", "effects": {"cost": 0.015, "quality": -0.008}},
     {"id": "longer_terms", "weight": 7, "subject": "供應商{supplier}", "object": "肯讓{company}晚一週再付", "text": "{supplier}願意把帳期放寬一週。", "note": "現金鬆了一點。", "effects": {"cash": 0.08, "cost": -0.006}},
     {"id": "peer_price", "weight": 11, "when": ["peer"], "subject": "{peer}", "object": "用低價看{company}的客人", "text": "{peer}把價格寫低。有幾個本來要進{company}的人先去看了一眼。", "note": "身邊的同行的壓力上升，需求被削掉一點。", "effects": {"peer": 0.02, "demand": -0.012}},
-    {"id": "wrong_door", "weight": 7, "when": ["peer"], "subject": "{peer}的客人", "object": "走錯門，坐進{company}", "text": "{peer}的熟客有一個走錯門，在{company}坐了下來。", "note": "這個月的需求被墊高一點。", "effects": {"demand": 0.014, "trust": 0.006}},
+    {"id": "wrong_door", "weight": 7, "when": ["peer"], "subject": "{peer}的客人", "object": "走錯門，坐進{company}", "text": "{peer}的熟客有一個走錯門，在{company}坐了下來。", "note": "這一季的需求被墊高一點。", "effects": {"demand": 0.014, "trust": 0.006}},
     {"id": "staff_quiet", "weight": 9, "when": ["staff"], "subject": "{employee}", "object": "替{company}處理掉一件例外", "text": "{employee}把一件例外自己處理完，沒有半夜傳訊息給你。", "note": "士氣上升，你沒那麼不可取代。", "effects": {"morale": 0.02, "will": 0.01}},
     {"id": "staff_ask", "weight": 8, "when": ["staff"], "subject": "{employee}", "object": "問{company}下季還有沒有班", "text": "{employee}問下季的班表還有沒有位置。", "note": "士氣降了一點。人還沒走。", "effects": {"morale": -0.025}},
     {"id": "kin_night", "weight": 10, "when": ["kin"], "subject": "{kinWho}", "object": "{kinNeed}", "text": "{kinWho}的{kinNeed}多佔了一個晚上。", "note": "家里的負擔上升，你能給{company}的時間少一截。", "effects": {"care": 0.04, "hours": -0.02, "will": -0.01}},
-    {"id": "kin_ease", "weight": 6, "when": ["kin", "care"], "subject": "{kinWho}", "object": "{kinNeed}這個月可以少一天", "text": "{kinWho}說，{kinNeed}這個月可以少你一天。", "note": "照護壓力退一點，晚上還給{company}。", "effects": {"care": -0.03, "hours": 0.015, "will": 0.02}},
-    {"id": "rain", "weight": 9, "subject": "{city}的雨", "object": "路過{company}的人變少", "text": "{city}這個月雨比較多，路過{company}門口的人少了。", "note": "需求被天氣削掉一點。", "effects": {"demand": -0.01}},
+    {"id": "kin_ease", "weight": 6, "when": ["kin", "care"], "subject": "{kinWho}", "object": "{kinNeed}這一季可以少一天", "text": "{kinWho}說，{kinNeed}這一季可以少你一天。", "note": "照護壓力退一點，晚上還給{company}。", "effects": {"care": -0.03, "hours": 0.015, "will": 0.02}},
+    {"id": "rain", "weight": 9, "subject": "{city}的雨", "object": "路過{company}的人變少", "text": "{city}這一季雨比較多，路過{company}門口的人少了。", "note": "需求被天氣削掉一點。", "effects": {"demand": -0.01}},
     {"id": "bank", "weight": 8, "subject": "銀行", "object": "提前扣了{company}的一筆小款", "text": "銀行把{company}的一筆小額扣款提前。", "note": "現金薄了一點。", "effects": {"cash": -0.06}},
     {"id": "found_invoice", "weight": 8, "subject": "你", "object": "{company}少收的那張發票", "text": "你把{company}的發票對過一次，少收的那筆補了回來。", "note": "現金回來一點。", "effects": {"cash": 0.05}},
-    {"id": "mentor", "weight": 6, "subject": "{mentor}", "object": "提醒你先別改{company}的價格", "text": "{mentor}傳了一句：{company}的價格先不要動。", "note": "意志穩一點。沒有人逼你這個月做重大決定。", "effects": {"will": 0.02}},
+    {"id": "mentor", "weight": 6, "subject": "{mentor}", "object": "提醒你先別改{company}的價格", "text": "{mentor}傳了一句：{company}的價格先不要動。", "note": "意志穩一點。沒有人逼你這一季做重大決定。", "effects": {"will": 0.02}},
     {"id": "landlord_note", "weight": 6, "when": ["premises"], "subject": "業主{landlord}", "object": "只寄來{company}的繳費通知", "text": "{landlord}的訊息只有繳費通知，沒有寒暄。", "note": "場地還在。只是語氣變正式了。", "effects": {"will": -0.008}},
     {"id": "return_note", "weight": 7, "subject": "客人{customer}", "object": "退回{company}的{sells}", "text": "{customer}退了一筆{sells}。留言寫的是這一次，不是{company}整門生意。", "note": "品質被質疑一點，信任沒有一起掉。", "effects": {"quality": -0.01, "trust": 0.004, "cost": 0.006}},
     {"id": "trade_chat", "weight": 7, "subject": "{city}的同業", "object": "在找{company}的{sells}", "text": "{city}的同業群裡，有人在找{company}做的{sells}。", "note": "配合度上升一點。", "effects": {"market_fit": 0.01, "demand": 0.008}},
-    {"id": "hours_heavy", "weight": 8, "subject": "你", "object": "{company}這個月的日常", "text": "你在{company}多留了幾個晚上，沒有人叫你。", "note": "健康被磨掉一點，需求短暫墊高。", "effects": {"health": -0.015, "demand": 0.008, "hours": 0.02}}
+    {"id": "hours_heavy", "weight": 8, "subject": "你", "object": "{company}這一季的日常", "text": "你在{company}多留了幾個晚上，沒有人叫你。", "note": "健康被磨掉一點，需求短暫墊高。", "effects": {"health": -0.015, "demand": 0.008, "hours": 0.02}}
   ],
   "crew_lines": {
     "join": [
@@ -285,13 +285,13 @@
       "{name}開始自己處理例外，沒有傳訊息給你。"
     ],
     "skill_up": [
-      "{name}做得比三個月前快，也開始教下一個人。",
+      "{name}做得比一季前快，也開始教下一個人。",
       "有人把{name}做的東西拿回來比對，發現比標準更好。"
     ],
     "overtime": [
       "{name}連續加班{overtime}天。他沒有說甚麼，但動作慢了。",
       "晚上十一點，{name}還在收尾。班表上那一格一直是他。",
-      "{name}這個月的工時比上個月多了{overtime}小時。"
+      "{name}這一季的工時比上季多了{overtime}小時。"
     ],
     "sit_down": [
       "{name}在貨架旁邊坐下來，說休息一下，然後又站起來。",
@@ -304,7 +304,7 @@
     "quit": [
       "{name}把圍裙摺好放在櫃檯。他說他撐不住了。",
       "{name}在你最忙的那一天請辭。通知期寫在紙上，語氣很客氣。",
-      "{name}走了。留下的班表還排到他下個月。"
+      "{name}走了。留下的班表還排到他下季。"
     ],
     "poached": [
       "{peer}用高出兩成的薪水把{name}挖走。你沒有反價。",
@@ -337,21 +337,21 @@
   },
   "month_story": {
     "rain": [
-      "這個月下了{rainDays}天雨。",
+      "這一季下了{rainDays}天雨。",
       "{rainDays}天在下雨，門口的水痕沒有乾過。",
       "雨下了{rainDays}天，街對面的人走得比較快。"
     ],
     "storm": [
       "颱風來了{rainDays}天。窗戶封起來，外送停了一半。",
-      "這個月有一次颱風。招牌撐住了，生意沒有。"
+      "這一季有一次颱風。招牌撐住了，生意沒有。"
     ],
     "heat": [
-      "連續高溫。冷氣電費比上個月多，人在中午之後就不想出門。",
+      "連續高溫。冷氣電費比上季多，人在中午之後就不想出門。",
       "熱到下午三點沒有人願意站著等。"
     ],
     "cold": [
       "寒流來了幾天。手會冷，出餐會慢，客人願意等。",
-      "這個月很冷。門開一次，室溫掉一次。"
+      "這一季很冷。門開一次，室溫掉一次。"
     ],
     "snow": [
       "下雪了{rainDays}天。路上的人少了，但進來的人都會買。",
@@ -359,7 +359,7 @@
     ],
     "backlog": [
       "櫃檯上積了{backlog}張單沒有做完。有人等不及，走了。",
-      "這個月大約{lost}筆需求沒有被接住。不是沒有人要，是做不完。",
+      "這一季大約{lost}筆需求沒有被接住。不是沒有人要，是做不完。",
       "產能撐不住。{lost}個人在排隊的時候轉身離開。"
     ],
     "smooth": [
@@ -372,7 +372,7 @@
     ],
     "cash_tight": [
       "月底的現金只剩{runway}個月的量。你開始算哪一項可以晚付。",
-      "錢進來得比出去得慢。這個月你親手對過三次帳。"
+      "錢進來得比出去得慢。這一季你親手對過三次帳。"
     ],
     "profit_first": [
       "這是第一次，收進來的蓋過付出去的。",
@@ -387,12 +387,12 @@
       "{name}的壓力已經寫在臉上。他沒有說，但班表看得出來。"
     ],
     "crew_quit": [
-      "{name}在這個月離開。他走的那天，你親自補了他的班。",
+      "{name}在這一季離開。他走的那天，你親自補了他的班。",
       "{name}辭職了。理由寫得很短。"
     ],
     "crew_join": [
       "{name}加入了{company}，做{role}。",
-      "這個月多了一個人：{name}。"
+      "這一季多了一個人：{name}。"
     ],
     "brand_up": [
       "招牌換過了。包裝也換了。有人開始認得這個樣子。",
@@ -407,33 +407,33 @@
       "一個網紅來過。流量來了，熟客說環境太擠。"
     ],
     "commitment_saved": [
-      "上月簽下的{commitment}，這個月開始付錢。它讓你避過虧損。",
-      "如果沒有{commitment}，這個月會是負的。"
+      "上月簽下的{commitment}，這一季開始付錢。它讓你避過虧損。",
+      "如果沒有{commitment}，這一季會是負的。"
     ],
     "platform_fees": [
       "平台抽走了收入的{platformPct}%。客人是它帶來的，帳也是它記的。",
-      "抽成這個月吃掉{platformPct}%。你算不出來該不該離開。"
+      "抽成這一季吃掉{platformPct}%。你算不出來該不該離開。"
     ],
     "rent": [
       "場地成本佔了營業額的{rentPct}%。房東沒有降，客流也沒有多。",
-      "這個月租金的比例比上個月高。"
+      "這一季租金的比例比上季高。"
     ],
     "expansion": [
       "第二個據點的帳開始進來。它比你想的貴。",
-      "擴張的固定成本這個月第一次完整出現。"
+      "擴張的固定成本這一季第一次完整出現。"
     ],
     "quiet": [
-      "這個月沒有大事。帳簿還是要記。",
+      "這一季沒有大事。帳簿還是要記。",
       "三十天，沒有需要停下來的事。",
-      "平常的一個月。後來你會記得它有多貴。"
+      "平常的一季。後來你會記得它有多貴。"
     ],
     "survived": [
-      "你撐過了這個月。撐過的方式，你自己知道。",
-      "這個月結束的時候，公司還在。"
+      "你撐過了這一季。撐過的方式，你自己知道。",
+      "這一季結束的時候，公司還在。"
     ]
   },
   "life_endings": {
-    "early_death": {"group": "fail", "title": "開業不足三個月", "line": "它還沒有被記得，就已經不在了。", "cause": "第一個租約還沒走完，現金就不夠了。"},
+    "early_death": {"group": "fail", "title": "開業不足一季", "line": "它還沒有被記得，就已經不在了。", "cause": "第一個租約還沒走完，現金就不夠了。"},
     "cash_choke": {"group": "fail", "title": "現金流窒息", "line": "帳上有收入，抽屜裡沒有錢。", "cause": "現金進來的速度，慢過它必須出去的速度。"},
     "over_expand": {"group": "fail", "title": "過度擴張", "line": "第二間開得比第一間站穩得早。", "cause": "固定成本在收入之前長大。"},
     "platform_trap": {"group": "fail", "title": "平台抽成陷阱", "line": "客人越來越多，留下來的越來越少。", "cause": "流量是租來的，抽成是固定的。"},
@@ -478,7 +478,7 @@
   "crisis_lines": {
     "cash": "最險的一次是現金：帳上只剩{runway}個月，你在那個月做了{decision}。",
     "crew": "最險的一次是人：{name}要走，你當時沒有多餘的錢可以留他。",
-    "quality": "最險的一次是品質：{quality}那件事之後，有三個月沒有人願意先付款。",
+    "quality": "最險的一次是品質：{quality}那件事之後，有一季沒有人願意先付款。",
     "platform": "最險的一次是平台：抽成上調的那個月，毛利直接變成負的。",
     "weather": "最險的一次是天氣：{storms}次颱風裡有一次把出貨全部停掉。",
     "debt": "最險的一次是債務：還款排在收入之前，你在當月賣掉了資產。"
