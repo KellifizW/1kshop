@@ -939,6 +939,257 @@
         {"id": "museum", "label": "產品停產，做成檔案與授權", "detail": "確定：轉型，收入改小，品牌還在。", "risk": "授權收入不穩定。", "effects": {"transformed": true, "revenue_mult": 0.7, "brand": 0.05, "core_kept": true}, "drivers": {"identity": 2, "scale": -1}, "memory": "century_recipe"},
         {"id": "force", "label": "繼續硬賣最初的產品", "detail": "確定：不轉型。趨勢繼續壓你。", "risk": "實質營運可能在百年前變成空殼。", "effects": {"revenue_mult": 0.8, "flags": {"forced_original": true}}, "drivers": {"identity": 1, "demand": -2}}
       ]
+    },
+    {
+      "id": "kol_visit",
+      "layer": "generic",
+      "grammar": "KOL",
+      "title": "有人舉著手機站在門口",
+      "body": "他沒有先聯絡。他點了{sells}，拍了十二分鐘。你的熟客在後面等。",
+      "omen": "這幾天有人在對面拍招牌。拍的是招牌，不是菜單。",
+      "weight": 12,
+      "cooldown": 30,
+      "min_month": 3,
+      "max_month": 400,
+      "choices": [
+        {"id": "invite", "label": "請他進來，包場一小時", "detail": "確定：曝光上升。這個月與下個月的需求會被墊高。", "likely": "門外開始有人拍照，客流上升約六成，持續兩個月。", "downside": "熟客發現位子變少；拍照的人不一定回來買第二次。", "affects": "熟客、當天排班的所有人", "risk": "你不知道他會不會發，也不知道發了之後是誰來。", "effects": {"revenue_mult": 1.16, "for_months": 2, "brand": 0.06, "trust": -0.015, "morale": -0.03}, "drivers": {"demand": 2, "brand": 2}, "marks": {"expansionist": 0.4}, "chain": {"after": 1, "event": "chain_kol_crowd"}, "memory": "kol_photo"},
+        {"id": "product_only", "label": "只讓他拍產品，不拍店內", "detail": "確定：曝光較小，店內秩序不受影響。", "likely": "品牌被認得一點，客流上升有限。", "downside": "他可能覺得你不夠有趣，轉去拍對街。", "affects": "只有你自己的一個下午", "risk": "流量上升的幅度不由你決定。", "effects": {"brand": 0.03, "revenue_mult": 1.05, "for_months": 2}, "drivers": {"brand": 1}},
+        {"id": "normal", "label": "照原來的速度做，不接包場", "detail": "確定：這個月不變。熟客不用等。", "likely": "曝光沒有發生。信任小幅上升。", "downside": "下一次這種人走進來，可能是走進對街。", "affects": "當天在場的熟客", "risk": "你不知道你拒絕的是多大的一波。", "effects": {"trust": 0.02, "brand": 0.01}, "drivers": {"quality": 1, "demand": -1}}
+      ]
+    },
+    {
+      "id": "platform_promo",
+      "layer": "generic",
+      "grammar": "PROMO",
+      "title": "平台邀請你參加半價大促",
+      "body": "它保證曝光。它不保證毛利，也不保證你的人做得完。",
+      "omen": "平台上同類型的店已經掛出活動海報。",
+      "weight": 14,
+      "cooldown": 26,
+      "min_month": 5,
+      "choices": [
+        {"id": "join", "label": "參加，全部接下來", "detail": "確定：這個月訂單量大幅上升，毛利下降，平台費率上升。", "likely": "訂單量約上升一倍，毛利被抽成與折扣吃掉，員工疲勞明顯上升。", "downside": "爆單、負評、有人在最忙的那天請辭。", "affects": "所有排班的人、你的睡眠、下兩個月的回頭率", "risk": "你不知道活動結束後會留下多少客人。", "effects": {"revenue_mult": 2.0, "for_months": 1, "cost_mod": 0.12, "platform_fee": 0.03, "morale": -0.08, "trust": -0.02}, "drivers": {"demand": 3, "margin": -3}, "marks": {"platform_leaning": 1.2, "grinder": 0.8}, "chain": {"after": 2, "event": "chain_promo_hangover"}, "memory": "platform_contract"},
+        {"id": "refuse", "label": "拒絕", "detail": "確定：這個月流量較少，毛利保住。", "likely": "客流下降約一成，持續兩個月。毛利與品質不受影響。", "downside": "平台把曝光給別人。下一次它給你的條件可能更差。", "affects": "下兩個月的客流", "risk": "你不知道這一波曝光對同行有多大。", "effects": {"revenue_mult": 0.92, "for_months": 2, "trust": 0.01}, "drivers": {"margin": 1, "demand": -1}, "marks": {"cash_guard": 0.4}},
+        {"id": "temp_staff", "label": "參加，但臨時加人", "detail": "確定：訂單上升，支出上升，爆單風險下降。", "likely": "訂單上升約六成，人事支出上升，出錯率比硬撐低。", "downside": "臨時工的品質不穩，訓練要花掉你自己的時間。", "affects": "你、既有的人手、這個月的現金", "risk": "加的人能不能在活動當天到位，不完全由你決定。", "effects": {"revenue_mult": 1.6, "for_months": 1, "cost_mod": 0.08, "cash": -0.35, "headcount_delta": 1}, "drivers": {"demand": 2, "margin": -1}, "marks": {"people_keeper": 0.4, "platform_leaning": 0.6}, "chain": {"after": 2, "event": "chain_promo_hangover"}},
+        {"id": "limited", "label": "限量供應，只接做得完的量", "detail": "確定：量上升有限，品質保住。", "likely": "訂單上升約四分之一，退貨與負評比全力接單少。", "downside": "搶不到的人會留負評，平台可能把你的排序往後放。", "affects": "沒搶到的客人、平台上的排序", "risk": "限量的數字要被多少人看見，你控制不了。", "effects": {"revenue_mult": 1.25, "for_months": 1, "quality": 0.02, "trust": -0.01, "brand": 0.02}, "drivers": {"quality": 2, "demand": 1}, "marks": {"quality_obsessed": 1, "customer_first": 0.4}}
+      ]
+    },
+    {
+      "id": "chain_kol_crowd",
+      "layer": "generic",
+      "grammar": "KOL_AFTER",
+      "chain_only": true,
+      "title": "拍照的人還在，坐下來的人變少",
+      "body": "曝光帶來的人留在門口。原來的熟客說，現在要等太久。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "segment", "label": "把時段分開：熟客時段與拍照時段", "detail": "確定：需求上升的一部分會留下，熟客不用排同一隊。", "likely": "回頭率回升，峰值人流被削平。", "downside": "拍照的人不喜歡被限制，曝光可能提早結束。", "affects": "熟客、門口排隊的人、排班表", "risk": "兩種客人會不會互相干擾，要做了才知道。", "effects": {"trust": 0.04, "churn": -0.01, "revenue_mult": 0.94, "for_months": 2}, "drivers": {"retention": 2, "demand": -1}, "marks": {"customer_first": 0.8}},
+        {"id": "expand", "label": "加人手與產能", "detail": "確定：固定成本上升。做得完的量上升。", "likely": "積壓訂單減少，疲勞下降。", "downside": "熱度過去之後，多出來的人變成固定成本。", "affects": "現金、新來的人", "risk": "熱度會維持多久，沒有人知道。", "effects": {"cash": -0.5, "fixed_add": 0.08, "headcount_delta": 1, "morale": 0.04}, "drivers": {"scale": 2, "cash": -1}, "marks": {"expansionist": 1}, "memory": "second_lease"},
+        {"id": "ride", "label": "全部接下來，直到熱度過去", "detail": "確定：這個月的量最高。人的疲勞也最高。", "likely": "營業額上升，出錯率上升，負評開始出現。", "downside": "有人可能在最忙的那天請辭。", "affects": "所有排班的人", "risk": "你不知道熱度甚麼時候斷。", "effects": {"revenue_mult": 1.2, "for_months": 2, "quality": -0.04, "trust": -0.03, "morale": -0.08}, "drivers": {"demand": 2, "quality": -2}, "marks": {"grinder": 1.2}, "chain": {"after": 3, "event": "chain_overwork_wave"}},
+        {"id": "stop", "label": "停掉拍照，回到原來的客人", "detail": "確定：需求回到活動前。", "likely": "熟客回來了。增長停了。", "downside": "剛認識你的人會忘記你。", "affects": "新客、熟客", "risk": "回去之後，需求會不會完全回來，不確定。", "effects": {"revenue_mult": 0.9, "for_months": 2, "trust": 0.05, "churn": -0.012}, "drivers": {"retention": 2, "demand": -2}, "marks": {"quality_obsessed": 0.6}}
+      ]
+    },
+    {
+      "id": "chain_promo_hangover",
+      "layer": "generic",
+      "grammar": "PROMO_AFTER",
+      "chain_only": true,
+      "title": "活動結束之後，訂單只剩活動前的七成",
+      "body": "留下來的客人只在有活動時出現。平台把抽成往上調了一格。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "own_channel", "label": "把客人搬到自己的渠道", "detail": "確定：花一筆錢做名單與下單入口，平台費率之後下降。", "likely": "三個月後回頭客上升，抽成下降。", "downside": "短期現金流出，搬不動的人就留在平台上。", "affects": "現金、熟客、平台的排序", "risk": "有多少人願意換地方下單，你不知道。", "effects": {"cash": -0.45, "platform_fee": -0.04, "trust": 0.02, "market_fit": 0.03}, "drivers": {"retention": 2, "margin": 1}, "marks": {"customer_first": 0.8, "platform_leaning": -1}, "memory": "platform_migration"},
+        {"id": "next_promo", "label": "再辦一次", "detail": "確定：量回來，毛利再被吃掉一次。", "likely": "這個月好看，下個月更難看。", "downside": "客人被訓練成只在活動時出現。", "affects": "毛利、員工疲勞", "risk": "平台下一次要的條件可能更差。", "effects": {"revenue_mult": 1.5, "for_months": 1, "cost_mod": 0.1, "platform_fee": 0.03, "churn": 0.01, "morale": -0.05}, "drivers": {"demand": 2, "margin": -2}, "marks": {"platform_leaning": 1.4}, "chain": {"after": 2, "event": "chain_promo_hangover"}},
+        {"id": "raise_price", "label": "把價格調回來，不做活動", "detail": "確定：價格上升，量下降。", "likely": "毛利回到正常，客流下降一段時間。", "downside": "只在活動時來的人會全部消失。", "affects": "折扣客、帳面收入", "risk": "留下的人有多少，要看你的東西值不值那個價。", "effects": {"price_mod": 0.08, "market_fit": -0.03, "trust": 0.02, "brand": 0.02}, "drivers": {"price": 2, "demand": -1}, "marks": {"quality_obsessed": 0.8}},
+        {"id": "accept", "label": "接受新的常態", "detail": "確定：不做任何事。", "likely": "量慢慢回來，或慢慢不回來。", "downside": "平台知道你需要它。", "affects": "之後每一筆談判", "risk": "時間站在誰那邊，不確定。", "effects": {"platform_fee": 0.02}, "drivers": {"margin": -1}, "marks": {"platform_leaning": 0.6}}
+      ]
+    },
+    {
+      "id": "chain_cheap_supply",
+      "layer": "generic",
+      "grammar": "SUPPLY_AFTER",
+      "chain_only": true,
+      "title": "便宜的原料在兩個月後出了問題",
+      "body": "三位客人說同一件事：味道不對。有一位拍了照。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "recall", "label": "換回原來的供應商，並公開說明", "detail": "確定：成本回到原來的水平，信任下降會停住。", "likely": "負評增加，但三個月後回頭率回升。", "downside": "這個月的毛利會被兩倍的原料成本吃掉。", "affects": "客人、供應商、帳上現金", "risk": "說明會被怎麼轉載，你控制不了。", "effects": {"cost_mod": -0.06, "trust": 0.03, "cash": -0.3, "quality": 0.05}, "drivers": {"quality": 2, "margin": -1}, "marks": {"quality_obsessed": 1.5, "customer_first": 1}},
+        {"id": "quiet", "label": "換回來，不說明", "detail": "確定：成本上升，沒有人知道原因。", "likely": "品質慢慢回來，信任不會回來。", "downside": "有人會把兩批東西比對，然後寫出來。", "affects": "客人、你自己的名聲", "risk": "被發現的機率不由你決定。", "effects": {"cost_mod": -0.04, "trust": -0.05, "quality": 0.03}, "drivers": {"quality": 1, "trust": -2}, "marks": {"quality_obsessed": -1}, "chain": {"after": 3, "event": "chain_quality_backlash"}},
+        {"id": "hold", "label": "維持現在的供應商", "detail": "確定：成本最低。", "likely": "投訴繼續，退貨率上升。", "downside": "一次食安事故可以把這間店結束。", "affects": "所有買過的人", "risk": "會不會出事、甚麼時候出事，你不知道。", "effects": {"returns": 0.06, "trust": -0.06, "quality": -0.05, "churn": 0.012}, "drivers": {"margin": 2, "quality": -3}, "marks": {"grinder": 0.6}},
+        {"id": "compensate", "label": "先補償客人，供應之後再談", "detail": "確定：現金流出一筆，信任下降較慢。", "likely": "被補償的人有一半會回來。", "downside": "成本問題沒有被解決，下個月還會出現。", "affects": "投訴的客人、現金", "risk": "補償會不會被當成承認，不確定。", "effects": {"cash": -0.4, "trust": 0.01, "churn": -0.004}, "drivers": {"customer": 2, "cash": -1}, "marks": {"customer_first": 1}, "chain": {"after": 2, "event": "chain_cheap_supply"}}
+      ]
+    },
+    {
+      "id": "chain_denied_leave",
+      "layer": "generic",
+      "grammar": "DEPARTURE_AFTER",
+      "chain_only": true,
+      "title": "他在你最忙的那天，把辭呈放在櫃檯",
+      "body": "通知期寫在紙上，語氣很客氣。班表上還排著他下個月。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "counter", "label": "用加薪與職位留他", "detail": "確定：人事成本上升，這個人留下來。", "likely": "他留下，其他人開始知道離職有用。", "downside": "下一次有人要走，你會被同一套條件綁住。", "affects": "這個人、其他還在的人、每月工資", "risk": "他留下的是人，還是兩個月，你不知道。", "effects": {"wage_mult": 1.08, "morale": 0.05, "trust": 0.01}, "drivers": {"team": 2, "margin": -1}, "marks": {"people_keeper": 1.2}},
+        {"id": "handover", "label": "要求交接兩週，付加班費", "detail": "確定：現金流出一筆，交接會比較完整。", "likely": "兩週之後他走，留下寫好的流程。", "downside": "兩週裡他會很累，出錯率上升。", "affects": "這個人、接他工作的人", "risk": "他會不會真的寫完，要看你們之間還剩多少。", "effects": {"cash": -0.25, "key_dependency": -0.06, "morale": -0.02}, "drivers": {"team": 1, "cash": -1}, "marks": {"quality_obsessed": 0.4}},
+        {"id": "letgo", "label": "讓他走，自己補那個班", "detail": "確定：工資省下，你的工時上升。", "likely": "你補了兩個月，產能下降。", "downside": "你可能在最忙的時候也倒下。", "affects": "你自己、剩下的每一個人", "risk": "這個班補得了多久，沒有人知道。", "effects": {"hours": 0.12, "health": -0.05, "morale": -0.05, "headcount_delta": -1}, "drivers": {"founder": -2, "margin": 1}, "marks": {"grinder": 1.5}, "chain": {"after": 3, "event": "chain_overwork_wave"}},
+        {"id": "ask", "label": "請他留到淡季結束", "detail": "確定：他答應或不答應，都要等他回話。", "likely": "有一半的機會他多留三個月。", "downside": "如果他留下只是因為人情，三個月後會走得更難看。", "affects": "這個人、你和他的關係", "risk": "人會不會答應，這裡不給機率。", "effects": {"morale": 0.01, "trust": 0.01, "will": -0.02}, "drivers": {"relation": 1}}
+      ]
+    },
+    {
+      "id": "chain_bank_call",
+      "layer": "structure",
+      "grammar": "CREDIT_AFTER",
+      "chain_only": true,
+      "title": "銀行把利率上調，並要求提前還一部分",
+      "body": "來信很短。它引用的是你簽過的那一頁。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "refinance", "label": "用資產重談條件", "detail": "確定：還款往後推，利息總額上升。", "likely": "這個月的壓力下降，之後每一個月都貴一點。", "downside": "資產被抵押之後，你能做的決定變少。", "affects": "現金、控制權、之後的每一次擴張", "risk": "銀行要不要接，取決於它怎麼看你的行業。", "effects": {"debt": 0.6, "cost_mod": 0.02, "complexity": 0.3}, "drivers": {"debt": 2, "cash": 1}, "marks": {"risk_taker": 1.2}},
+        {"id": "prepay", "label": "提前還一部分", "detail": "確定：現金流出，債務下降。", "likely": "跑道縮短，但下一次談判你站得比較穩。", "downside": "如果這個月客流不好，你會直接踩到紅線。", "affects": "現金、跑道", "risk": "不確定。這是確定值。", "effects": {"cash": -1.2, "debt": -1.2}, "drivers": {"cash": -2, "debt": -2}, "marks": {"cash_guard": 1}},
+        {"id": "guarantee_more", "label": "加個人擔保，換它不要提前收", "detail": "確定：公司的壓力搬到你個人身上。", "likely": "銀行同意。你的家變成這間公司的抵押品。", "downside": "公司如果倒，你個人要還。", "affects": "你、你的家庭", "risk": "你能承擔多少，這張卡不會告訴你。", "effects": {"guarantee": 1.2, "debt": 0.2}, "drivers": {"personal": -3, "debt": 1}, "marks": {"risk_taker": 1.8}, "memory": "guarantee_chop"},
+        {"id": "neglect", "label": "先不理它，看下一封信", "detail": "確定：這個月不做任何事。", "likely": "第二封信會更短，語氣更正式。", "downside": "信用紀錄會留下一筆，之後借錢更貴。", "affects": "之後所有的融資條件", "risk": "它會不會真的動手，你不知道。", "effects": {"cost_mod": 0.03, "trust": -0.01}, "drivers": {"debt": -1}, "marks": {"risk_taker": 0.6}, "chain": {"after": 3, "event": "chain_bank_call"}}
+      ]
+    },
+    {
+      "id": "chain_overwork_wave",
+      "layer": "generic",
+      "grammar": "LABOR_AFTER",
+      "chain_only": true,
+      "title": "排班表上，同一個名字連續出現十一個月",
+      "body": "有人開始請病假。有人在群組裡不再說話。牆上的加班板已經寫滿。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "raise_and_rest", "label": "加薪，並強制排休", "detail": "確定：人事成本上升，工時下降，壓力下降。", "likely": "三個月之內沒有人走。產能短期下降。", "downside": "毛利變薄。如果客流沒有回來，這筆錢撐不久。", "affects": "每一個人、每月工資、你自己", "risk": "不確定的是你能撐幾個月。", "effects": {"wage_mult": 1.12, "hours": -0.1, "morale": 0.14, "health": 0.03, "revenue_mult": 0.95, "for_months": 2}, "drivers": {"team": 3, "margin": -2}, "marks": {"people_keeper": 1.6, "grinder": -1.5}, "memory": "labor_roster"},
+        {"id": "hire", "label": "加人分擔", "detail": "確定：固定成本上升，既有的人壓力下降。", "likely": "爆單風險下降，訓練期兩個月內出錯率上升。", "downside": "如果需求只是短暫的高峰，多出來的人留不住。", "affects": "現金、新來的人、既有的人", "risk": "招不招得到，要看這個城市。", "effects": {"headcount_delta": 1, "cash": -0.4, "morale": 0.06}, "drivers": {"team": 2, "cash": -1}, "marks": {"people_keeper": 1, "expansionist": 0.4}, "memory": "first_hire"},
+        {"id": "bonus", "label": "發一次性獎金，班表不變", "detail": "確定：現金流出一筆，工時不變。", "likely": "這個月沒有人說話。下個月有人說話。", "downside": "錢花掉了，壓力沒有下降。", "affects": "現金、每一個人對你的信任", "risk": "他們會不會把這筆錢當成補償，你控制不了。", "effects": {"cash": -0.5, "morale": 0.04, "trust": -0.01}, "drivers": {"margin": -1, "team": -1}, "marks": {"grinder": 1}},
+        {"id": "keep", "label": "維持現在的做法", "detail": "確定：成本不變。", "likely": "下一個月，有人會在最忙的那天走。", "downside": "走的那個人可能是唯一做得完那件事的人。", "affects": "每一個人，包括你自己", "risk": "誰先倒下，不知道。", "effects": {"morale": -0.1, "health": -0.04, "key_dependency": 0.04}, "drivers": {"margin": 1, "team": -3}, "marks": {"grinder": 1.8}, "memory": "overtime_board"}
+      ]
+    },
+    {
+      "id": "chain_quality_reputation",
+      "layer": "generic",
+      "grammar": "QUALITY_AFTER",
+      "chain_only": true,
+      "title": "有人把你退掉的那一批寫成文章",
+      "body": "不是廣告。他自己付錢買的，然後寫了兩千字，包括你退回供應商的那一批。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "meet", "label": "約他見面，但不付錢", "detail": "確定：你會花掉一個下午。", "likely": "他會寫第二篇，內容比第一篇更細節。", "downside": "他可能把你說的話也寫進去。", "affects": "品牌、你自己的時間", "risk": "他會不會接受你的說法，不知道。", "effects": {"brand": 0.06, "trust": 0.03, "hours": 0.04}, "drivers": {"brand": 2, "founder": -1}, "marks": {"customer_first": 0.6}, "memory": "quality_article"},
+        {"id": "standard", "label": "把你的標準寫成公開的一頁", "detail": "確定：要花時間寫，之後可以用很多次。", "likely": "新客願意先付錢，退貨率下降。", "downside": "寫出來的標準，以後會被拿來對照你。", "affects": "所有未來的客人、你自己", "risk": "不確定。這是確定值。", "effects": {"quality": 0.05, "trust": 0.04, "returns": -0.02, "brand": 0.04}, "drivers": {"quality": 3, "brand": 1}, "marks": {"quality_obsessed": 1.5}, "memory": "quality_standard"},
+        {"id": "ignore", "label": "甚麼都不做", "detail": "確定：你不花時間。", "likely": "文章會被忘記，或被別人引用。", "downside": "被引用的時候，你沒有自己的版本。", "affects": "品牌", "risk": "它會傳多遠，不知道。", "effects": {"brand": -0.01}, "drivers": {"brand": -1}}
+      ]
+    },
+    {
+      "id": "chain_expansion_strain",
+      "layer": "structure",
+      "grammar": "SCALE_AFTER",
+      "chain_only": true,
+      "title": "第二個據點的現金，從第一個據點抽走",
+      "body": "兩邊的帳各自成立。合起來不成立。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "fund", "label": "借錢把兩邊都撐住", "detail": "確定：現金進來，債務與利息上升。", "likely": "兩邊都活著，跑道縮短到只剩利息能決定。", "downside": "如果其中一邊三個月內沒有轉正，兩邊一起倒。", "affects": "現金、債務、你的個人擔保", "risk": "銀行怎麼看第二個據點，你不知道。", "effects": {"cash": 1.6, "debt": 1.6, "complexity": 0.4}, "drivers": {"capital": 2, "debt": 2, "scale": 1}, "marks": {"risk_taker": 1.4, "expansionist": 1.2}, "memory": "debt_note"},
+        {"id": "slow", "label": "放慢第二個據點", "detail": "確定：固定成本上升的速度下降。", "likely": "第一據點的現金回穩，第二據點晚六個月站穩。", "downside": "先佔位的人可能把那個位置拿走。", "affects": "第二據點的人、你的時間表", "risk": "市場會不會等你，不知道。", "effects": {"fixed_mult": 0.94, "revenue_mult": 0.96, "complexity": -0.2}, "drivers": {"cash": 2, "scale": -1}, "marks": {"cash_guard": 1, "expansionist": -1}},
+        {"id": "close_second", "label": "關掉第二個據點", "detail": "確定：一次性的結束成本，之後固定成本下降。", "likely": "現金三個月內回穩。你會在很長一段時間裡不想再開第二間。", "downside": "那邊請的人要麼調回來，要麼遣散。", "affects": "第二據點的每一個人、租約、你", "risk": "租約的違約金有多少，要看你簽的那一頁。", "effects": {"cash": -0.8, "fixed_mult": 0.86, "revenue_mult": 0.9, "morale": -0.06, "complexity": -0.6}, "drivers": {"cash": 1, "scale": -3}, "marks": {"cash_guard": 1.2, "expansionist": -1.5}, "memory": "severance_list"},
+        {"id": "manager", "label": "請一個經理人管一邊", "detail": "確定：人事成本上升，你的時間被釋放。", "likely": "你回到第一據點，第二據點的數字一個月後才看得懂。", "downside": "他做的決定不會跟你做的一樣。", "affects": "你、兩邊的人", "risk": "這個人會不會留，不知道。", "effects": {"cash": -0.6, "fixed_add": 0.12, "hours": -0.12, "complexity": 0.3, "key_dependency": -0.08}, "drivers": {"team": 2, "founder": 2, "margin": -1}, "marks": {"expansionist": 0.6}, "memory": "badge"}
+      ]
+    },
+    {
+      "id": "chain_cash_guard_cost",
+      "layer": "generic",
+      "grammar": "CAPACITY_AFTER",
+      "chain_only": true,
+      "title": "旺季來的時候，你的產能沒有準備",
+      "body": "你不借錢，所以設備沒有先買、人沒有先請。需求來了，做不完。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "overtime", "label": "用加班補", "detail": "確定：人事成本上升一點，工時上升很多。", "likely": "這個月的單做得完八成。", "downside": "下個月有人請病假。", "affects": "每一個人、你自己", "risk": "人能撐多久，不知道。", "effects": {"hours": 0.1, "health": -0.04, "cost_mod": 0.04, "morale": -0.05}, "drivers": {"demand": 1, "founder": -2}, "marks": {"grinder": 1.2}},
+        {"id": "outsource", "label": "外包一部分", "detail": "確定：毛利下降，量做得完。", "likely": "客人收到東西，品質不由你控制。", "downside": "出問題的時候，名字還是你的。", "affects": "品質、客人、毛利", "risk": "外包的品質穩定度，你不知道。", "effects": {"cost_mod": 0.08, "quality": -0.03, "revenue_mult": 1.06, "for_months": 1}, "drivers": {"margin": -1, "demand": 1}},
+        {"id": "cap", "label": "限量，保住品質", "detail": "確定：量上升有限。", "likely": "負評增加一點，信任不受傷。", "downside": "旺季一年只有一次。", "affects": "沒買到的客人", "risk": "他們會不會回來，不知道。", "effects": {"quality": 0.03, "trust": 0.02, "revenue_mult": 0.98, "for_months": 1}, "drivers": {"quality": 2, "demand": -1}, "marks": {"quality_obsessed": 1, "customer_first": 0.4}},
+        {"id": "lease", "label": "租設備，不買", "detail": "確定：這個月多一筆租金，產能立刻上升。", "likely": "旺季做得完，資產負債表不變。", "downside": "租金會一直在那裡，旺季不會。", "affects": "現金、固定成本", "risk": "租約要不要續，三個月後才知道。", "effects": {"cash": -0.3, "fixed_add": 0.06, "capacity_add": 0.1}, "drivers": {"cash": -1, "scale": 1}, "marks": {"cash_guard": 0.6}, "memory": "tool_ledger"}
+      ]
+    },
+    {
+      "id": "chain_customer_loyalty",
+      "layer": "generic",
+      "grammar": "CUSTOMER_AFTER",
+      "chain_only": true,
+      "title": "差評變少了，成本變高了",
+      "body": "你退掉的、補償的、多留的時間，都在帳上。客人回來了。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "raise_slightly", "label": "小幅調價", "detail": "確定：價格上升約 5%。", "likely": "熟客留著，新客成交慢一點。", "downside": "有人會把舊價目表拿出來比。", "affects": "毛利、客人對你的感覺", "risk": "他們願不願意，不知道。", "effects": {"price_mod": 0.05, "market_fit": -0.015, "trust": 0.01}, "drivers": {"price": 1, "margin": 2}, "marks": {"quality_obsessed": 0.4}},
+        {"id": "hold_price", "label": "維持價格，接受較薄的毛利", "detail": "確定：毛利下降，信任上升。", "likely": "回頭率上升，現金累積變慢。", "downside": "下一次成本上升，你沒有空間。", "affects": "毛利、你的跑道", "risk": "不確定。這是確定值。", "effects": {"cost_mod": 0.03, "trust": 0.03, "churn": -0.008}, "drivers": {"customer": 2, "margin": -1}, "marks": {"customer_first": 1.4}},
+        {"id": "membership", "label": "把熟客變成會員制", "detail": "確定：收入比較可預期，帳期變短。", "likely": "現金先進來，留存上升。", "downside": "會員會開始要求，你要有東西可以給。", "affects": "熟客、現金、你的承諾", "risk": "有多少人願意預付，不知道。", "effects": {"ar_days": 10, "churn": -0.012, "cash": 0.35, "complexity": 0.2}, "drivers": {"retention": 2, "cash": 1}, "marks": {"customer_first": 1}, "memory": "discount_slip"}
+      ]
+    },
+    {
+      "id": "chain_platform_lock",
+      "layer": "structure",
+      "grammar": "PLATFORM_AFTER",
+      "chain_only": true,
+      "title": "平台自己開了一家做同樣生意的店",
+      "body": "它用的資料，有一部分來自你的訂單。你的排序往後移了兩頁。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "leave", "label": "退出平台，自建渠道", "detail": "確定：流量立刻下降，抽成歸零。", "likely": "六個月之後，留下來的客人是你的。", "downside": "前六個月會很難看，現金要撐得住。", "affects": "客流、現金、每一筆訂單", "risk": "有多少人願意跟著你換地方，不知道。", "effects": {"platform_fee": -0.09, "revenue_mult": 0.72, "for_months": 4, "trust": 0.03, "brand": 0.03}, "drivers": {"independence": 3, "demand": -2}, "marks": {"platform_leaning": -2, "customer_first": 0.8}, "memory": "platform_migration"},
+        {"id": "negotiate", "label": "留下來，談條件", "detail": "確定：你會花掉很多時間，結果可能是零。", "likely": "抽成小幅下降，或完全不變。", "downside": "它知道你有多依賴它。", "affects": "毛利、你的時間", "risk": "對方要不要談，不由你決定。", "effects": {"platform_fee": -0.02, "hours": 0.06, "will": -0.03}, "drivers": {"margin": 1, "founder": -1}},
+        {"id": "differentiate", "label": "做平台做不了的那一部分", "detail": "確定：成本上升，做法變得不一樣。", "likely": "有一小群人只找你，不透過平台。", "downside": "那一小群人夠不夠養這間店，要之後才知道。", "affects": "產品、品質、客人結構", "risk": "市場有多大，不確定。", "effects": {"cost_mod": 0.05, "quality": 0.05, "brand": 0.05, "market_fit": -0.02, "trust": 0.03}, "drivers": {"identity": 2, "product": 2}, "marks": {"quality_obsessed": 1.2}},
+        {"id": "accept", "label": "接受，繼續做", "detail": "確定：甚麼都不變。", "likely": "毛利繼續被壓。", "downside": "下一次它調整規則，你還是只能接受。", "affects": "之後每一個月", "risk": "它會不會再調整，你不知道。", "effects": {"platform_fee": 0.02, "morale": -0.02}, "drivers": {"margin": -1}, "marks": {"platform_leaning": 1}}
+      ]
+    },
+    {
+      "id": "chain_people_keeper",
+      "layer": "generic",
+      "grammar": "TEAM_AFTER",
+      "chain_only": true,
+      "title": "現金最緊的那個月，有人說薪水可以晚一點",
+      "body": "不是全部的人。是最關鍵的那兩個。他們把話講得很輕，好像這是小事。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "accept", "label": "接受，寫成借據", "detail": "確定：這個月的現金壓力下降。", "likely": "他們留下來。你欠他們一筆寫在紙上的錢。", "downside": "下一次他們要的時候，你必須給。", "affects": "現金、你和他們之間的關係", "risk": "不確定。這是確定值。", "effects": {"cash": 0.5, "morale": 0.05, "trust": 0.02}, "drivers": {"team": 2, "cash": 1}, "marks": {"people_keeper": 1.2}, "memory": "wage_consent"},
+        {"id": "refuse", "label": "拒絕，想辦法付", "detail": "確定：現金更緊。", "likely": "他們知道你沒有把他們當成緩衝。", "downside": "如果這個月撐不過去，這件事不會被記得。", "affects": "現金、跑道", "risk": "你要去借、去賣、還是去拖，這裡不決定。", "effects": {"cash": -0.2, "morale": 0.08, "trust": 0.03, "will": -0.03}, "drivers": {"team": 2, "cash": -2}, "marks": {"people_keeper": 1.6}},
+        {"id": "equity", "label": "用分紅或股權換", "detail": "確定：現金壓力下降，控制權下降一點。", "likely": "他們開始把這間店當成自己的。", "downside": "之後每一個決定，都要多問兩個人。", "affects": "控制權、治理、每一個人", "risk": "這套規則能不能長期執行，不知道。", "effects": {"cash": 0.4, "control": -0.05, "morale": 0.1, "complexity": 0.3}, "drivers": {"team": 3, "control": -1}, "marks": {"people_keeper": 1.4}, "memory": "employee_trust_doc"}
+      ]
+    },
+    {
+      "id": "chain_quality_backlash",
+      "layer": "generic",
+      "grammar": "TRUST_AFTER",
+      "chain_only": true,
+      "title": "那一批沒有被召回的東西，被拍成了影片",
+      "body": "標題比內文大聲。有人開始問你兩個月前的說明，那時你說沒有問題。",
+      "weight": 0,
+      "cooldown": 999,
+      "min_month": 1,
+      "choices": [
+        {"id": "apologize", "label": "公開道歉，全部召回", "detail": "確定：現金流出一筆，信任下降會停住。", "likely": "半年之後這件事會被忘記，你的店還在。", "downside": "這個月的毛利會被召回吃掉。", "affects": "所有買過的人、現金、你自己的名聲", "risk": "道歉會被接受還是被截圖，不知道。", "effects": {"cash": -0.8, "trust": 0.02, "quality": 0.04, "returns": 0.04, "brand": -0.03}, "drivers": {"customer": 2, "cash": -2, "quality": 1}, "marks": {"customer_first": 1.5, "quality_obsessed": 1}, "memory": "recall_notice"},
+        {"id": "legal", "label": "走法律程序", "detail": "確定：費用上升，時間被佔用。", "likely": "影片會被下架，或不會。", "downside": "在結果出來之前，每個人都會站在影片那一邊。", "affects": "現金、你的時間、品牌", "risk": "能不能贏，這裡不給機率。", "effects": {"cash": -1.0, "hours": 0.1, "brand": -0.06, "trust": -0.05, "will": -0.05}, "drivers": {"cash": -2, "brand": -2}, "marks": {"grinder": 0.4}},
+        {"id": "explain", "label": "說明，但不召回", "detail": "確定：不花現金。", "likely": "一部分的人會接受你的說法。", "downside": "不接受的人會自己去做化驗。", "affects": "品牌、客人", "risk": "化驗結果會不會如你所說，你自己最清楚。", "effects": {"trust": -0.04, "churn": 0.01, "brand": -0.02}, "drivers": {"brand": -1, "margin": 1}, "marks": {"quality_obsessed": -1.5}, "chain": {"after": 4, "event": "chain_quality_backlash"}}
+      ]
     }
   ]
 }

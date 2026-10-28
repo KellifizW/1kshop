@@ -1,6 +1,9 @@
 import * as Sim from "./sim.js";
 import * as P from "./present.js";
-import { paintCard, cardBlob } from "./share.js";
+import * as Stage from "./stage.js";
+import * as Charts from "./charts.js";
+import * as Story from "./story.js";
+import { paintCard, cardBlob, shareText } from "./share.js";
 
 const app = document.querySelector("#app");
 const statusEl = document.querySelector("#status");
@@ -343,111 +346,119 @@ function playView() {
   if (run.phase === "closing") return closeView();
   const w = P.worldLine(data, run);
   const rl = P.redlineView(data, run) || { name: "尚未結算", text: "結算第一個月之後，紅線才有數字。", level: "ok", mark: "穩" };
-  const sym = run.month ? P.symptomTexts(data, run) : ["開業之前，市場還沒有句子。", "團隊一欄是空的。", "你還睡得著。"];
   const fc = run.month >= 0 && run.phase === "play" ? Sim.forecast(data, run) : null;
   const last = run.last;
-  const info = data.economy.modes[run.mode].info;
-  const band = fc && info === "full"
-    ? `若沒有新決定，帳面收入大約 ${P.money(data, run, fc.revenue[0])} 到 ${P.money(data, run, fc.revenue[1])}。`
-    : fc ? "硬核不把區間收窄。你看得到合約，看不到顧問的表。" : "";
-  const side = sidePanel();
   const drawer = ui.drawer ? drawerHtml() : "";
   const biz = P.business(data, run);
   const from = P.calendarLabel(run);
   const to = P.calendarLabel(run, 1);
-  const isProfit = (last?.revenue || 0) >= (last?.cost || 0);
+  const info = data.economy.modes[run.mode].info;
+  const kpis = Story.quickMetrics(data, run);
+  const story = last ? Story.monthStory(data, run) : [];
+  const mult = paceMult(run);
   const healthPct = Math.round(run.founder.health * 100);
   const willPct = Math.round(run.founder.will * 100);
   const controlPct = Math.round(run.founder.control * 100);
-  const trustPct = Math.round((run.venture?.trust || 0) * 100);
-  const fitPct = Math.round((run.venture?.marketFit || 0) * 100);
-  const qualityPct = Math.round((run.venture?.quality || 0) * 100);
+  const note = pauseNote(run);
+  const crisisNote = note ? `<p class="crisis-note">${$(note)}</p>` : "";
 
-  return `<div class="shell with-side"><article class="sheet">
-    <header class="worldbar"><div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p><h2 id="pass-title">${$(P.whenLabel(run))}</h2><p class="muted">${$(from)} · ${$(run.venture.name)}</p></div>
-    <div class="pace">
-      <button class="pill" data-act="speed-slower">減速</button>
-      <button class="pill" data-act="flow-toggle">${$(speedLabel())}</button>
-      <button class="pill" data-act="speed-faster">加速</button>
-    </div></header>
+  return `<div class="shell play-shell"><article class="sheet play-sheet">
+    <header class="worldbar">
+      <div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p>
+      <h2 id="pass-title">${$(run.venture?.name || "還沒有開始")}</h2>
+      <p class="muted">${$(from)} → ${$(to)} · ${$(P.whenLabel(run))}</p></div>
+      <div class="pace" role="group" aria-label="時間速度">
+        ${[1, 3, 10].map((m) => `<button class="pill ${mult === m ? "on" : ""}" data-act="pace" data-mult="${m}" aria-pressed="${mult === m}">${m}×</button>`).join("")}
+        <button class="pill" data-act="month-end">直接到月底</button>
+        <button class="pill" data-act="flow-toggle">${flowOn() ? "⏸ 按停" : "▶ 讓它跑"}</button>
+        <button class="pill ghost-pill" data-act="speed-slower">${$(speedLabel())}</button>
+      </div>
+    </header>
     ${autoChrome()}
-    <div class="dashboard-grid">
-      <section class="dash-card dash-full" aria-label="時間在走">
-        <h3>🕐 時間流動</h3>
-        ${flowOn() ? `<div class="passage-months"><span id="pass-from">${$(from)}</span><div class="passage-track"><i id="pass-marker"></i></div><span id="pass-to">${$(to)}</span></div>
-        <p id="pass-day">第 1 日 / 30 · ${$(biz.name)}</p>
-        <p id="pass-pulse" class="sub-text">${$(biz.revenueLabel ? biz.revenueLabel + "：" + biz.pulse : "入帳")}會在這個月裡跳動。重大的事才把日子按停。</p>
-        <div id="live-feed" class="feed" aria-live="polite" aria-label="這個月出現的小事"></div>` : `<p class="sub-text">時間暫停。可以手動進入下一個月，或再打開流動。</p>`}
-      </section>
-
-      <section class="dash-card" aria-label="財務概覽">
-        <h3>💰 財務概覽</h3>
-        <div class="big-num ${run.finance.cash > 0.5 ? "good" : "bad"}" id="live-cash">${$(P.money(data, run, run.finance.cash))}</div>
-        <p class="sub-text">走動中的現金</p>
-        <div style="margin-top: 12px;">
-          <div class="metric-row"><span class="label">帳面收入</span><span class="value">${last ? $(P.money(data, run, last.revenue)) : "—"}</span></div>
-          <div class="metric-row"><span class="label">實際進帳</span><span class="value">${last ? $(P.money(data, run, last.collected)) : "—"}</span></div>
-          <div class="metric-row"><span class="label">本月成本</span><span class="value">${last ? $(P.money(data, run, last.cost)) : "—"}</span></div>
-          ${run.finance.debt > 0 ? `<div class="metric-row"><span class="label">債務</span><span class="value">${$(P.money(data, run, run.finance.debt))}</span></div>` : ""}
-        </div>
-      </section>
-
-      <section class="dash-card redline-card ${rl.level}" aria-label="結構紅線">
-        <h3>⚠️ 結構紅線</h3>
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <span class="redline-icon" style="color: ${rl.level === "crit" ? "var(--seal)" : rl.level === "warn" ? "var(--warn)" : "var(--good)"}">${$(rl.mark)}</span>
-          <span style="font-weight:600; font-size:16px;">${$(rl.name || "尚未結算")}</span>
-        </div>
-        <p class="sub-text">${$(rl.text || "結算第一個月之後，紅線才有數字。")}</p>
-      </section>
-
-      <section class="dash-card dash-full" aria-label="本月總結">
-        <h3>📋 本月紀錄</h3>
-        <p class="${isProfit ? "delta up" : "delta down"}" style="font-size:16px; font-weight:500; margin-bottom:6px;">${last ? $(last.line) : "名字已經寫上。第一個月還沒結算。"}</p>
-        ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
-        <p class="muted">${$(P.commitmentLine(run))}</p>
-        ${band ? `<p class="muted">${$(band)}</p>` : ""}
-      </section>
-
-      <section class="dash-card" aria-label="經營指標">
-        <h3>📊 經營指標</h3>
-        <div class="metric-row"><span class="label">信任</span><span class="value">${trustPct}%</span></div>
-        <div class="metric-row"><span class="label">配合度</span><span class="value">${fitPct}%</span></div>
-        <div class="metric-row"><span class="label">品質</span><span class="value">${qualityPct}%</span></div>
-      </section>
-
-      <section class="dash-card" aria-label="創辦人狀態">
-        <h3>🧑 創辦人狀態</h3>
-        <div class="metric-row"><span class="label">健康</span><span class="value" style="color: ${healthPct < 40 ? "var(--seal)" : healthPct < 60 ? "var(--warn)" : "var(--good)"}">${healthPct}%</span></div>
-        <div class="metric-row"><span class="label">意志</span><span class="value" style="color: ${willPct < 40 ? "var(--seal)" : willPct < 60 ? "var(--warn)" : "var(--good)"}">${willPct}%</span></div>
-        <div class="metric-row"><span class="label">控制權</span><span class="value">${controlPct}%</span></div>
-      </section>
-
-      <section class="dash-card dash-full" aria-label="三條線">
-        <h3>📝 這個月的句子</h3>
-        <ul class="symptom-list">
-          ${sym.map((s, i) => {
-            const axis = i === 0 ? "axis-market" : i === 1 ? "axis-team" : "axis-founder";
-            const axisLabel = i === 0 ? "市場" : i === 1 ? "團隊" : "你";
-            return `<li class="${axis}">${$(s)}</li>`;
-          }).join("")}
-        </ul>
-      </section>
-
-      ${feedHtmlDash(run)}
+    ${crisisNote}
+    <div class="play-grid">
+      <div class="stage-col">
+        ${Stage.stageHtml(data, run)}
+        <section class="passage" aria-label="這個月的時間">
+          ${flowOn() ? `<div class="passage-months"><span id="pass-from">${$(from)}</span><div class="passage-track"><i id="pass-marker"></i></div><span id="pass-to">${$(to)}</span></div>
+          <p id="pass-day">第 1 日 / 30 · ${$(biz.name)}</p>
+          <p id="pass-pulse" class="sub-text">${$(biz.revenueLabel ? biz.revenueLabel + "：" + biz.pulse : "入帳")}會在這個月裡跳動。重大的事才把日子按停。</p>
+          <div id="live-feed" class="feed" aria-live="polite" aria-label="這個月出現的小事"></div>`
+          : `<p class="sub-text">時間按停。可以按「直接到月底」，或按「讓它跑」看這個月怎麼走。</p>`}
+        </section>
+        <section class="month-story" aria-label="上個月發生了什麼">
+          <p class="fold-k">上個月發生的事</p>
+          ${story.length ? `<ol class="story-lines">${story.map((line) => `<li>${$(line)}</li>`).join("")}</ol>` : `<p class="muted">名字已經寫上。第一個月還沒有故事。</p>`}
+          ${last ? `<p class="muted">${$(last.line)}</p>` : ""}
+          ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
+          ${info === "sparse" ? "" : `<p class="small">先講故事，損益表在「帳簿」裡。</p>`}
+        </section>
+      </div>
+      <aside class="rail" aria-label="快速狀態與操作">
+        <section class="rail-kpis">${kpis.map((m) => `<div class="kpi ${m.level}" data-id="${m.id}">
+            <span class="kpi-label">${$(m.label)}</span>
+            <b class="kpi-value" id="kpi-${m.id}">${$(m.value)}</b>
+            <small class="kpi-note" id="kpi-${m.id}-note">${$(m.note)}</small>
+          </div>`).join("")}</section>
+        <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%</p>
+        <section class="rail-card redline-card ${rl.level}">
+          <p class="fold-k">結構紅線</p>
+          <p><b class="redline-icon">${$(rl.mark)}</b> ${$(rl.name || "尚未結算")}</p>
+          <p class="small">${$(rl.text || "結算第一個月之後，紅線才有數字。")}</p>
+        </section>
+        ${Charts.runwayView(data, run, { debt: true })}
+        <details class="rail-card rail-forecast" ${ui.forecastOpen === false ? "" : "open"}>
+          <summary>月初：預測與部署</summary>
+          ${fc ? Charts.forecastPanel(data, run, fc) : `<p class="muted">結算第一個月之後，這裡會有區間預測。</p>`}
+        </details>
+        <section class="rail-card rail-decisions">
+          <p class="fold-k">本月決策</p>
+          ${railDecisions(run)}
+        </section>
+        <nav class="dock" aria-label="抽屜">
+          <button data-act="drawer" data-id="ledger">帳簿</button>
+          <button data-act="drawer" data-id="charts">圖表</button>
+          <button data-act="drawer" data-id="crew">團隊</button>
+          <button data-act="drawer" data-id="peers">同行</button>
+          <button data-act="drawer" data-id="commits">承諾</button>
+          <button data-act="drawer" data-id="time">時間</button>
+        </nav>
+      </aside>
     </div>
-    ${flowOn() ? "" : `<button class="go" data-act="settle" data-autofocus>進入下一個月</button>`}
-    <button class="alt" data-act="skip">跳到下一件要決定的事</button>
-    ${flowOn() ? `<button class="ghost" data-act="settle">只推進這一個月</button>` : ""}
-    <button class="ghost" data-act="initiative-open">主動做一件事</button>
-    <nav class="dock" aria-label="帳簿分頁">
-      <button data-act="drawer" data-id="ledger">帳簿</button>
-      <button data-act="drawer" data-id="peers">同行</button>
-      <button data-act="drawer" data-id="commits">承諾</button>
-      <button data-act="drawer" data-id="time">時間</button>
-    </nav>
     ${drawer}
-  </article>${side}</div>`;
+  </article></div>`;
+}
+
+/** 月初的決策區。只給最該看的那幾件，其餘放在帳簿抽屜裡。 */
+function railDecisions(run) {
+  const all = Sim.initiatives(data, run);
+  const main = all.filter((o) => o.id !== "close");
+  const close = all.find((o) => o.id === "close");
+  const stage = data.economy.stages.find((x) => run.month <= x.until) || data.economy.stages.at(-1);
+  const ready = run.month >= (run.initiativeReady || 0);
+  const status = ready
+    ? `做了之後，下一次可以主動做事大約是第 ${run.month + (stage.decision_gap || 8)} 個月。`
+    : `下一次可以主動做事是第 ${run.initiativeReady || run.month + 1} 個月。這段時間讓上個月的決定發酵。`;
+  const buttons = main.slice(0, 4).map((o) => `<button class="choice" data-act="initiative" data-id="${$(o.id)}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("");
+  return `<div class="stack">${buttons || `<p class="muted">這個月沒有可以主動做的事。</p>`}</div>
+    ${main.length > 4 ? `<button class="ghost" data-act="drawer" data-id="initiative">還有 ${main.length - 4} 件可以做</button>` : ""}
+    ${close ? `<button class="ghost danger-ghost" data-act="initiative" data-id="close">${$(close.label)}</button>` : ""}
+    <p class="small">${$(status)}</p>`;
+}
+
+/** 時間按停的原因。事件不是隨機跳出來的，它要講得出是哪一件事引來的。 */
+function pauseNote(run) {
+  if (!run) return "";
+  if (run.phase === "laststand") return `時間按停。現金付不出這一輪。以日計大約還有 ${run.rescueDays || 0} 天，行動還剩 ${run.rescueLeft || 0} 次。`;
+  if (run.phase === "succession") return "時間按停。你不再坐在日常裡，要決定誰接手。";
+  if (run.phase === "event") {
+    const ev = run.pendingEvent || {};
+    const cause = ev.chainCause;
+    if (cause) return `時間按停。這件事不是隨機的：它是第 ${cause.causeMonth} 個月你選「${cause.choice}」之後，走到這裡的。`;
+    if (ev.major) return "時間按停。這是重大事件。第一次發生時，遊戲會等你，不會替你選。";
+    return "時間按停。有一件要決定的事。";
+  }
+  return "";
 }
 
 function businessStrip(run) {
@@ -551,7 +562,37 @@ function drawerHtml() {
       <p class="muted">人物會不會答應、市場會不會買單，仍不給假精確機率。</p>`;
   } else if (id === "initiative") {
     const list = Sim.initiatives(data, run);
-    body = `<h2>主動做一件事</h2><div class="stack">${list.map((it) => `<button class="choice" data-act="initiative" data-id="${it.id}"><b>${$(it.label)}</b><span>${$(it.detail)}</span></button>`).join("")}</div>`;
+    body = `<h2>主動做一件事</h2><div class="stack">${list.map((it) => `<button class="choice" data-act="initiative" data-id="${it.id}"><b>${$(it.label)}</b><span>${$(it.detail)}</span></button>`).join("")}</div>
+      <p class="muted">每一項都是確定的動作，不是抽卡。後果要幾個月之後才看得見。</p>`;
+  } else if (id === "charts") {
+    body = `<h2>五張圖</h2>
+      <p class="muted">這些圖不是報表的裝飾。破產之後，你要能從這裡看出是哪一層先壞掉。</p>
+      <div class="chart-stack">
+        ${Charts.runwayView(data, run, { debt: true })}
+        ${Charts.waterfall(data, run)}
+        ${Charts.funnel(data, run)}
+        ${Charts.bottleneck(data, run)}
+        ${Charts.decisionLine(data, run)}
+      </div>`;
+  } else if (id === "crew") {
+    const list = Story.crewRoster(data, run);
+    body = `<h2>團隊</h2>
+      ${list.length ? `<ul class="crew-list">${list.map((m) => `<li class="crew-row ${m.gone ? "gone" : ""}">
+          <span class="crew-face" aria-hidden="true">${$(m.name.slice(0, 1))}</span>
+          <div class="crew-main">
+            <b>${$(m.name)}</b><span class="crew-role">${$(m.role)} · ${m.age} 歲 · ${$(m.traitLabel)}</span>
+            <p class="small">${$(m.traitNote || "")}</p>
+            <p class="small">${$(m.line)}</p>
+            ${m.need ? `<p class="small crew-need">他需要的是：${$(m.need)}</p>` : ""}
+            <div class="crew-bars">
+              <span class="bar" data-k="壓力" style="--v:${m.stressPct}%"><i></i></span>
+              <span class="bar" data-k="忠誠" style="--v:${m.loyaltyPct}%"><i></i></span>
+              <span class="bar" data-k="能力" style="--v:${m.skillPct}%"><i></i></span>
+            </div>
+            <p class="small">${$(m.state)} · 做了 ${m.tenure} 個月 · 加班 ${m.overtimeDays} 天 · 加薪 ${m.raises} 次${m.promoted ? " · 已經能替你做決定" : ""}</p>
+          </div>
+        </li>`).join("")}</ul>` : `<p>還沒有請人。所有的事都是你一個人做。</p>`}
+      <p class="muted">${$(Story.marksLine(data, run))}</p>`;
   }
   return `<section class="drawer" role="dialog" aria-label="細節"><button class="ghost" data-act="close-drawer">收起</button>${body}</section>`;
 }
@@ -574,14 +615,30 @@ function sparkTable() {
 }
 
 function eventView() {
-  const ev = ui.run.pendingEvent;
-  const choices = ev.choices.map((c, i) => `<button class="choice ${c.effects?.force_ending ? "warn" : ""}" data-act="choice" data-id="${$(c.id)}" ${i === 0 ? "data-autofocus" : ""}><b><span class="mark">${i + 1}</span>${$(c.label)}</b><span>${$(c.detail)}</span><span>未知：${$(c.risk || "沒有額外未知。")}</span></button>`).join("");
+  const run = ui.run;
+  const ev = run.pendingEvent;
+  const cause = ev.chainCause;
+  const choices = ev.choices.map((c, i) => {
+    const b = Story.choiceBrief(data, run, ev, c);
+    return `<button class="choice ${c.effects?.force_ending ? "warn" : ""}" data-act="choice" data-id="${$(c.id)}" ${i === 0 ? "data-autofocus" : ""}>
+      <b><span class="mark">${i + 1}</span>${$(c.label)}</b>
+      <span>${$(c.detail)}</span>
+      <span class="brief"><i class="b-likely">最可能</i>${$(b.likely)}</span>
+      <span class="brief"><i class="b-down">最壞</i>${$(b.downside)}</span>
+      <span class="brief"><i class="b-who">影響</i>${$(b.affects)}</span>
+    </button>`;
+  }).join("");
   const who = ev.subject && ev.object ? `<div class="who"><span>誰</span><b>${$(ev.subject)}</b><span>什麼事</span><b>${$(ev.object)}</b></div>` : "";
-  return sheet(`${businessStrip(ui.run)}<p class="kicker">要決定 · 第 ${ui.run.month} 個月 · 時間按停</p><h2>${$(ev.title)}</h2>
+  const banner = cause
+    ? `<p class="chain-banner">這不是隨機事件。第 ${cause.causeMonth} 個月你選了「${$(cause.choice)}」（${$(cause.event)}），它走到今天。</p>`
+    : ev.major && !ui.seenMajor
+      ? `<p class="chain-banner first">第一次出大事，時間會按停，遊戲不會替你選。</p>`
+      : "";
+  return sheet(`${businessStrip(run)}<p class="kicker">要決定 · 第 ${run.month} 個月 · 時間按停</p>${banner}<h2>${$(ev.title)}</h2>
     ${who}
     ${ev.omen ? `<p class="muted">事前的徵兆：${$(ev.omen)}</p>` : ""}
     <p>${$(ev.body)}</p><div class="stack">${choices}</div>
-    <p class="small">數字是這張合約寫死的部分。人物與市場的未知，不換成機率。</p>`);
+    <p class="small">「最可能」是這張合約寫死的部分；「最壞」與「影響」是它可能帶走的東西。人物與市場的未知，不換成機率。</p>`);
 }
 
 function lastView() {
@@ -590,7 +647,12 @@ function lastView() {
   return sheet(`${businessStrip(run)}<p class="kicker">最後階段</p><h2>現金不夠付這一輪</h2>
     <p>帳上 ${$(P.money(data, run, run.finance.cash))}。以日計，這個模式大約還有 ${run.rescueDays} 天的緩衝，行動還剩 ${run.rescueLeft} 次。</p>
     <p>你通常不能同時保住公司、員工、家庭與控制權。</p>
-    <div class="stack">${opts.map((o) => `<button class="choice" data-act="rescue" data-id="${o.id}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("")}</div>`);
+    <div class="stack">${opts.map((o) => `<button class="choice ${o.id === "close" ? "warn" : ""}" data-act="rescue" data-id="${o.id}">
+        <b>${$(o.label)}</b><span>${$(o.detail)}</span>
+        ${o.likely ? `<span class="brief"><i class="b-likely">最可能</i>${$(o.likely)}</span>` : ""}
+        ${o.downside ? `<span class="brief"><i class="b-down">最壞</i>${$(o.downside)}</span>` : ""}
+        ${o.affects ? `<span class="brief"><i class="b-who">影響</i>${$(o.affects)}</span>` : ""}
+      </button>`).join("")}</div>`);
 }
 
 function successionView() {
@@ -604,9 +666,13 @@ function chapterView() {
   const run = ui.run;
   const mem = run.memories[run.memories.length - 1];
   const big = (run.commitments || [])[0];
+  const life = Story.evaluateLife(data, run);
   return sheet(`${businessStrip(run)}<p class="kicker">第 ${run.chapter} 章</p><h2>${$(P.whenLabel(run))}</h2>
+    ${Stage.stageHtml(data, run)}
+    <p class="chapter-story">${$(mem ? `${mem.name}。${mem.blurb}` : "這一章沒有新的物件。")}</p>
     <p>現金 ${$(P.money(data, run, run.finance.cash))}。這一章最大的承諾：${big ? $(big.name) : "沒有新的鎖。"}</p>
-    <p>${mem ? `留下一件東西：${$(mem.name)}。${$(mem.blurb)}` : "這一章沒有新的物件。"}</p>
+    <p class="muted">到現在為止，這一局是「${$(life.title)}」的走法：${$(life.cause)}</p>
+    <div class="chart-stack">${Charts.decisionLine(data, run)}${Charts.runwayView(data, run, { debt: true })}</div>
     <p class="muted">${$(run.role)}仍在。合上帳簿不會刪掉公司，只是這一局先停。</p>
     <button class="go" data-act="chapter-go" data-autofocus>繼續經營</button>
     ${run.month >= 12 ? `<button class="alt" data-act="close-book">合上這一本</button>` : ""}
@@ -614,10 +680,12 @@ function chapterView() {
 }
 
 function summaryView() {
-  const s = ui.run.summary || { lines: [], from: 0, to: 0 };
-  return sheet(`<p class="kicker">摘要</p><h2>從第 ${s.from} 月到第 ${s.to} 月</h2>
-    <ul class="symptoms">${(s.lines || []).map((l) => `<li>第 ${l.m} 月 ${$(l.line)}</li>`).join("") || "<li>這段時間沒有句子。</li>"}</ul>
-    <p>現金現在是 ${$(P.money(data, ui.run, ui.run.finance.cash))}。</p>
+  const run = ui.run;
+  const s = run.summary || { lines: [], from: 0, to: 0 };
+  return sheet(`<p class="kicker">摘要 · 第 ${s.from} 月到第 ${s.to} 月</p><h2>這段時間發生的事</h2>
+    <ol class="story-lines">${(s.lines || []).map((l) => `<li><span class="story-when">第 ${l.m} 月</span>${$(l.line)}</li>`).join("") || "<li>這段時間沒有句子。</li>"}</ol>
+    <p>現金現在是 ${$(P.money(data, run, run.finance.cash))}。</p>
+    ${Charts.waterfall(data, run)}
     <button class="go" data-act="ack-summary" data-autofocus>看下一件要決定的事</button>`);
 }
 
@@ -632,21 +700,42 @@ function closeView() {
 function endingView() {
   const run = ui.run;
   const end = P.endingView(data, run);
-  const digital = ["online"].includes(run.shape?.venue) || ["saas", "enterprise", "fin"].includes(run.venture?.family);
-  return sheet(`<p class="kicker">${$(end.stamp)}</p>
-    <div class="ending-hero" aria-hidden="true">${shopSvg(digital, end.id === "century", !!run.ending && ["liquidate", "compliance", "guarantee_ruin", "voluntary"].includes(end.id))}</div>
-    <h1>${$(run.venture?.name || "未開的店")}</h1>
-    <p class="sub">${$(end.title)}</p>
-    <p>${$(P.rarityLine(end.prior))}</p>
-    <p>若按這套規則長期來看，這種結局大約每一千局有 ${end.prior} 局。這是遊戲內分布，不是現實統計。</p>
+  const life = Story.evaluateLife(data, run);
+  const m = Story.memorial(data, run, life);
+  const obit = Story.obituary(data, run, m);
+  const scores = Story.SCORE_LABELS.map(([k, label]) => `<li><span>${$(label)}</span><span class="score-bar" style="--v:${Math.round(life.scores[k] * 100)}%"><i></i></span><b>${Math.round(life.scores[k] * 100)}</b></li>`).join("");
+  return sheet(`<div class="stage-wrap closing" aria-label="結業">
+      ${Stage.stageHtml(data, run)}
+      <p class="closing-line">燈是一盞一盞關的。招牌還在，裡面已經沒有東西了。</p>
+    </div>
+    <p class="kicker">${$(end.stamp)} · ${$(m.years)}</p>
+    <h1>${$(m.name)}</h1>
+    <p class="sub">${$(life.title)}</p>
+    <p class="epitaph">${$(m.epitaph)}</p>
+    <section class="obituary" aria-label="創業訃告">
+      ${obit.map((line) => `<p>${$(line)}</p>`).join("")}
+    </section>
+    <section class="card-stats" aria-label="這一局的數字">
+      <div><span>撐了</span><b>${$(m.life)}</b></div>
+      <div><span>服務過</span><b>${$(m.customers.toLocaleString("zh-Hant"))} 人</b></div>
+      <div><span>最多時</span><b>${m.peakCrew} 個人</b></div>
+      <div><span>累計營業額</span><b>${$(P.money(data, run, m.revenueTotal))}</b></div>
+      <div><span>虧損月數</span><b>${m.lossMonths} 個月</b></div>
+      <div><span>據點</span><b>${m.branches} 個</b></div>
+    </section>
+    <p class="percentile">以同樣的開局條件看，你走得比 <b>${m.percentile}%</b> 的創業者久、或走得比他們清楚。這是遊戲內分布，不是現實統計。</p>
+    <p>${$(P.rarityLine(end.prior))}。若按這套規則長期來看，這種結局大約每一千局有 ${end.prior} 局。</p>
     <hr class="cardline">
+    <section class="scores" aria-label="八個軸"><p class="fold-k">這一局在八個軸上的位置</p><ul>${scores}</ul></section>
+    <section class="marks-line"><p class="fold-k">你是怎麼經營的</p><p>${$(Story.marksLine(data, run))}</p></section>
     <p>${$(end.fact)}</p>
     <p>${$(end.cost)}</p>
     <p>留下：${end.featured ? $(end.featured.name) : "一本合上的帳簿"}。</p>
-    ${end.memories.length > 5 ? `<p>選五件放進紀念館。</p><div class="memories">${end.memories.map((m) => `<button class="alt" data-act="mem" data-id="${$(m.id)}" aria-pressed="${ui.picked?.includes(m.id) ? "true" : "false"}">${$(m.name)}</button>`).join("")}</div>` : ""}
-    <button class="go" data-act="share" data-autofocus>做成一張可以分享的圖</button>
+    ${end.memories.length > 5 ? `<p>選五件放進紀念館。</p><div class="memories">${end.memories.map((mm) => `<button class="alt" data-act="mem" data-id="${$(mm.id)}" aria-pressed="${ui.picked?.includes(mm.id) ? "true" : "false"}">${$(mm.name)}</button>`).join("")}</div>` : ""}
+    <div class="chart-stack">${Charts.waterfall(data, run)}${Charts.decisionLine(data, run)}</div>
+    <button class="go" data-act="share" data-autofocus>做成一張可以分享的紀念卡</button>
     <p class="muted">${$(ui.shareNote)}</p>
-    <button class="alt" data-act="to-diagnosis">看診斷</button>
+    <button class="alt" data-act="to-diagnosis">看診斷：為什麼是這個結果</button>
     <button class="alt" data-act="archive-this">放入紀念館</button>
     <button class="ghost" data-act="again">再一局</button>
     <canvas id="card" hidden></canvas>`);
@@ -662,9 +751,18 @@ function shopSvg(digital, century, closed) {
 function diagnosisView() {
   const run = ui.run;
   const end = P.endingView(data, run);
+  const life = Story.evaluateLife(data, run);
   const cf = run.counterfactual;
   const peers = (run.peers || []).map((p) => `${p.name}（${p.label}）${p.alive ? "還在" : "已不在"}`).join("。");
   return sheet(`<p class="kicker">診斷</p><h2>若重來，節點在選擇裡</h2>
+    <p class="diagnosis-cause">死因／成就：<b>${$(life.title)}</b>。${$(life.cause)}</p>
+    <div class="chart-stack">
+      ${Charts.runwayView(data, run, { debt: true })}
+      ${Charts.waterfall(data, run)}
+      ${Charts.funnel(data, run)}
+      ${Charts.bottleneck(data, run)}
+      ${Charts.decisionLine(data, run)}
+    </div>
     <p>推著它的：${end.pos.length ? $(end.pos.join("、")) : "開局條件本身"}。</p>
     <p>消耗它的：${end.neg.length ? $(end.neg.join("、")) : "時間與固定的帳"}。</p>
     <p>身邊的同行：${$(peers || "沒有形成。")}</p>
@@ -808,7 +906,23 @@ function act(name, ds = {}) {
     return render();
   }
   if (name === "settle") { ui.clock = null; return doSettle(false); }
-  if (name === "choice") { Sim.chooseEvent(data, run, ds.id); ui.quiet = 0; afterStep(); return; }
+  if (name === "month-end") { ui.clock = null; ui.preview = null; return doSettle(false); }
+  if (name === "pace") {
+    const m = [1, 3, 10].includes(Number(ds.mult)) ? Number(ds.mult) : 1;
+    if (run) run.paceMult = m;
+    ui.settings.paceMult = m;
+    persistSettings();
+    ui.clock = null;
+    saveRun();
+    return render();
+  }
+  if (name === "choice") {
+    if (run.pendingEvent?.major) ui.seenMajor = true;
+    Sim.chooseEvent(data, run, ds.id);
+    ui.quiet = 0;
+    afterStep();
+    return;
+  }
   if (name === "rescue") { Sim.chooseRescue(data, run, ds.id); afterStep(); return; }
   if (name === "successor") { Sim.chooseSuccessor(data, run, ds.id); afterStep(); return; }
   if (name === "chapter-go") { Sim.continueChapter(run); ui.screen = "play"; saveRun(); return render(); }
@@ -1028,10 +1142,10 @@ function buildPulses(start, end, collected, cost, biz) {
 function paintPassage(run, preview, t) {
   const marker = document.querySelector("#pass-marker");
   const day = document.querySelector("#pass-day");
-  const cashEl = document.querySelector("#live-cash");
+  const cashEl = document.querySelector("#kpi-cash");
   const pulseEl = document.querySelector("#pass-pulse");
   const live = document.querySelector("#live-feed");
-  if (!marker || !day || !cashEl || !preview) return;
+  if (!marker || !day || !preview) return;
   const biz = P.business(data, run);
   const dayN = Math.min(30, Math.max(1, Math.floor(Math.min(t, 0.999) * 30) + 1));
   marker.style.left = `${Math.min(100, t * 100)}%`;
@@ -1046,10 +1160,13 @@ function paintPassage(run, preview, t) {
       n += 1;
     }
   }
-  cashEl.textContent = P.money(data, run, shown);
-  cashEl.classList.toggle("tick-up", !!(last && last.amount > 0));
-  cashEl.classList.toggle("tick-down", !!(last && last.amount < 0));
-  if (pulseEl && ui.clock && n !== ui.clock.pulseN && last) {
+  const fresh = !!(ui.clock && last && n !== ui.clock.pulseN);
+  if (cashEl) {
+    cashEl.textContent = P.money(data, run, shown);
+    cashEl.classList.toggle("tick-up", !!(last && last.amount > 0));
+    cashEl.classList.toggle("tick-down", !!(last && last.amount < 0));
+  }
+  if (pulseEl && fresh) {
     ui.clock.pulseN = n;
     const sign = last.amount >= 0 ? "入帳" : "支出";
     pulseEl.textContent = `${sign} ${P.money(data, run, last.amount)} · ${last.label}`;
@@ -1064,6 +1181,22 @@ function paintPassage(run, preview, t) {
       ? due.slice().reverse().map((b, i) => `<article class="beat ${i === 0 ? "beat-new" : ""}"><p><b>${$(b.subject)}</b> · ${$(b.object)}</p><p>${$(b.text)}</p>${b.note ? `<p class="muted">${$(b.note)}</p>` : ""}</article>`).join("")
       : `<p class="muted">這個月的小事會在日子走到時出現。</p>`;
   }
+  // 舞台跟著日子走：人進出、單堆起來、燈暗一點、金額浮出來
+  const day0 = Stage.liveDay(data, run, dayN, t);
+  Stage.paintStage(run, {
+    day: dayN,
+    cashText: P.money(data, run, shown),
+    crowd: day0.crowd,
+    backlog: day0.backlog,
+    light: day0.light,
+    weatherText: run.weather ? `${run.weather.label}${run.weather.days ? ` · ${run.weather.days} 天` : ""}` : "天氣正常",
+    pulse: fresh ? { text: `${last.amount >= 0 ? "＋" : "－"}${P.money(data, run, Math.abs(last.amount))}`, amount: last.amount } : null,
+  });
+}
+
+function paceMult(run) {
+  const m = Number(run?.paceMult || ui.settings.paceMult || 1);
+  return [1, 3, 10].includes(m) ? m : 1;
 }
 
 function paceSeconds(run) {
@@ -1071,7 +1204,8 @@ function paceSeconds(run) {
   let sec = table[run?.speed || ui.settings.speed] || table.standard || 10;
   if (ui.settings.smart && ui.quiet >= 2 && run?.level !== "crit") sec = table.blitz || 2;
   if (run && (run.level === "crit" || run.founder?.health < 0.4)) sec = Math.max(sec, table.immerse || 15);
-  return sec;
+  // 倍率讓一個月可以在兩三秒內跑完。出事的時候仍然會按停。
+  return Math.max(0.6, sec / paceMult(run));
 }
 
 function autoToggleButton() {
@@ -1319,19 +1453,22 @@ function armFlow() {
 async function share() {
   const run = ui.run;
   const ending = P.endingView(data, run);
+  const life = Story.evaluateLife(data, run);
+  const mem = Story.memorial(data, run, life);
   const canvas = document.querySelector("#card") || document.createElement("canvas");
   try {
-    await paintCard(canvas, data, run, ending);
+    await paintCard(canvas, data, run, ending, mem);
     const blob = await cardBlob(canvas);
-    const file = new File([blob], "qianfen.png", { type: "image/png" });
-    const text = `《千分之一的店》\n${run.venture?.name || "未開的店"}\n${ending.title}\n${P.rarityLine(ending.prior)}\n${ending.fact}\n${ending.cost}`;
+    const slug = (run.venture?.name || "qianfen").replace(/[\s/\\:*?"<>|]/g, "");
+    const file = new File([blob], `${slug}-紀念卡.png`, { type: "image/png" });
+    const text = shareText(data, run, ending, mem);
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({ files: [file], text, title: "千分之一的店" });
       ui.shareNote = "已送出。";
     } else {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = "qianfen.png"; a.click();
+      a.href = url; a.download = file.name; a.click();
       ui.shareNote = "這台裝置沒有系統分享。圖已下載，你也可以自己傳。";
     }
     log(run, "ending_share");
