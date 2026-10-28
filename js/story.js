@@ -2,7 +2,7 @@
  * 把數據變成玩家看得見、感受得到、可以回味的戲劇。
  *
  * 這裡做三件事：
- * 1. monthStory　　月結先講故事，再講損益表。
+ * 1. monthStory　　季結先講故事，再講損益表。
  * 2. evaluateLife　結局不是只檢查資產，而是綜合八個軸，選出一個「這一局是甚麼」。
  * 3. memorial　　　創業訃告／企業紀念卡：一張值得分享的直式卡片的內容。
  *
@@ -24,7 +24,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
 const r0 = (n) => Math.round(num(n, 0)).toLocaleString("zh-Hant");
 
-/** 同一個月每次 render 都挑到同一句，畫面才不會閃。 */
+/** 同一季每次 render 都挑到同一句，畫面才不會閃。 */
 function pick(data, run, key, list) {
   if (!list?.length) return "";
   const h = hashSeed(`${run.seed}:${run.month}:${key}`);
@@ -56,7 +56,7 @@ function castToken(data, run, k) {
   return null;
 }
 
-/* ── 1. 月結：先故事，後損益表 ─────────────────────────── */
+/* ── 1. 季結：先故事，後損益表 ─────────────────────────── */
 
 export function monthStory(data, run) {
   const N = data.narrative;
@@ -387,13 +387,13 @@ export function obituary(data, run, m) {
   out.push(m.arc);
   if (m.longest) {
     out.push(m.longest.promoted
-      ? `${m.longest.name}從${m.longest.role}一路做到能替這間店做決定，做了 ${m.longest.tenure} 個月。`
+      ? `${m.longest.name}從${m.longest.role}一路做到能替這間店做決定，做了 ${m.longest.tenure} 季。`
       : m.longest.gone
-        ? `${m.longest.name}是待最久的人，${m.longest.tenure} 個月之後離開。`
-        : `${m.longest.name}跟了它 ${m.longest.tenure} 個月。`);
+        ? `${m.longest.name}是待最久的人，${m.longest.tenure} 季之後離開。`
+        : `${m.longest.name}跟了它 ${m.longest.tenure} 季。`);
   }
-  if (m.crisis) out.push(`最大的危機在第 ${m.crisis.month} 個月：${m.crisis.title}。`);
-  if (m.decision) out.push(`最重要的決定在第 ${m.decision.month} 個月：${m.decision.label}。`);
+  if (m.crisis) out.push(`最大的危機在第 ${m.crisis.month} 季：${m.crisis.title}。`);
+  if (m.decision) out.push(`最重要的決定在第 ${m.decision.month} 季：${m.decision.label}。`);
   out.push(`最後：${m.cause}`);
   return out;
 }
@@ -433,8 +433,8 @@ export function quickMetrics(data, run) {
   const ops = run.last?.ops || run.lastOps;
   const profit = num(run.last?.revenue, 0) - num(parts.operating, 0);
   return [
-    { id: "cash", label: "現金", value: money(data, run, run.finance?.cash), level: num(run.finance?.cash, 0) < 0.4 ? "bad" : num(run.finance?.cash, 0) < 1.2 ? "warn" : "good", note: `跑道 ${run.finance?.runway != null ? Math.max(0, num(run.finance.runway, 0)).toFixed(1) + " 個月" : "—"}` },
-    { id: "profit", label: "本月盈虧", value: (profit >= 0 ? "+" : "") + money(data, run, profit), level: profit >= 0 ? "good" : "bad", note: `收入 ${money(data, run, num(run.last?.revenue, 0))}` },
+    { id: "cash", label: "現金", value: money(data, run, run.finance?.cash), level: num(run.finance?.cash, 0) < 0.4 ? "bad" : num(run.finance?.cash, 0) < 1.2 ? "warn" : "good", note: `跑道 ${run.finance?.runway != null ? Math.max(0, num(run.finance.runway, 0)).toFixed(1) + " 季" : "—"}` },
+    { id: "profit", label: "本季盈虧", value: (profit >= 0 ? "+" : "") + money(data, run, profit), level: profit >= 0 ? "good" : "bad", note: `收入 ${money(data, run, num(run.last?.revenue, 0))}` },
     { id: "flow", label: "客流", value: ops ? `${r0(ops.entered)} 人` : "—", level: ops && ops.lost > ops.orders * 0.15 ? "warn" : "good", note: ops ? `${r0(ops.served)} 單做完${ops.lost > 0 ? ` · ${r0(ops.lost)} 單沒接住` : ""}` : "結算後才有數字" },
     { id: "stress", label: "員工壓力", value: `${Math.round(num(run.crewStress, 0) * 100)}%`, level: num(run.crewStress, 0) > 0.78 ? "bad" : num(run.crewStress, 0) > 0.6 ? "warn" : "good", note: `${(run.crew || []).filter((c) => !c.gone).length} 個人在場` },
     { id: "trust", label: "品牌信任", value: `${Math.round(num(v.trust, 0) * 100)}%`, level: num(v.trust, 0) < 0.35 ? "bad" : num(v.trust, 0) < 0.5 ? "warn" : "good", note: `品質 ${Math.round(num(v.quality, 0) * 100)}% · 牌子 ${Math.round(num(v.brand, 0) * 100)}%` },
@@ -456,10 +456,10 @@ export function fillCrewLine(data, run, raw, member, vars) {
 
 const FX = [
   ["cash", (v, f) => `現金${v > 0 ? "立刻多" : "立刻少"}約 ${f.money(Math.abs(v))}`],
-  ["revenue_mult", (v) => `接下來幾個月收入${v > 1 ? "多" : "少"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
+  ["revenue_mult", (v) => `接下來幾季收入${v > 1 ? "多" : "少"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
   ["cost_mod", (v, f) => `成本${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
   ["fixed_mult", (v) => `固定帳${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
-  ["fixed_add", (v, f) => `每個月固定帳${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
+  ["fixed_add", (v, f) => `每季固定帳${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
   ["trust", (v) => `客人信任${v > 0 ? "上升" : "下降"}約 ${Math.round(Math.abs(v) * 100)} 個百分點`],
   ["brand", (v) => `牌子${v > 0 ? "被更多人認得" : "變得沒有人認得"}`],
   ["quality", (v) => `品質${v > 0 ? "上升" : "下降"}`],
@@ -483,7 +483,7 @@ const FX = [
   ["price_mod", (v) => `價格${v > 0 ? "上升" : "下降"}`],
   ["reputation", (v) => `你的名聲${v > 0 ? "上升" : "下降"}`],
   ["returns", (v) => `退貨與客訴${v > 0 ? "變多" : "變少"}`],
-  ["for_months", (v) => `這樣的情況會持續約 ${v} 個月`],
+  ["for_months", (v) => `這樣的情況會持續約 ${v} 季`],
   ["care", () => "家裡的那件事會要更多時間"],
   ["guarantee", () => "你簽下個人擔保"],
   ["core_drop", () => "原本的做法會被改掉一部分"],
@@ -557,12 +557,12 @@ export function choiceBrief(data, run, ev, choice) {
     if (text) parts.push(text);
   }
   const authored = !!(choice.likely && choice.downside && choice.affects);
-  const likely = choice.likely || (parts.length ? parts.slice(0, 3).join("；") + "。" : (choice.detail || "這是一個確定的動作，效果要幾個月之後才看得見。"));
+  const likely = choice.likely || (parts.length ? parts.slice(0, 3).join("；") + "。" : (choice.detail || "這是一個確定的動作，效果要幾季之後才看得見。"));
   const neg = Object.entries(drivers).filter(([, v]) => num(v, 0) < 0).sort((a, b) => a[1] - b[1]).slice(0, 2);
   const downside = choice.downside
     || [choice.risk ? choice.risk : "", neg.length ? `若事情往壞的方向走，${neg.map(([k]) => DRIVER_DOWN[k] || k).join("、")}。` : ""]
       .filter(Boolean).join(" ")
-    || "這一項本身不會立刻殺死你，但它佔掉這個月唯一一次行動。";
+    || "這一項本身不會立刻殺死你，但它佔掉這一季唯一一次行動。";
   const affects = choice.affects
     || (ev?.subject || ev?.object
       ? [ev.subject, ev.object].filter(Boolean).join("、") + (who.length ? `，以及${who.slice(0, 3).join("、")}` : "")

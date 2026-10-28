@@ -70,7 +70,7 @@ export function stageState(data, run, live) {
   const weather = live?.weather || run.weather || null;
 
   // 客流不逐個真實模擬：映射成 0 / 3 / 6 / 10 / 15 人等級。
-  // 除數是照實際結算的「進店人數」校準的：小店一個月十幾個人進門，
+  // 除數是照實際結算的「進店人數」校準的：小店一季數十人進門，
   // 所以店裡看得到 3 到 6 個人，忙起來才會到 10 以上。
   const demandLevel = clamp(ops ? num(ops.entered, 0) / 2.5 : clamp(util, 0, 1.2) * 8, 0, 22);
   let crowd = tiers[0];
@@ -95,7 +95,7 @@ export function stageState(data, run, live) {
         ? "tense"
         : "healthy";
 
-  const eraMonths = num(cfg.era_months, 180);
+  const eraMonths = num(cfg.era_quarters, 180);
   const era = clamp(Math.floor(run.month / eraMonths), 0, num(cfg.era_max, 4));
 
   const brandTiers = cfg.brand_tiers || [0.34, 0.5, 0.66, 0.8];
@@ -117,7 +117,7 @@ export function stageState(data, run, live) {
     equipment: !!run.flags.equipment_damage,
     bills: debt > 1.2 || runway < 3 ? 2 : debt > 0.4 ? 1 : 0,
     closing: mood === "closed",
-    day: live?.day ?? 30,
+    day: live?.day ?? 90,
     name: v.name || run.work?.name || "這間店",
     owner,
   };
@@ -769,7 +769,7 @@ export function stageHtml(data, run, live) {
     <div class="ly-light" style="--light:${st.light.toFixed(2)}"></div>
     <div class="stage-hud">
       <span class="chip chip-wx" id="stage-wx">${esc(wxLabel || "天氣正常")}</span>
-      <span class="chip chip-day" id="stage-day">第 ${st.day} 日 / 30</span>
+      <span class="chip chip-day" id="stage-day">第 ${st.day} 日 / 90</span>
       <span class="chip chip-crowd" id="stage-crowd">店內 ${st.crowd} 人</span>
       <span class="chip chip-cash" id="stage-cash">—</span>
     </div>
@@ -786,7 +786,7 @@ const POSE_NOTES = {
   serve: "在櫃檯後面招呼",
   busy: "兩邊跑，一邊做一邊收錢",
   tidy: "趁沒人的時候整理貨架",
-  desk: "伏在桌上算這個月的帳",
+  desk: "伏在桌上算這一季的帳",
   strain: "站在櫃檯前，一時沒有動作",
   alone: "一個人站在關了燈的店裡",
   guard: "以企業守護者的身分看著這間公司",
@@ -794,7 +794,7 @@ const POSE_NOTES = {
 
 /** 沒有櫃檯的生意，同一種動作要換句話說，不然看起來像走錯店。 */
 const POSE_NOTES_KIND = {
-  digital: { serve: "坐在螢幕前處理線上服務", busy: "在幾塊螢幕之間切換", tidy: "整理部署與這個月的帳單" },
+  digital: { serve: "坐在螢幕前處理線上服務", busy: "在幾塊螢幕之間切換", tidy: "整理部署與這一季的帳單" },
   online: { serve: "在出貨桌前包貨、貼單", busy: "一邊包貨一邊回訊息", tidy: "整理貨架與包材" },
   onsite: { serve: "在客戶那邊把工具放下", busy: "兩個案場之間跑", tidy: "趁空檔整理工具箱" },
   mobile: { serve: "在攤車後面招呼", busy: "一邊做一邊收錢", tidy: "整理攤車上的貨" },
@@ -835,15 +835,15 @@ export function captionFor(st) {
   if (st.mood === "crisis") return st.bills ? "帳單堆在桌上，貨架開始空，燈沒有全開。你站在櫃檯前，一時沒有動作。" : "貨架空了一半。你看得出來，客人也看得出來。";
   if (st.backlog >= 5) return `櫃檯上積了 ${st.backlog} 張單。你在櫃檯後面兩邊跑，有人在等，有人轉身走了。`;
   if (st.stress > 0.75) return "人的動作變慢了。有人坐下來休息，然後又站起來。";
-  if (st.equipment) return "那台機器還是壞的。每個月的固定帳裡多了一行。";
+  if (st.equipment) return "那台機器還是壞的。每季的固定帳裡多了一行。";
   if (st.crowd >= 10) return "門口開始排隊。這是好問題，但也是問題。";
-  if (st.mood === "tense") return "還撐得住。你在桌上算這個月，數字比上個月緊一點，燈也暗一點。";
+  if (st.mood === "tense") return "還撐得住。你在桌上算這一季，數字比上季緊一點，燈也暗一點。";
   if (st.brandTier >= 3) return "招牌換過了，制服也換了。你在櫃檯後面，有人開始認得這個樣子。";
   if (st.crowd === 0) return "這個時段沒有人。你在整理貨架，帳簿還是要記。";
   return `${st.scene.label}。客人在進出，你在櫃檯後面，數字在跳。`;
 }
 
-/** 每個月推進時更新舞台。只在值改變時寫 DOM。 */
+/** 每季推進時更新舞台。只在值改變時寫 DOM。 */
 export function paintStage(run, live) {
   const root = document.querySelector(".stage");
   if (!root) return;
@@ -851,7 +851,7 @@ export function paintStage(run, live) {
     const el = root.querySelector(sel);
     if (el && el.textContent !== text) el.textContent = text;
   };
-  if (live?.day != null) set("#stage-day", `第 ${live.day} 日 / 30`);
+  if (live?.day != null) set("#stage-day", `第 ${live.day} 日 / 90`);
   if (live?.cashText != null) set("#stage-cash", live.cashText);
   const crowd = live?.crowd;
   if (crowd != null && root.dataset.crowd !== String(crowd)) {
@@ -892,7 +892,7 @@ export function paintStage(run, live) {
   if (live?.weatherText != null) set("#stage-wx", live.weatherText);
 }
 
-/** 這一個月的高峰時刻：給營業演出用。 */
+/** 這一季的高峰時刻：給營業演出用。 */
 export function liveCrowd(st, t) {
   const tiers = [0, 3, 6, 10, 15];
   const base = st.crowd;
@@ -904,13 +904,13 @@ export function liveCrowd(st, t) {
 }
 
 /**
- * 營業演出：把一個月切成三十天，回傳那一天舞台該長甚麼樣子。
+ * 營業演出：把一季切成九十天，回傳那一天舞台該長甚麼樣子。
  * 客流有尖峰與離峰，積壓的單在月中堆起來，月底燈會暗一點。
  */
 export function liveDay(data, run, day, prog) {
   const base = stageState(data, run);
   const crowd = liveCrowd(base, prog);
-  // 積壓的單也是等級，不是連續數字：月初少、月中堆起來、月底清掉一些
+  // 積壓的單也是等級，不是連續數字：季初少、季中堆起來、季末清掉一些
   const tiers = data.economy.life?.stage?.backlog_tiers || [0, 2, 5, 9];
   let backlog = 0;
   if (base.backlog) {

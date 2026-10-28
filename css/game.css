@@ -544,7 +544,7 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .name-suggest .choice { min-height: 46px; }
 
 /* ══════════════════════════════════════════════════════════
-   v0.2　活的店舖舞台、月結故事、五張圖、紀念卡
+   v0.2　活的店舖舞台、季結故事、五張圖、紀念卡
    版面比例：場景 60% ／ 快速狀態 25% ／ 操作 15%
    ══════════════════════════════════════════════════════════ */
 
@@ -594,7 +594,7 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .stage[data-mood="crisis"][data-era="3"], .stage[data-mood="crisis"][data-era="4"] { filter: saturate(0.45) brightness(0.9); }
 .stage[data-mood="closed"][data-era="3"], .stage[data-mood="closed"][data-era="4"] { filter: saturate(0.18) brightness(0.55); }
 
-/* 場景底部的一條說明：老闆現在做甚麼、這個月怎麼了。兩句疊在一起，不會互相壓到。 */
+/* 場景底部的一條說明：老闆現在做甚麼、這一季怎麼了。兩句疊在一起，不會互相壓到。 */
 .stage-foot {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
   display: flex; flex-direction: column; gap: 4px;
@@ -1063,7 +1063,7 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 }
 .chain-banner.first { border-left-color: var(--warn); background: #f6efdd; }
 
-/* ── 月結：先故事，後數字 ─────────────────────────────── */
+/* ── 季結：先故事，後數字 ─────────────────────────────── */
 
 .month-story { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px 14px; }
 .story-lines { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
@@ -1127,7 +1127,7 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .mark-list li.mark-crisis { border-color: #d8b6a6; }
 .mark-list li.mark-chain { border-color: #dcc79a; }
 
-/* ── 月初預測 ─────────────────────────────────────────── */
+/* ── 季初預測 ─────────────────────────────────────────── */
 
 .forecast { margin: 0; }
 .forecast-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }

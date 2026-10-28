@@ -57,13 +57,13 @@
     }
   },
   "formula": {
-    "base_revenue": 2.15,
+    "base_revenue": 6.45,
     "fit_floor": 0.42,
     "fit_span": 0.7,
     "fit_start": 0.3,
     "fit_match_bonus": 0.12,
     "fit_exp_cap": 0.1,
-    "fit_monthly_gain": 0.016,
+    "fit_monthly_gain": 0.048,
     "fit_cap": 0.93,
     "fit_decline_mult": 0.45,
     "quality_floor_factor": 0.88,
@@ -75,19 +75,19 @@
     "peer_pressure_cap": 0.42,
     "employee_output": 1.05,
     "founder_output": 2.05,
-    "labor_per_head": 0.5,
-    "tenure_per_month": 0.014,
+    "labor_per_head": 1.5,
+    "tenure_per_month": 0.042,
     "tenure_cap": 1.4,
-    "living_cost": 0.6,
-    "personal_reserve_months": 3,
-    "interest_monthly": 0.012,
-    "interest_tight": 0.018,
+    "living_cost": 1.8,
+    "personal_reserve_months": 1,
+    "interest_monthly": 0.036,
+    "interest_tight": 0.054,
     "shock_floor_runway": 1.25,
-    "max_month": 1200,
-    "initiative_cooldown_early": 3,
-    "initiative_cooldown_late": 6,
+    "max_month": 400,
+    "initiative_cooldown_early": 1,
+    "initiative_cooldown_late": 2,
     "competition_per_fit": 0.08,
-    "maturity_overhead_per_complexity": 0.035
+    "maturity_overhead_per_complexity": 0.105
   },
   "family_mult": {
     "single": 0.85,
@@ -231,8 +231,10 @@
       "severanceShare": 1,
       "sideRisk": 0,
       "notice": "照合約走通知期，交接做完再離開。",
-      "risk": "沒有薪水平臺。跑道全部看公司。",
-      "certain": "時間全部給公司。外界收入為零，但遣散費一次到手。"
+      "risk": "沒有薪水平臺。全球數據顯示 90% 新創失敗，全職投入風險高 33%。",
+      "certain": "時間全部給公司。外界收入為零，但遣散費一次到手。",
+      "trivia": "GEM 2024：全球約 10% 創業能在 42 個月後仍存活，直接全職投入屬少數高風險路徑。",
+      "stat": "全職投入者失敗風險比漸進過渡高約 33%（研究回顧）"
     },
     "leave": {
       "label": "留職停薪",
@@ -242,9 +244,11 @@
       "speed": 1.05,
       "severanceShare": 0,
       "sideRisk": 0.05,
-      "notice": "跟主管談一年不支薪，職位留著。",
+      "notice": "跟主管談四季不支薪，職位留著。",
       "risk": "公司若不成，回去的位置可能早就補掉了。",
-      "certain": "薪水停掉，職位留著。你有一年的回頭路，但沒有薪水。"
+      "certain": "薪水停掉，職位留著。你有四季的回頭路，但沒有薪水。",
+      "trivia": "Gusto 2023：44% 新創以副業起步，較 2022 年的 27% 大幅上升。",
+      "stat": "留職停薪提供 12 個月回頭路，全球混合創業占比約 15-24%。"
     },
     "part": {
       "label": "轉兼職、減時",
@@ -254,9 +258,11 @@
       "speed": 0.72,
       "severanceShare": 0,
       "sideRisk": 0.1,
-      "notice": "向主管提出減時，可能只批三個月。",
+      "notice": "向主管提出減時，可能只批一季。",
       "risk": "發展較慢。正職合約不一定允許減時，也可能被調動。",
-      "certain": "約六成時間給公司，保留一份較薄的薪。"
+      "certain": "約六成時間給公司，保留一份較薄的薪。",
+      "trivia": "美國 2025：約 27% 工作者有副業（Bankrate），兼職創業已成主流。",
+      "stat": "減時創業讓現金流壓力減半，存活率顯著高於全職一次性投入。"
     },
     "keep": {
       "label": "保留正職，晚上做",
@@ -268,7 +274,9 @@
       "sideRisk": 0.25,
       "notice": "不說。時間從睡眠和週末裡擠。",
       "risk": "雇主若發現，可能一次失去兩邊。",
-      "certain": "公司只拿到約三成時間。生活費先由薪資支付。"
+      "certain": "公司只拿到約三成時間。生活費先由薪資支付——副業起步占新創 44%（Gusto 2023）。",
+      "trivia": "QuickBooks 2026：47% 美國創業者從副業開始，多數靠正職薪資養活前期。",
+      "stat": "保留正職者用 30% 時間試錯，調查顯示現職收入覆蓋生活費可延長 3 倍跑道。"
     },
     "intra": {
       "label": "內部創業",
@@ -280,19 +288,23 @@
       "sideRisk": 0.15,
       "notice": "在公司裡立一個案，用公司的資源做。",
       "risk": "成果可能被主張屬於雇主。做得好，可能被併回去。",
-      "certain": "有津貼與資源，股權上限較低，時間被兩邊切。"
+      "certain": "有津貼與資源，股權上限較低，時間被兩邊切。",
+      "trivia": "全球調查：62% 員工想創業但僅 6% 實現，內部創業是低風險試驗場。",
+      "stat": "內部創業可省約 70% 初始開支，但成果歸屬需先白紙黑字。"
     },
     "test": {
-      "label": "先測試四個月",
+      "label": "先測試一季",
       "hours": 0.48,
       "outsideShare": 0.55,
       "energy": 0.88,
       "speed": 0.6,
       "severanceShare": 0,
       "sideRisk": 0.2,
-      "notice": "先談四個月彈性，四個月後再決定。",
-      "risk": "四個月後必須正式選擇。那時候你會有數字，也會有慣性。",
-      "certain": "先用四個月試。固定成本減半，規模也減半。"
+      "notice": "先談一季彈性，一季後再決定。",
+      "risk": "一季後必須正式選擇。那時候你會有數字，也會有慣性。",
+      "certain": "先用一季試。固定成本減半，規模也減半。",
+      "trivia": "台灣 GEM：25-44 歲 TEA 約 8.4%，四個月驗證期符合精益創業的最小可行週期。",
+      "stat": "4 個月≈1 季驗證期：超 50% 新創以 <5,000 美元起步，先小規模測試再投入。"
     },
     "handover": {
       "label": "合夥人先全職",
@@ -304,17 +316,19 @@
       "sideRisk": 0.2,
       "notice": "由合夥人辭職先做，你留著薪水養兩邊。",
       "risk": "主導權會慢慢換邊。股權與決策權要先寫下來。",
-      "certain": "你留著整份薪水，日常由合夥人扛。公司走得比你慢，但你餓不著。"
+      "certain": "你留著整份薪水，日常由合夥人扛。公司走得比你慢，但你餓不著。",
+      "trivia": "美國 2,980 萬一人企業占小企業 81.9%，但僅 3.6% 達七位數年收——合夥先行的協作是突破規模化的關鍵。",
+      "stat": "合夥人先全職讓你保留 100% 薪資，外部研究顯示有合夥人的存活率較高。"
     }
   },
   "venues": {
     "street": {
       "label": "街舖",
-      "fixed": 0.4,
+      "fixed": 1.2,
       "capex": 1.7,
       "traffic": 1.38,
       "platform": 0,
-      "license": 2,
+      "license": 1,
       "trust": 0.48,
       "capacity": 1.2,
       "tags": [
@@ -324,11 +338,11 @@
     },
     "mall": {
       "label": "商場",
-      "fixed": 0.52,
+      "fixed": 1.56,
       "capex": 2.1,
       "traffic": 1.58,
       "platform": 0.06,
-      "license": 2,
+      "license": 1,
       "trust": 0.52,
       "capacity": 1.3,
       "tags": [
@@ -338,7 +352,7 @@
     },
     "studio": {
       "label": "工作室",
-      "fixed": 0.26,
+      "fixed": 0.78,
       "capex": 0.75,
       "traffic": 0.72,
       "platform": 0,
@@ -352,7 +366,7 @@
     },
     "home": {
       "label": "家居",
-      "fixed": 0.05,
+      "fixed": 0.15,
       "capex": 0.22,
       "traffic": 0.74,
       "platform": 0,
@@ -366,7 +380,7 @@
     },
     "mobile": {
       "label": "流動",
-      "fixed": 0.11,
+      "fixed": 0.33,
       "capex": 0.55,
       "traffic": 0.88,
       "platform": 0,
@@ -380,7 +394,7 @@
     },
     "online": {
       "label": "網上",
-      "fixed": 0.07,
+      "fixed": 0.21,
       "capex": 0.35,
       "traffic": 1.12,
       "platform": 0.09,
@@ -393,7 +407,7 @@
     },
     "shared": {
       "label": "共享設施",
-      "fixed": 0.16,
+      "fixed": 0.48,
       "capex": 0.3,
       "traffic": 0.68,
       "platform": 0,
@@ -407,11 +421,11 @@
     },
     "factory": {
       "label": "工場",
-      "fixed": 0.46,
+      "fixed": 1.38,
       "capex": 3.1,
       "traffic": 0.58,
       "platform": 0,
-      "license": 3,
+      "license": 1,
       "trust": 0.46,
       "capacity": 1.5,
       "tags": [
@@ -421,7 +435,7 @@
     },
     "onsite": {
       "label": "上門",
-      "fixed": 0.06,
+      "fixed": 0.18,
       "capex": 0.28,
       "traffic": 0.84,
       "platform": 0,
@@ -458,7 +472,7 @@
       "retain": 0.93,
       "recurring": true,
       "ticks": 1,
-      "pulse": "月費一次入帳",
+      "pulse": "季費一次入帳",
       "late": false
     },
     "commission": {
@@ -768,7 +782,7 @@
       "warn": 0.06,
       "crit": 0.1,
       "higher_bad": true,
-      "name": "月流失率",
+      "name": "季流失率",
       "unit": "ratio",
       "secondary": "淨收入留存"
     },
@@ -813,11 +827,11 @@
       "platform_warn": 0.7
     },
     "public": {
-      "warn": 4,
-      "crit": 2,
+      "warn": 1.3,
+      "crit": 0.7,
       "higher_bad": false,
-      "name": "現金可支應月數",
-      "unit": "months"
+      "name": "現金可支應季數",
+      "unit": "quarters"
     }
   },
   "outcome_prior_per_thousand": {
@@ -874,11 +888,11 @@
   ],
   "initiatives": {
     "price_step": 0.08,
-    "market_cost": 0.45,
+    "market_cost": 1.35,
     "market_fit": 0.045,
-    "second_city_fixed": 0.34,
-    "second_city_revenue": 1.18,
-    "angel_cash": 4,
+    "second_city_fixed": 1.02,
+    "second_city_revenue": 3.54,
+    "angel_cash": 12,
     "angel_control": 0.16
   },
   "caps": {
@@ -1006,7 +1020,7 @@
           "stress": 0.95,
           "loyalty": 0.92,
           "output": 1.06,
-          "note": "三個月就能獨當一面，也最先被別人看見。"
+          "note": "一季就能獨當一面，也最先被別人看見。"
         },
         {
           "id": "steady",
@@ -1092,12 +1106,12 @@
       "poach_skill": 0.72,
       "raise_loyalty": 0.16,
       "no_raise_drift": 0.012,
-      "manager_tenure": 26,
+      "manager_tenure": 9,
       "manager_loyalty": 0.62,
       "arc_months": [
+        2,
         6,
-        18,
-        40
+        13
       ],
       "max_shown": 7,
       "stress_load_pivot": 0.7,
@@ -1112,32 +1126,32 @@
     "weather": {
       "rain_days": {
         "rain": [
-          6,
-          13
+          18,
+          39
         ],
         "downpour": [
-          14,
-          21
+          42,
+          63
         ],
         "storm": [
-          3,
-          7
+          9,
+          21
         ],
         "clear": [
           0,
-          3
+          9
         ],
         "heat": [
           0,
-          1
+          3
         ],
         "cold": [
           0,
-          2
+          6
         ],
         "snow": [
-          2,
-          6
+          6,
+          18
         ]
       },
       "kinds": {
@@ -1316,7 +1330,7 @@
       "light_crit": 0.3
     },
     "kpis": {
-      "median_life_months": 26,
+      "median_life_months": 9,
       "peak_value_unit": 12
     },
     "consequences": {
@@ -2059,43 +2073,441 @@
       "id": "spark",
       "label": "極短命",
       "min": 0,
-      "max": 12,
-      "decision_gap": 5
+      "max": 4,
+      "decision_gap": 2
     },
     {
       "id": "early",
       "label": "早期企業",
-      "min": 13,
-      "max": 60,
-      "decision_gap": 8
+      "min": 5,
+      "max": 20,
+      "decision_gap": 3
     },
     {
       "id": "growth",
       "label": "成長企業",
-      "min": 61,
-      "max": 180,
-      "decision_gap": 14
+      "min": 21,
+      "max": 60,
+      "decision_gap": 5
     },
     {
       "id": "mature",
       "label": "成熟企業",
-      "min": 181,
-      "max": 480,
-      "decision_gap": 28
+      "min": 61,
+      "max": 160,
+      "decision_gap": 10
     },
     {
       "id": "legacy",
       "label": "跨代企業",
-      "min": 481,
-      "max": 900,
-      "decision_gap": 48
+      "min": 161,
+      "max": 300,
+      "decision_gap": 16
     },
     {
       "id": "century",
       "label": "百年企業",
-      "min": 901,
-      "max": 1200,
-      "decision_gap": 60
+      "min": 301,
+      "max": 400,
+      "decision_gap": 20
     }
-  ]
+  ],
+  "fulfillment_filters": {
+    "food": [
+      "make",
+      "stock",
+      "order",
+      "outsource"
+    ],
+    "retail": [
+      "stock",
+      "resell",
+      "make",
+      "order",
+      "outsource"
+    ],
+    "pro": [
+      "make",
+      "outsource",
+      "match",
+      "digital"
+    ],
+    "edu": [
+      "make",
+      "digital",
+      "outsource",
+      "match"
+    ],
+    "saas": [
+      "digital",
+      "make",
+      "outsource",
+      "match"
+    ],
+    "repair": [
+      "make",
+      "order",
+      "outsource",
+      "stock"
+    ],
+    "mfg": [
+      "make",
+      "stock",
+      "order",
+      "outsource",
+      "resell"
+    ],
+    "agri": [
+      "make",
+      "stock",
+      "resell",
+      "outsource"
+    ],
+    "care": [
+      "make",
+      "match",
+      "outsource",
+      "order"
+    ],
+    "logi": [
+      "make",
+      "outsource",
+      "match",
+      "stock"
+    ],
+    "culture": [
+      "make",
+      "digital",
+      "outsource",
+      "match",
+      "stock"
+    ],
+    "platform": [
+      "match",
+      "digital",
+      "outsource",
+      "resell"
+    ],
+    "fin": [
+      "digital",
+      "make",
+      "match",
+      "outsource"
+    ],
+    "energy": [
+      "make",
+      "outsource",
+      "stock",
+      "order"
+    ],
+    "enterprise": [
+      "digital",
+      "make",
+      "outsource",
+      "match",
+      "order"
+    ]
+  },
+  "revenue_filters": {
+    "food": [
+      "once",
+      "sub",
+      "member",
+      "project"
+    ],
+    "retail": [
+      "once",
+      "wholesale",
+      "member",
+      "sub",
+      "commission"
+    ],
+    "pro": [
+      "project",
+      "once",
+      "commission",
+      "license"
+    ],
+    "edu": [
+      "once",
+      "sub",
+      "member",
+      "project"
+    ],
+    "saas": [
+      "sub",
+      "member",
+      "license",
+      "ads",
+      "commission"
+    ],
+    "repair": [
+      "once",
+      "project",
+      "commission",
+      "sub"
+    ],
+    "mfg": [
+      "wholesale",
+      "project",
+      "once",
+      "license",
+      "commission"
+    ],
+    "agri": [
+      "once",
+      "wholesale",
+      "commission",
+      "sub"
+    ],
+    "care": [
+      "once",
+      "sub",
+      "member",
+      "project",
+      "commission"
+    ],
+    "logi": [
+      "once",
+      "commission",
+      "project",
+      "sub",
+      "wholesale"
+    ],
+    "culture": [
+      "once",
+      "sub",
+      "ads",
+      "donate",
+      "commission",
+      "member"
+    ],
+    "platform": [
+      "commission",
+      "ads",
+      "sub",
+      "member",
+      "license"
+    ],
+    "fin": [
+      "commission",
+      "sub",
+      "project",
+      "license",
+      "ads"
+    ],
+    "energy": [
+      "project",
+      "lease",
+      "wholesale",
+      "once",
+      "commission"
+    ],
+    "enterprise": [
+      "project",
+      "license",
+      "sub",
+      "commission",
+      "wholesale"
+    ]
+  },
+  "fulfillment_labels": {
+    "food": {
+      "make": "自煮自製",
+      "stock": "備料庫存",
+      "order": "按單現做",
+      "outsource": "中央廚房代工"
+    },
+    "retail": {
+      "stock": "自有庫存",
+      "resell": "選品代購",
+      "make": "自有品牌",
+      "order": "接單訂貨",
+      "outsource": "供應鏈外判"
+    },
+    "pro": {
+      "make": "團隊自做",
+      "outsource": "外協轉包",
+      "match": "撮合轉介",
+      "digital": "線上交付"
+    },
+    "edu": {
+      "make": "自辦課程",
+      "digital": "線上交付",
+      "outsource": "外聘師資",
+      "match": "師生撮合"
+    },
+    "saas": {
+      "digital": "自動化交付",
+      "make": "自建交付",
+      "outsource": "外包開發",
+      "match": "平台撮合"
+    },
+    "repair": {
+      "make": "自有技師",
+      "order": "按單維修",
+      "outsource": "外包維修",
+      "stock": "備件庫存"
+    },
+    "mfg": {
+      "make": "自有產線",
+      "stock": "庫存生產",
+      "order": "按單生產",
+      "outsource": "代工外判",
+      "resell": "代理分銷"
+    },
+    "agri": {
+      "make": "自種自銷",
+      "stock": "倉儲庫存",
+      "resell": "產地代購",
+      "outsource": "契作外判"
+    },
+    "care": {
+      "make": "自聘照護",
+      "match": "需求撮合",
+      "outsource": "外判照護",
+      "order": "按需派遣"
+    },
+    "logi": {
+      "make": "自有車隊",
+      "outsource": "外判車隊",
+      "match": "撮合平台",
+      "stock": "自營倉配"
+    },
+    "culture": {
+      "make": "自製內容",
+      "digital": "數位發行",
+      "outsource": "外包製作",
+      "match": "創作者撮合",
+      "stock": "庫存發行"
+    },
+    "platform": {
+      "match": "雙邊撮合",
+      "digital": "自動撮合",
+      "outsource": "審核外判",
+      "resell": "流量分銷"
+    },
+    "fin": {
+      "digital": "系統自動",
+      "make": "自有風控",
+      "match": "資金撮合",
+      "outsource": "委外催收"
+    },
+    "energy": {
+      "make": "自建案場",
+      "outsource": "外包施工",
+      "stock": "設備庫存",
+      "order": "按案建置"
+    },
+    "enterprise": {
+      "digital": "自動化流程",
+      "make": "顧問自做",
+      "outsource": "外包實施",
+      "match": "方案撮合",
+      "order": "按案交付"
+    }
+  },
+  "revenue_labels": {
+    "food": {
+      "once": "單次餐點",
+      "sub": "月訂閱餐",
+      "member": "會員儲值",
+      "project": "包場專案"
+    },
+    "retail": {
+      "once": "單次零售",
+      "wholesale": "批發出貨",
+      "member": "會員制",
+      "sub": "訂閱補貨",
+      "commission": "分銷佣金"
+    },
+    "pro": {
+      "project": "專案計費",
+      "once": "單次諮詢",
+      "commission": "成功佣金",
+      "license": "授權費"
+    },
+    "edu": {
+      "once": "單堂收費",
+      "sub": "學期訂閱",
+      "member": "會員學費",
+      "project": "企業內訓專案"
+    },
+    "saas": {
+      "sub": "月費訂閱",
+      "member": "席位會員",
+      "license": "授權費",
+      "ads": "廣告分潤",
+      "commission": "交易抽成"
+    },
+    "repair": {
+      "once": "單次維修",
+      "project": "整案維修",
+      "commission": "轉介佣金",
+      "sub": "保養訂閱"
+    },
+    "mfg": {
+      "wholesale": "批發",
+      "project": "客製專案",
+      "once": "單次出貨",
+      "license": "技術授權",
+      "commission": "代理佣金"
+    },
+    "agri": {
+      "once": "單次直銷",
+      "wholesale": "批發",
+      "commission": "拍賣佣金",
+      "sub": "定期配送訂閱"
+    },
+    "care": {
+      "once": "單次照護",
+      "sub": "月費照護",
+      "member": "會員制",
+      "project": "專案照護",
+      "commission": "轉介佣金"
+    },
+    "logi": {
+      "once": "單次運費",
+      "commission": "撮合抽成",
+      "project": "合約專案",
+      "sub": "月結合約",
+      "wholesale": "整櫃批發"
+    },
+    "culture": {
+      "once": "單次票務",
+      "sub": "訂閱制",
+      "ads": "廣告贊助",
+      "donate": "贊助捐款",
+      "commission": "票務抽成",
+      "member": "會員"
+    },
+    "platform": {
+      "commission": "交易抽成",
+      "ads": "廣告費",
+      "sub": "訂閱費",
+      "member": "會員費",
+      "license": "授權費"
+    },
+    "fin": {
+      "commission": "手續費抽成",
+      "sub": "帳戶月費",
+      "project": "專案顧問",
+      "license": "授權",
+      "ads": "導流廣告"
+    },
+    "energy": {
+      "project": "工程專案",
+      "lease": "設備租賃",
+      "wholesale": "躉售",
+      "once": "單次服務",
+      "commission": "轉介佣金"
+    },
+    "enterprise": {
+      "project": "專案合約",
+      "license": "授權費",
+      "sub": "訂閱",
+      "commission": "分潤抽成",
+      "wholesale": "整批授權"
+    }
+  }
 }

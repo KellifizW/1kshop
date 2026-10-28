@@ -45,16 +45,16 @@ export function stageName(data, state) {
 
 export function whenLabel(state) {
   if (!state.venture) return calendarLabel(state);
-  if (state.month < 12) return `第 ${state.month} 個月`;
-  const y = Math.floor(state.month / 12);
-  const m = state.month % 12;
-  return m ? `第 ${y} 年 ${m} 個月` : `第 ${y} 年`;
+  if (state.month < 4) return `第 ${state.month + 1} 季`;
+  const y = Math.floor(state.month / 4);
+  const m = state.month % 4;
+  return m ? `第 ${y} 年 第${m + 1}季` : `第 ${y} 年`;
 }
 
 export function symptomTexts(data, state) {
   const ids = symptomIds(data, state);
   return ids.map((id) => {
-    const raw = data.narrative.symptoms.find((s) => s.id === id)?.text || "這個月沒有新的句子。";
+    const raw = data.narrative.symptoms.find((s) => s.id === id)?.text || "這季沒有新的句子。";
     return fillText(data, state, raw);
   });
 }
@@ -121,7 +121,7 @@ export function householdLine(state) {
   const kin = state.cast?.kin;
   const base = familyLabel(state.founder?.family);
   if (!kin) return `${base}。`;
-  const when = state.founder?.careMonth > 0 ? `這件事大約從第 ${state.founder.careMonth} 個月開始，開局時就排進日曆。` : "";
+  const when = state.founder?.careMonth > 0 ? `這件事大約從第 ${state.founder.careMonth} 季開始，開局時就排進日曆。` : "";
   return `${base}。要照顧的是${kin.who}，事情是${kin.need}。${when}`;
 }
 
@@ -177,7 +177,7 @@ export function commitmentLine(state) {
   const list = (state.commitments || []).slice().sort((a, b) => a.monthsLeft - b.monthsLeft);
   if (!list.length) return "你還沒有簽下不能隨便反悔的東西。";
   const c = list[0];
-  return `${c.name}，還有 ${c.monthsLeft} 個月。`;
+  return `${c.name}，還有 ${c.monthsLeft} 季。`;
 }
 
 export function legalLabel(data, state) {

@@ -27,10 +27,10 @@ export function runwayView(data, run, opts = {}) {
   const w = 320;
   const span = Math.max(6, Math.min(36, Math.ceil(months * 1.25)));
   const x = (m) => clamp((m / span) * w, 0, w);
-  const label = months >= 24 ? "很長" : `${months.toFixed(1)} 個月`;
+  const label = months >= 24 ? "很長" : `${months.toFixed(1)} 季`;
   return `<figure class="chart chart-runway" data-level="${months < 3 ? "crit" : months < 6 ? "warn" : "ok"}">
     <figcaption>現金跑道</figcaption>
-    <svg viewBox="0 0 ${w} 46" role="img" aria-label="現金 ${esc(money(data, run, cash))}，目前速度可生存 ${esc(label)}，最壞情況 ${worst.toFixed(1)} 個月">
+    <svg viewBox="0 0 ${w} 46" role="img" aria-label="現金 ${esc(money(data, run, cash))}，目前速度可生存 ${esc(label)}，最壞情況 ${worst.toFixed(1)} 季">
       <rect x="0" y="16" width="${w}" height="14" rx="7" fill="#e7dccb"/>
       <rect x="0" y="16" width="${x(months)}" height="14" rx="7" fill="${months < 3 ? "#8f2d2d" : months < 6 ? "#8a5a12" : "#2a6a4a"}"/>
       <rect x="0" y="16" width="${x(worst)}" height="14" rx="7" fill="#1c1612" opacity="0.18"/>
@@ -39,9 +39,9 @@ export function runwayView(data, run, opts = {}) {
     </svg>
     <ul class="chart-notes">
       <li>現金 <b>${esc(money(data, run, cash))}</b></li>
-      <li>每月淨燃燒 <b>${esc(money(data, run, burn))}</b></li>
-      <li>目前速度可生存 <b>${months >= 24 ? "很長" : months.toFixed(1) + " 個月"}</b></li>
-      <li class="worst">若客流再跌 20%：<b>${worst >= 24 ? "仍很長" : worst.toFixed(1) + " 個月"}</b></li>
+      <li>每季淨燃燒 <b>${esc(money(data, run, burn))}</b></li>
+      <li>目前速度可生存 <b>${months >= 24 ? "很長" : months.toFixed(1) + " 季"}</b></li>
+      <li class="worst">若客流再跌 20%：<b>${worst >= 24 ? "仍很長" : worst.toFixed(1) + " 季"}</b></li>
       ${opts.debt ? `<li>債務 <b>${esc(money(data, run, num(run.finance?.debt, 0)))}</b></li>` : ""}
     </ul>
   </figure>`;
@@ -74,7 +74,7 @@ export function waterfallSteps(data, run) {
 
 export function waterfall(data, run) {
   const steps = waterfallSteps(data, run);
-  if (!steps.length) return `<figure class="chart chart-waterfall"><figcaption>收入到利潤</figcaption><p class="muted">結算第一個月之後，這裡會有一張瀑布圖。</p></figure>`;
+  if (!steps.length) return `<figure class="chart chart-waterfall"><figcaption>收入到利潤</figcaption><p class="muted">結算第一季之後，這裡會有一張瀑布圖。</p></figure>`;
   const w = 340, h = 150, pad = 18;
   const bw = Math.min(30, (w - 8) / steps.length - 3);
   let run0 = 0;
@@ -106,7 +106,7 @@ export function waterfall(data, run) {
     <figcaption>收入到利潤</figcaption>
     <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="收入瀑布圖，${esc(killer ? `最大的一項支出是${killer.label}` : "沒有支出")}">${bars.join("")}</svg>
     <ul class="chart-rows">${rows}</ul>
-    ${killer ? `<p class="chart-verdict">這個月吃掉最多的是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
+    ${killer ? `<p class="chart-verdict">這季吃掉最多的是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
   </figure>`;
 }
 
@@ -177,7 +177,7 @@ export function bottleneck(data, run) {
   if (gapHands > Math.max(4, ops.orders * 0.08)) verdict = `卡在<b>人與設備</b>：有 ${r0(gapHands)} 單沒有人做得完。要嘛加人、要嘛買設備、要嘛把流程改短。`;
   else if (gapFront > Math.max(4, ops.orders * 0.08)) verdict = `卡在<b>場地與收銀</b>：做得出來，但接不住。櫃檯、動線或店面大小是瓶頸。`;
   else if (ops.served < ops.orders * 0.98) verdict = `差一點點：${r0(ops.orders - ops.served)} 單在最後一步流失。`;
-  else verdict = `產能不是這個月的問題。<b>需求</b>才是：你做得完，但沒有那麼多人要。`;
+  else verdict = `產能不是這季的問題。<b>需求</b>才是：你做得完，但沒有那麼多人要。`;
   return `<figure class="chart chart-cap">
     <figcaption>產能瓶頸</figcaption>
     <ul class="cap">${bars}</ul>
@@ -225,7 +225,7 @@ export function decisionMarks(run) {
 
 export function decisionLine(data, run, opts = {}) {
   const pts = (run.series || []).slice(-(opts.months || 120));
-  if (pts.length < 2) return `<figure class="chart chart-line"><figcaption>決策回顧線</figcaption><p class="muted">兩個月之後，這裡會有一條線，上面標著你當時做的決定。</p></figure>`;
+  if (pts.length < 2) return `<figure class="chart chart-line"><figcaption>決策回顧線</figcaption><p class="muted">兩季之後，這裡會有一條線，上面標著你當時做的決定。</p></figure>`;
   const w = 640, h = 170, padL = 8, padB = 20, padT = 14;
   const marks = decisionMarks(run).filter((m) => m.m >= pts[0].m && m.m <= pts[pts.length - 1].m);
   const max = Math.max(...pts.map((p) => p.cash), 0.05);
@@ -243,7 +243,7 @@ export function decisionLine(data, run, opts = {}) {
     return `<g class="mark mark-${mk.kind}"><line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${(h - padB).toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="2 3" opacity="0.55"/>
       <circle cx="${x.toFixed(1)}" cy="${padT - 4}" r="6" fill="${color}"/>
       <text x="${x.toFixed(1)}" y="${padT - 1}" font-size="8" text-anchor="middle" fill="#f4efe4">${MARK_ICON[mk.kind] || "·"}</text>
-      <title>${esc(`第 ${mk.m} 月 · ${mk.label}`)}</title></g>`;
+      <title>${esc(`第 ${mk.m} 季 · ${mk.label}`)}</title></g>`;
   }).join("");
   return `<figure class="chart chart-line">
     <figcaption>決策回顧線</figcaption>
@@ -251,14 +251,14 @@ export function decisionLine(data, run, opts = {}) {
       <line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${w - padL}" y2="${zeroY.toFixed(1)}" stroke="#7a6e62" stroke-width="1"/>
       <path d="${path}" fill="none" stroke="#8f2d2d" stroke-width="2"/>
       ${markSvg}
-      <text x="${padL}" y="${h - 6}" font-size="9" fill="#7a6e62">第 ${pts[0].m} 月</text>
-      <text x="${w - padL}" y="${h - 6}" font-size="9" fill="#7a6e62" text-anchor="end">第 ${pts[pts.length - 1].m} 月</text>
+      <text x="${padL}" y="${h - 6}" font-size="9" fill="#7a6e62">第 ${pts[0].m} 季</text>
+      <text x="${w - padL}" y="${h - 6}" font-size="9" fill="#7a6e62" text-anchor="end">第 ${pts[pts.length - 1].m} 季</text>
     </svg>
-    ${marks.length ? `<ul class="mark-list">${marks.slice(-14).reverse().map((mk) => `<li class="mark-${mk.kind}"><span>第 ${mk.m} 月</span><b>${esc(mk.label)}</b></li>`).join("")}</ul>` : ""}
+    ${marks.length ? `<ul class="mark-list">${marks.slice(-14).reverse().map((mk) => `<li class="mark-${mk.kind}"><span>第 ${mk.m} 季</span><b>${esc(mk.label)}</b></li>`).join("")}</ul>` : ""}
   </figure>`;
 }
 
-/* ── 月初：預測與部署。重點是區間，不是準確答案。 ─────────── */
+/* ── 季初：預測與部署。重點是區間，不是準確答案。 ─────────── */
 
 export function forecastPanel(data, run, fc) {
   if (!fc || !run.venture) return "";
@@ -276,18 +276,18 @@ export function forecastPanel(data, run, fc) {
   const orderBand = [num(fc.revenue?.[0], 0) / aov, num(fc.revenue?.[1], 0) / aov];
   const capOrders = ops ? Math.max(ops.handsCap, ops.frontCap) : 0;
   const risk = biggestRisk(data, run, fc);
-  return `<section class="forecast" aria-label="這個月的預測與部署">
-    <p class="fold-k">月初 · 預測與部署</p>
+  return `<section class="forecast" aria-label="這季的預測與部署">
+    <p class="fold-k">季初 · 預測與部署</p>
     <ul class="forecast-grid">
       <li><span>客流區間</span><b>${r0(orderBand[0])} – ${r0(orderBand[1])} 單</b></li>
       <li><span>帳面收入區間</span><b>${esc(money(data, run, fc.revenue?.[0]))} – ${esc(money(data, run, fc.revenue?.[1]))}</b></li>
       <li class="${worstCash < 0 ? "bad" : ""}"><span>最壞情況現金</span><b>${esc(money(data, run, worstCash))}</b></li>
       <li class="${Number.isFinite(breakevenOrders) && breakevenOrders > capOrders ? "bad" : ""}"><span>盈虧平衡所需</span><b>${Number.isFinite(breakevenOrders) ? r0(breakevenOrders) + " 單" : "毛利是負的"}</b></li>
       <li><span>最大產能</span><b>${r0(capOrders)} 單</b></li>
-      <li><span>每月淨燃燒</span><b>${esc(money(data, run, burn))}</b></li>
+      <li><span>每季淨燃燒</span><b>${esc(money(data, run, burn))}</b></li>
     </ul>
     <p class="forecast-risk">最大風險來源：<b>${esc(risk)}</b></p>
-    <p class="muted">這是區間，不是答案。同一個決定，不同的月份會給不同的結果。</p>
+    <p class="muted">這是區間，不是答案。同一個決定，不同的季度會給不同的結果。</p>
   </section>`;
 }
 
@@ -298,7 +298,7 @@ function biggestRisk(data, run, fc) {
   const list = [];
   const cash = num(run.finance?.cash, 0);
   const burn = Math.max(0.01, num(parts.operating, 0) - num(run.last?.collected, 0));
-  list.push([cash / burn < 4 ? 5 : 1, `現金只夠 ${Math.max(0, cash / burn).toFixed(1)} 個月`]);
+  list.push([cash / burn < 4 ? 5 : 1, `現金只夠 ${Math.max(0, cash / burn).toFixed(1)} 季`]);
   if (num(parts.platformRate, 0) > 0.12) list.push([4, `平台抽走 ${Math.round(parts.platformRate * 100)}% 的收入`]);
   if (num(parts.premises, 0) > num(run.last?.revenue, 0) * 0.3) list.push([4, `場地吃掉 ${Math.round((parts.premises / Math.max(0.01, run.last.revenue)) * 100)}% 的營業額`]);
   if (num(run.crewStress, 0) > 0.7) list.push([3, "人的壓力已經到會出錯的位置"]);
@@ -307,7 +307,7 @@ function biggestRisk(data, run, fc) {
   if (num(v?.concentration, 0) > 0.5) list.push([3, `最大客戶佔 ${Math.round(v.concentration * 100)}%`]);
   if (run.weather && num(run.weather.demand, 0) < -0.1) list.push([2, `${run.weather.label}會把客流壓下來`]);
   if (rl?.level === "crit") list.push([5, `${rl.name}已經越過紅線`]);
-  if (!list.length) list.push([1, "這個月沒有明顯的單一風險"]);
+  if (!list.length) list.push([1, "這季沒有明顯的單一風險"]);
   list.sort((a, b) => b[0] - a[0]);
   return list[0][1];
 }
