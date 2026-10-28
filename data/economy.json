@@ -29,20 +29,6 @@
       "tail_risk": 1,
       "official": true
     },
-    "sim": {
-      "label": "純模擬",
-      "blurb": "帳簿更密，話更少。規則與故事標準相同。",
-      "rejects": 2,
-      "rescue_actions": 3,
-      "rescue_days": 60,
-      "info": "full",
-      "chapter_save": true,
-      "smart": true,
-      "dialogue": false,
-      "tail_risk": 1,
-      "finance_density": 1.08,
-      "official": true
-    },
     "daily": {
       "label": "每日世界",
       "blurb": "今天所有人抽到同一個世界。不能拒絕。",
@@ -54,32 +40,6 @@
       "smart": true,
       "dialogue": true,
       "tail_risk": 1,
-      "official": true
-    },
-    "hardcore": {
-      "label": "硬核",
-      "blurb": "不能拒絕，不能回到上一章。救援只有一次。",
-      "rejects": 0,
-      "rescue_actions": 1,
-      "rescue_days": 14,
-      "info": "sparse",
-      "chapter_save": false,
-      "smart": false,
-      "dialogue": true,
-      "tail_risk": 1.35,
-      "official": true
-    },
-    "challenge": {
-      "label": "挑戰包",
-      "blurb": "指定一種難局。可拒絕一次。",
-      "rejects": 1,
-      "rescue_actions": 2,
-      "rescue_days": 30,
-      "info": "full",
-      "chapter_save": true,
-      "smart": true,
-      "dialogue": true,
-      "tail_risk": 1.15,
       "official": true
     },
     "sandbox": {
@@ -96,33 +56,6 @@
       "official": false
     }
   },
-  "challenges": [
-    {
-      "id": "decline",
-      "label": "衰退的行業",
-      "blurb": "第一局就抽到正在縮小的市場。"
-    },
-    {
-      "id": "high_rent",
-      "label": "高租金城市",
-      "blurb": "台北或東京。場地會先開口。"
-    },
-    {
-      "id": "care_8",
-      "label": "八個月後的照護",
-      "blurb": "家里的責任已經排進日曆。"
-    },
-    {
-      "id": "in_debt",
-      "label": "從負債開始",
-      "blurb": "公司還沒有名字，個人債務已經在。"
-    },
-    {
-      "id": "gdl_example",
-      "label": "瓜達拉哈拉的採購缺口",
-      "blurb": "三十四歲，食品採購，十四個月薪資，父親的照護在八個月後。"
-    }
-  ],
   "formula": {
     "base_revenue": 2.15,
     "fit_floor": 0.42,

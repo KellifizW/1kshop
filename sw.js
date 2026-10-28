@@ -1,4 +1,4 @@
-const CACHE = "qianfen-v8";
+const CACHE = "qianfen-v9";
 const FILES = [
   "./",
   "./index.html",

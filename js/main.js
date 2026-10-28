@@ -17,7 +17,6 @@ const ui = {
   settings: { speed: "standard", smart: false, autoplay: false, flow: true, still: false },
   draftName: "",
   mode: "story",
-  challenge: null,
   quiet: 0,
   archiveId: null,
   commentAt: [],
@@ -26,6 +25,11 @@ const ui = {
 };
 
 const $ = (s) => esc(s ?? "");
+
+/** 舊存檔可能記著已經移除的模式，一律退回故事標準。 */
+function modeOf(run) {
+  return data?.economy?.modes?.[run?.mode] || data?.economy?.modes?.story || { rejects: 2, info: "full", dialogue: true, official: true };
+}
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -81,6 +85,8 @@ function render() {
   if (data && ui.run) {
     Sim.ensureCast(data, ui.run);
     Sim.ensureWork(data, ui.run);
+    // 舊存檔停在舊的三頁塑形；回到第一個還沒有答案的那一頁，不要留下空白的一頁。
+    if (ui.screen === "shaping" && ui.run.phase === "shaping") syncShapeStep(ui.run);
   }
   app.innerHTML = views[ui.screen]?.() || views.error();
   const pendingAuto = ui.settings.autoplay ? autoTarget() : null;
@@ -130,20 +136,19 @@ const views = {
       <button class="go" data-act="title">完成</button>`);
   },
   mode() {
-    const modes = data.economy.modes;
+    // 只留下兩個正式模式。創作者沙盒還在，但收到頁尾的角落，不與正式模式並列。
+    const modes = Object.entries(data.economy.modes).filter(([id]) => id !== "sandbox");
     return sheet(`<p class="kicker">模式</p><h2>這一局怎麼算</h2>
-      <div class="stack">${Object.entries(modes).map(([id, m]) => `<button class="choice" data-act="pick-mode" data-id="${id}" ${id === "story" ? "data-autofocus" : ""}><b>${$(m.label)}</b><span>${$(m.blurb)}</span></button>`).join("")}</div>
-      <button class="ghost" data-act="title">返回</button>`);
-  },
-  challenge() {
-    return sheet(`<p class="kicker">挑戰包</p><h2>指定一種難局</h2>
-      <div class="stack">${data.economy.challenges.map((c) => `<button class="choice" data-act="pick-challenge" data-id="${c.id}"><b>${$(c.label)}</b><span>${$(c.blurb)}</span></button>`).join("")}</div>
-      <button class="ghost" data-act="to-mode">返回</button>`);
+      <div class="stack">${modes.map(([id, m]) => `<button class="choice" data-act="pick-mode" data-id="${id}" ${id === "story" ? "data-autofocus" : ""}><b>${$(m.label)}</b><span>${$(m.blurb)}</span></button>`).join("")}</div>
+      <div class="sheet-foot">
+        <button class="ghost corner-link" data-act="to-sandbox">創作者沙盒</button>
+        <button class="ghost corner-link" data-act="title">返回</button>
+      </div>`);
   },
   sandbox() {
     const cities = data.world.cities.map((c) => `<option value="${c.id}">${$(c.name)}</option>`).join("");
     const gaps = data.content.gaps.map((g) => `<option value="${g.id}">${$(g.title)}</option>`).join("");
-    return sheet(`<p class="kicker">沙盒 · 不計入正式統計</p><h2>自訂這一局的條件</h2>
+    return sheet(`<p class="kicker">創作者沙盒 · 不計入正式統計</p><h2>自訂這一局的條件</h2>
       <label>種子<input id="sb-seed" value="${$(ui.seedDraft || Math.floor(Math.random() * 1e6))}"></label>
       <label>城市<select id="sb-city"><option value="">由種子決定</option>${cities}</select></label>
       <label>市場缺口<select id="sb-gap"><option value="">由種子決定</option>${gaps}</select></label>
@@ -151,13 +156,13 @@ const views = {
       <label>資產（月薪，可負）<input id="sb-assets" inputmode="numeric" placeholder="例如 8 或 -3"></label>
       <button class="go" data-act="start-sandbox" data-autofocus>用這些條件抽取</button>
       <p class="muted" id="sb-error"></p>
-      <button class="ghost" data-act="to-mode">返回</button>`);
+      <button class="ghost corner-link" data-act="to-mode">返回</button>`);
   },
   // 開場只有一頁：城市、你、你的工作、你抽到的生意，全部攤在同一張桌上。
   opening() {
     const run = ui.run;
     const w = P.worldLine(data, run);
-    const mode = data.economy.modes[run.mode];
+    const mode = modeOf(run);
     const canReject = run.rejectsLeft > 0;
     const biz = P.business(data, run);
     const job = P.jobLine(data, run);
@@ -251,42 +256,69 @@ function sheet(inner, side = "") {
   return `<div class="shell ${side ? "with-side" : ""}"><article class="sheet">${chrome}${inner}</article>${side}</div>`;
 }
 
-// 塑形從六頁併成三頁。同一頁上的選項可以一起看、一起比較，選完再往下走。
+// 塑形：一頁只問一件事。選完就換頁，不會在同一頁上一次回答幾個問題。
 const SHAPE_STEPS = [
   {
-    kicker: "塑形 1 / 3",
+    kicker: "塑形 1 / 6",
     title: "你怎麼投入",
     lead: "你已經決定要開這間公司。現在的問題只有一個：手上那份工作怎麼辦。",
     groups: [["style", "commitment_styles", "投入方式"]],
   },
   {
-    kicker: "塑形 2 / 3",
-    title: "在哪裡做，東西怎麼交出去",
-    lead: "這兩件事決定你的固定成本，以及品質是不是握在自己手上。",
-    groups: [["venue", "venues", "在哪裡做"], ["fulfillment", "fulfillment", "東西怎麼交出去"]],
+    kicker: "塑形 2 / 6",
+    title: "在哪裡做",
+    lead: "這一題只決定一件事：你的固定成本，以及客人會不會經過你門口。",
+    groups: [["venue", "venues", "在哪裡做"]],
   },
   {
-    kicker: "塑形 3 / 3",
-    title: "錢怎麼進來，誰擁有它，你站在哪",
-    lead: "這三件事決定跑道、控制權，以及你要跟誰搶同一批客人。",
-    groups: [["revenue", "revenues", "錢怎麼進來"], ["ownership", "ownership", "誰擁有它"], ["positioning", "positioning", "你站在哪"]],
+    kicker: "塑形 3 / 6",
+    title: "東西怎麼交出去",
+    lead: "品質是握在自己手上，還是交到別人手上，差別在這一題。",
+    groups: [["fulfillment", "fulfillment", "東西怎麼交出去"]],
+  },
+  {
+    kicker: "塑形 4 / 6",
+    title: "錢怎麼進來",
+    lead: "一次收、按月收、按案收，決定你的跑道有多可預期。",
+    groups: [["revenue", "revenues", "錢怎麼進來"]],
+  },
+  {
+    kicker: "塑形 5 / 6",
+    title: "誰擁有它",
+    lead: "控制權與帶進來的現金，只能從這一題裡挑一個比重。",
+    groups: [["ownership", "ownership", "誰擁有它"]],
+  },
+  {
+    kicker: "塑形 6 / 6",
+    title: "你站在哪",
+    lead: "最後一題：你要跟誰搶同一批客人，以及你用甚麼價格被認出來。",
+    groups: [["positioning", "positioning", "你站在哪"]],
   },
 ];
+
+function syncShapeStep(run) {
+  const at = Math.max(0, Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1));
+  const missing = SHAPE_STEPS.findIndex((step) => !run.shape[step.groups[0][0]]);
+  if (missing !== -1 && missing < at) run.shapeStep = missing;
+}
 
 function shapingView() {
   const run = ui.run;
   const idx = Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1);
   const step = SHAPE_STEPS[idx];
-  const missing = step.groups.filter(([k]) => !run.shape[k]);
+  const [key, group, title] = step.groups[0];
+  const picked = run.shape[key];
   const last = idx >= SHAPE_STEPS.length - 1;
-  const showsJob = step.groups.some(([k]) => k === "style");
+  const showsJob = key === "style";
+  const done = SHAPE_STEPS.filter((s2) => run.shape[s2.groups[0][0]]).length;
   return sheet(`<p class="kicker">${$(step.kicker)}</p><h2>${$(step.title)}</h2>
     <p class="sub">${$(step.lead)}</p>
+    <div class="step-dots" aria-label="塑形進度">${SHAPE_STEPS.map((s2, i) => `<i class="${run.shape[s2.groups[0][0]] ? "done" : i === idx ? "here" : ""}" aria-hidden="true"></i>`).join("")}<span>已回答 ${done} / ${SHAPE_STEPS.length}</span></div>
     ${showsJob ? jobCardHtml(run) : ""}
-    ${step.groups.map(([key, group, title]) => pickGroupHtml(run, key, group, title)).join("")}
-    ${missing.length ? `<p class="muted">這一頁還要選：${missing.map(([, , t]) => t).join("、")}。</p>` : ""}
+    ${pickGroupHtml(run, key, group, title)}
+    ${picked ? `<p class="muted">已選「${$(data.economy[group]?.[picked]?.label || picked)}」。要改就再點一次別的選項。</p>` : `<p class="muted">選一個就往下走。</p>`}
     <div class="step-actions">
-      <button class="go" data-act="shape-next" ${missing.length ? "disabled" : "data-autofocus"}>${last ? "看開業前的數字" : "下一步"}</button>
+      <button class="go" data-act="shape-next" ${picked ? "data-autofocus" : "disabled"}>${last ? "看開業前的數字" : "下一步"}</button>
       ${idx > 0 ? `<button class="ghost" data-act="shape-back">上一步</button>` : ""}
     </div>`);
 }
@@ -306,11 +338,13 @@ function jobCardHtml(run) {
 function pickGroupHtml(run, key, group, title) {
   const dict = data.economy[group] || {};
   const picked = run.shape[key];
-  const buttons = Object.entries(dict).map(([id, obj]) => {
+  const buttons = Object.entries(dict).map(([id, obj], i) => {
     const on = picked === id;
-    return `<button class="choice${on ? " is-on" : ""}" data-act="shape-pick" data-key="${key}" data-value="${id}" aria-pressed="${on ? "true" : "false"}"><b>${$(obj.label)}</b><span>${$(choiceBlurb(key, group, id, obj))}</span></button>`;
+    // 還沒回答時，鍵盤焦點放在第一個選項：按 Enter 就回答、換頁，不用再 Tab。
+    const auto = !picked && i === 0 ? " data-autofocus" : "";
+    return `<button class="choice${on ? " is-on" : ""}" data-act="shape-pick" data-key="${key}" data-value="${id}" aria-pressed="${on ? "true" : "false"}"${auto}><b>${$(obj.label)}</b><span>${$(choiceBlurb(key, group, id, obj))}</span></button>`;
   }).join("");
-  return `<section class="pick-group"><p class="fold-k">${$(title)}${picked ? ` · 已選 ${$(dict[picked]?.label || picked)}` : ""}</p><div class="stack">${buttons}</div></section>`;
+  return `<section class="pick-group"><p class="fold-k">${$(title)}</p><div class="stack">${buttons}</div></section>`;
 }
 
 /** 投入方式要把「你這份工作」換算成具體數字，否則玩家看不出自己在換甚麼。 */
@@ -352,7 +386,7 @@ function playView() {
   const biz = P.business(data, run);
   const from = P.calendarLabel(run);
   const to = P.calendarLabel(run, 1);
-  const info = data.economy.modes[run.mode].info;
+  const mode = modeOf(run);
   const kpis = Story.quickMetrics(data, run);
   const story = last ? Story.monthStory(data, run) : [];
   const mult = paceMult(run);
@@ -390,8 +424,8 @@ function playView() {
           <p class="fold-k">上個月發生的事</p>
           ${story.length ? `<ol class="story-lines">${story.map((line) => `<li>${$(line)}</li>`).join("")}</ol>` : `<p class="muted">名字已經寫上。第一個月還沒有故事。</p>`}
           ${last ? `<p class="muted">${$(last.line)}</p>` : ""}
-          ${last?.aside && data.economy.modes[run.mode].dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
-          ${info === "sparse" ? "" : `<p class="small">先講故事，損益表在「帳簿」裡。</p>`}
+          ${last?.aside && mode.dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
+          <p class="small">先講故事，損益表在「帳簿」裡。</p>
         </section>
       </div>
       <aside class="rail" aria-label="快速狀態與操作">
@@ -538,10 +572,8 @@ function drawerHtml() {
   let body = "";
   if (id === "ledger") {
     const rows = (run.factors || []).map(([k, v]) => `<tr><th>${$(k)}</th><td>${$(v)}</td></tr>`).join("");
-    const info = data.economy.modes[run.mode].info;
     body = `<h2>詳細帳簿</h2><p>現金 ${$(P.money(data, run, run.finance.cash))} · 債務 ${$(P.money(data, run, run.finance.debt))}</p>
       <p>法律形式：${$(P.legalLabel(data, run))}。這是遊戲規則，不是法律意見。</p>
-      ${info === "sparse" ? `<p>硬核把顧問收起來。下面仍是公式，因為合約與結算必須對得上。</p>` : ""}
       <table>${rows || `<tr><td>結算一次之後，這裡會列出收入怎麼來。</td></tr>`}</table>
       ${sparkTable()}`;
   } else if (id === "peers") {
@@ -676,7 +708,7 @@ function chapterView() {
     <p class="muted">${$(run.role)}仍在。合上帳簿不會刪掉公司，只是這一局先停。</p>
     <button class="go" data-act="chapter-go" data-autofocus>繼續經營</button>
     ${run.month >= 12 ? `<button class="alt" data-act="close-book">合上這一本</button>` : ""}
-    ${data.economy.modes[run.mode].chapter_save ? `<button class="ghost" data-act="pause">先存起來</button>` : `<p class="muted">硬核不提供章節讀取。重新整理只會回到當下。</p>`}`);
+    <button class="ghost" data-act="pause">先存起來</button>`);
 }
 
 function summaryView() {
@@ -843,11 +875,9 @@ function act(name, ds = {}) {
   }
   if (name === "pick-mode") {
     ui.mode = ds.id;
-    if (ds.id === "challenge") { ui.screen = "challenge"; return render(); }
-    if (ds.id === "sandbox") { ui.screen = "sandbox"; return render(); }
     return beginRun();
   }
-  if (name === "pick-challenge") { ui.challenge = ds.id; return beginRun(); }
+  if (name === "to-sandbox") { ui.screen = "sandbox"; return render(); }
   if (name === "start-sandbox") return startSandbox();
   if (name === "accept") {
     Sim.acknowledgeReveal(run);
@@ -865,18 +895,20 @@ function act(name, ds = {}) {
   if (name === "after-reject") { Sim.finishReject(run); ui.screen = "opening"; saveRun(); return render(); }
   if (name === "job") { Sim.returnToJob(data, run); ui.screen = "ending"; finishWorld(); saveRun(); return render(); }
   if (name === "shape-pick") {
+    const first = !run.shape[ds.key];
+    const step = SHAPE_STEPS[Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1)];
+    const group = step.groups[0];
     Sim.setShape(run, ds.key, ds.value);
+    const label = data.economy[group[1]]?.[ds.value]?.label || ds.value;
+    // 一頁只問一件事：第一次回答就換到下一題；回頭改答案則留在這一頁。
+    if (first && (run.shapeStep || 0) < SHAPE_STEPS.length - 1) run.shapeStep = (run.shapeStep || 0) + 1;
     saveRun();
+    say(first ? `已選「${label}」。` : `改成「${label}」。`);
     return render();
-  }
-  if (name === "shape") {
-    Sim.setShape(run, ds.key, ds.value);
-    run.shapeStep = (run.shapeStep || 0) + 1;
-    saveRun(); return render();
   }
   if (name === "shape-next") {
     const step = SHAPE_STEPS[Math.min(run.shapeStep || 0, SHAPE_STEPS.length - 1)];
-    if (step.groups.some(([k]) => !run.shape[k])) { say("這一頁還有選項沒有選。"); return; }
+    if (step.groups.some(([k]) => !run.shape[k])) { say("這一頁還有一個問題沒有回答。"); return; }
     if ((run.shapeStep || 0) < SHAPE_STEPS.length - 1) {
       run.shapeStep = (run.shapeStep || 0) + 1;
       saveRun();
@@ -995,7 +1027,6 @@ function beginRun() {
     mode: ui.mode,
     seed,
     history: ui.mode === "daily" || ui.mode === "sandbox" ? { cities: [], families: [], gaps: [] } : recent,
-    challenge: ui.mode === "challenge" ? ui.challenge : null,
     sandbox: ui.mode === "sandbox" ? ui.sandbox : null,
     year: new Date().getFullYear(),
   });
