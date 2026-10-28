@@ -1348,3 +1348,31 @@ html.still .stage, html.still .ly-light, html.still .funnel-bar i, html.still .c
 }
 @media (prefers-reduced-motion: reduce) { .initiative-dialog { animation: none; } }
 .still .initiative-dialog { animation: none; }
+
+/* 歷史模式：資料來源、可搜尋的範本與玩家路線分開呈現。 */
+.history-intro, .history-reference {
+  background: #ebe1d0;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--seal);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 9px;
+}
+.history-intro p, .history-reference p { line-height: 1.65; }
+.history-intro a, .history-reference a, .history-opening a, .drawer a { color: var(--seal-deep); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.history-tools { display: grid; gap: 8px; }
+.history-tools input { width: 100%; }
+.history-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 9px; }
+.history-item { min-width: 0; }
+.history-item[hidden], #history-empty[hidden] { display: none; }
+.history-item .history-rank { display: inline-block; margin: 0 10px 0 0; color: var(--seal); font-size: 13px; font-variant-numeric: tabular-nums; }
+.history-item span { overflow-wrap: anywhere; }
+.history-opening details { margin-top: 8px; }
+.history-opening summary { cursor: pointer; font-weight: 600; }
+.history-opening li, .history-timeline li { padding: 5px 0; }
+.history-disclaimer { font-size: 14px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px; }
+.history-status { color: var(--seal-deep); font-size: 13px; margin-top: 5px; }
+.history-badge { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: #f8f3e9; color: var(--seal-deep); font-size: 12px; vertical-align: middle; }
+.history-timeline { padding-left: 22px; }
+.history-timeline li + li { border-top: 1px solid var(--line); }

@@ -42,6 +42,19 @@
       "tail_risk": 1,
       "official": true
     },
+    "history": {
+      "label": "歷史模式",
+      "blurb": "從全球上市公司市值百強選一個真實範本，面對史實轉折與假設分支。",
+      "rejects": 0,
+      "rescue_actions": 3,
+      "rescue_days": 60,
+      "info": "full",
+      "chapter_save": true,
+      "smart": true,
+      "dialogue": true,
+      "tail_risk": 1,
+      "official": false
+    },
     "sandbox": {
       "label": "創作者沙盒",
       "blurb": "自選種子與條件。不計入紀念館的正式統計。",

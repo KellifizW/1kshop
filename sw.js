@@ -1,10 +1,11 @@
-const CACHE = "qianfen-v15";
+const CACHE = "qianfen-v16";
 const FILES = [
   "./",
   "./index.html",
   "./css/game.css",
   "./js/main.js",
   "./js/sim.js",
+  "./js/historical.js",
   "./js/present.js",
   "./js/share.js",
   "./js/stage.js",
@@ -18,6 +19,7 @@ const FILES = [
   "./data/events.json",
   "./data/narrative.json",
   "./data/life-events.json",
+  "./data/historical.json",
   "./assets/favicon.svg",
   "./assets/fonts/DroidSansFallbackFull.ttf",
   "./manifest.webmanifest",

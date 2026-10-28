@@ -3,6 +3,7 @@ import * as P from "./present.js";
 import * as Stage from "./stage.js";
 import * as Charts from "./charts.js";
 import * as Story from "./story.js";
+import * as Historical from "./historical.js";
 import { cashflowPulses } from "./cashflow.js";
 import { paintCard, cardBlob, shareText } from "./share.js";
 
@@ -51,7 +52,7 @@ function say(text) { if (statusEl) statusEl.textContent = text || ""; }
 
 async function boot() {
   try {
-    const files = ["world", "economy", "content", "events", "narrative", "life-events"];
+    const files = ["world", "economy", "content", "events", "narrative", "life-events", "historical"];
     const loaded = await Promise.all(files.map(async (name) => {
       const res = await fetch(`data/${name}.json`);
       if (!res.ok) throw new Error(name);
@@ -61,6 +62,7 @@ async function boot() {
       world: loaded[0], economy: loaded[1], content: loaded[2],
       events: [...loaded[3].events, ...loaded[5].events],
       narrative: { ...loaded[4], beats: [...loaded[4].beats, ...loaded[5].beats] },
+      historical: loaded[6],
     };
     const savedSettings = read(KEY.settings, {});
     ui.settings = { ...ui.settings, ...savedSettings };
@@ -145,7 +147,7 @@ const views = {
       <button class="go" data-act="title">完成</button>`);
   },
   mode() {
-    // 只留下兩個正式模式。創作者沙盒還在，但收到頁尾的角落，不與正式模式並列。
+    // 沙盒保留在頁尾；歷史模式使用相同結算，但不混入故事模式的統計。
     const modes = Object.entries(data.economy.modes).filter(([id]) => id !== "sandbox");
     return sheet(`<p class="kicker">模式</p><h2>這一局怎麼算</h2>
       <div class="stack">${modes.map(([id, m]) => `<button class="choice" data-act="pick-mode" data-id="${id}" ${id === "story" ? "data-autofocus" : ""}><b>${$(m.label)}</b><span>${$(m.blurb)}</span></button>`).join("")}</div>
@@ -153,6 +155,21 @@ const views = {
         <button class="ghost corner-link" data-act="to-sandbox">創作者沙盒</button>
         <button class="ghost corner-link" data-act="title">返回</button>
       </div>`);
+  },
+  historicalSelect() {
+    const companies = data.historical?.companies || [];
+    const source = data.historical?.meta?.rankingSource || "";
+    return sheet(`<p class="kicker">HISTORY MODE · 歷史模式</p><h1>從真實故事開始</h1>
+      <p class="sub">選一間企業，走進它的重要轉折；你不必重複它的選擇。</p>
+      <section class="history-intro"><p><b>選取範圍</b> · PwC 全球上市公司市值百強，截於 2026 年 3 月 31 日；不是即時排名，也不是按營收排名。<br><a href="${$(source)}" target="_blank" rel="noopener noreferrer">查看排名來源 ↗</a></p>
+      <p>每間公司有兩個附來源的史實節點。事件在模擬時間內濃縮出現；另有虛構選項與原遊戲事件。你是模擬經營者，不是真實創辦人。</p>
+      <p>公司規模、財務、人物、地區成本和事件效果均為遊戲參數，不能當作真實紀錄。歷史局不計入故事局的正式統計。</p></section>
+      <div class="history-tools"><label for="history-search">搜尋企業或地區</label><input id="history-search" type="search" autocomplete="off" placeholder="例如：台積電、Tesla、香港" aria-controls="history-list">
+        <p class="muted" id="history-count" role="status">顯示 ${companies.length} 間企業</p>
+        <button class="alt" data-act="history-random">隨機挑選一間</button></div>
+      <div class="history-list" id="history-list">${companies.map((c) => `<button class="choice history-item" data-act="history-pick" data-id="${$(c.id)}" data-search="${$(`${c.name} ${c.english} ${c.origin} ${c.rank}`.toLowerCase())}"><b><span class="history-rank">${String(c.rank).padStart(2, "0")}</span>${$(c.name)}</b><span>${$(c.english)} · ${$(c.origin)}</span><span>起步：${$(c.startingBusiness)}</span></button>`).join("")}</div>
+      <p class="muted" id="history-empty" hidden>找不到相符的企業；可嘗試英文名稱或地區。</p>
+      <button class="ghost corner-link" data-act="to-mode">返回模式</button>`);
   },
   sandbox() {
     const cities = data.world.cities.map((c) => `<option value="${c.id}">${$(c.name)}</option>`).join("");
@@ -173,6 +190,7 @@ const views = {
   // 開場只有一頁：城市、你、你的工作、你抽到的生意，全部攤在同一張桌上。
   opening() {
     const run = ui.run;
+    if (run.mode === "history") return historicalOpening(run);
     const w = P.worldLine(data, run);
     const mode = modeOf(run);
     const canReject = run.rejectsLeft > 0;
@@ -274,6 +292,23 @@ const views = {
 function sheet(inner, side = "") {
   const chrome = ui.screen === "settings" ? "" : autoChrome();
   return `<div class="shell ${side ? "with-side" : ""}"><article class="sheet">${chrome}${inner}</article>${side}</div>`;
+}
+
+function historicalOpening(run) {
+  const c = Historical.historicalCompany(data, run.historical?.companyId);
+  if (!c) return sheet(`<h2>找不到這間歷史範本</h2><p>請重新選擇企業；原有故事存檔不受影響。</p><button class="go" data-act="to-history">選擇企業</button>`);
+  const job = P.jobLine(data, run);
+  const support = run.openingSupport;
+  return sheet(`<p class="kicker">歷史模式 · PwC 2026 市值第 ${c.rank} 名</p><h1 tabindex="-1" data-autofocus>${$(c.name)}</h1>
+    <p class="sub">${$(c.english)} · 史實起點：${$(c.origin)} · 參照 ${c.startYear} 年前後的業務</p>
+    <section class="fold history-opening"><p class="fold-k">這間公司的起點</p><p>這個範本從<b>${$(c.startingBusiness)}</b>開始。你有機會遇到取自這間公司的兩個歷史轉折，也可以選擇沒有發生過的新方向。</p>
+      <details><summary>查看歷史參照與來源</summary><ol>${c.milestones.map((m) => `<li><b>${m.year}</b> · ${$(m.fact)}</li>`).join("")}</ol><p><a href="${$(c.source)}" target="_blank" rel="noopener noreferrer">查閱這間公司的歷史資料 ↗</a></p></details></section>
+    <section class="fold"><p class="fold-k">這一局的你 · 遊戲設定</p><p>${run.founder.age} 歲 · ${$(P.householdLine(run))}做過 ${run.founder.experience} 年${$(P.fieldLabel(data, run.founder.field))}。${$(run.founder.personalNote)}</p><p>${job.has ? `模擬工作是${$(job.label)}。` : "這局沒有模擬正職。"}人物、工作和資產由種子產生，不是真實創辦人的履歷。</p>
+      ${support ? `<p>遊戲契機提供 ${$(P.money(data, run, support.cash))} 啟動資金，前 ${support.quarters} 季補貼基本場地費 ${Math.round(support.relief * 100)}%；不代表公司的真實融資。</p>` : ""}</section>
+    <p class="history-disclaimer">史實年份只標示參考資料；為了可玩性，事件在模擬季度中提前或延後出現。城市成本沿用原遊戲的抽象模型，財務以遊戲單位顯示；結果及假設分支不是現實歷史。</p>
+    <button class="go" data-act="accept">開始塑形，經營這間企業</button>
+    <button class="alt" data-act="to-history">選擇另一間企業</button>
+    <button class="ghost" data-act="job">不創業，回去上班</button>`);
 }
 
 // 塑形：一頁只問一件事。選完就換頁，不會在同一頁上一次回答幾個問題。
@@ -378,7 +413,8 @@ function pickGroupHtml(run, key, group, title) {
     return `<button class="choice${on ? " is-on" : ""}" data-act="shape-pick" data-key="${key}" data-value="${id}" aria-pressed="${on ? "true" : "false"}"${auto}><b>${$(label)}</b><span>${$(choiceBlurb(key, group, id, obj, label))}</span></button>`;
   }).join("");
   const gap = data.content.gaps.find(g=>g.id===run.gapId);
-  const famNote = (key==="fulfillment"||key==="revenue") && gap ? `<p class="muted" style="margin-top:6px;">已按「${gap.title}」過濾為符合現實的 ${entries.length} 種做法。</p>` : "";
+  const famNote = (key==="fulfillment"||key==="revenue") && gap
+    ? `<p class="muted" style="margin-top:6px;">${run.mode === "history" ? `按遊戲的行業模型提供 ${entries.length} 種做法；不代表真實公司的合約。` : `已按「${$(gap.title)}」過濾為符合現實的 ${entries.length} 種做法。`}</p>` : "";
   return `<section class="pick-group"><p class="fold-k">${$(title)}</p><div class="stack">${buttons}</div>${famNote}</section>`;
 }
 
@@ -461,7 +497,8 @@ function playView() {
     <header class="worldbar">
       <div><p class="kicker">${$(w.city.name)} · ${$(P.stageName(data, run))} · ${$(run.role)}</p>
       <h2 id="pass-title">${$(run.venture?.name || "還沒有開始")} ${run.venture ? companyBadge(run) : ""}</h2>
-      <p class="muted">${$(from)} → ${$(to)} · ${$(P.whenLabel(run))}</p></div>
+      <p class="muted">${$(from)} → ${$(to)} · ${$(P.whenLabel(run))}</p>
+      ${run.mode === "history" ? `<p class="history-status">歷史參照 ${run.historical?.nextMilestone || 0} / 2 · ${run.historical?.currentDirection ? `最近的決定：${$(run.historical.currentDirection)}` : "路線尚待決定"}</p>` : ""}</div>
       <div class="pace" role="group" aria-label="時間速度">
         ${[1, 3, 10].map((m) => `<button class="pill ${mult === m ? "on" : ""}" data-act="pace" data-mult="${m}" aria-pressed="${mult === m}">${m}×</button>`).join("")}
         <button class="pill" data-act="month-end">直接到季末</button>
@@ -515,6 +552,7 @@ function playView() {
           <button data-act="drawer" data-id="peers">同行</button>
           <button data-act="drawer" data-id="commits">承諾</button>
           <button data-act="drawer" data-id="time">時間</button>
+          ${run.mode === "history" ? `<button data-act="drawer" data-id="history">史實與路線</button>` : ""}
         </nav>
       </aside>
     </div>
@@ -586,6 +624,10 @@ function pauseNote(run) {
 }
 
 function companyBadge(run) {
+  if (run.mode === "history") {
+    const company = Historical.historicalCompany(data, run.historical?.companyId);
+    return `<span class="company-badge history-badge">歷史範本 · ${$(company?.name || "企業")}</span>`;
+  }
   const gap = data.content.gaps.find(g=>g.id===run.gapId);
   const fam = gap ? (data.content.industries.find(i=>i.id===gap.family)?.name || gap.family) : "";
   const title = gap ? (Sim.companyType(data, gap.company_type)?.name || gap.title) : "未定";
@@ -594,7 +636,7 @@ function companyBadge(run) {
 function businessStrip(run) {
   const b = P.business(data, run);
   const pay = b.revenueLabel ? `收入方式是${b.revenueLabel}，畫面上會按「${b.pulse}」的頻率跳動。` : "開業之後，進帳會按你選的方式跳動。";
-  return `<section class="trade"><p class="kicker">你的企業 ${companyBadge(run)}</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p><p class="muted">${b.companyType ? `企業類型：${$(b.companyType)} · ` : ""}客群：${$(b.buyer)} · 交易單位：${$(b.unit)} · 行業：${$(b.industry)}。${$(pay)}</p></section>`;
+  return `<section class="trade"><p class="kicker">你的企業 ${companyBadge(run)}</p><h2>${$(b.name)}</h2><p>${$(b.does)}</p>${b.direction ? `<p class="small"><b>最近的發展決定：</b>${$(b.direction)}</p>` : ""}<p class="muted">${b.companyType ? `企業類型：${$(b.companyType)} · ` : ""}客群：${$(b.buyer)} · 交易單位：${$(b.unit)} · 行業：${$(b.industry)}。${$(pay)}</p></section>`;
 }
 
 function speedLabel() {
@@ -679,6 +721,16 @@ function drawerHtml() {
   } else if (id === "commits") {
     const list = run.commitments || [];
     body = `<h2>承諾</h2>${list.length ? `<ul class="symptoms">${list.map((c) => `<li>${$(c.name)} · 剩 ${c.monthsLeft} 季</li>`).join("")}</ul>` : `<p>你還沒有簽下不能隨便反悔的東西。</p>`}`;
+  } else if (id === "history") {
+    const c = Historical.historicalCompany(data, run.historical?.companyId);
+    const decisions = run.historical?.decisions || [];
+    body = c ? `<p class="kicker">歷史模式 · 模擬紀錄</p><h2>${$(c.name)}的史實與你的路線</h2>
+      <p>參照起點：${$(c.origin)} · ${c.startYear} 年前後的${$(c.startingBusiness)}。</p>
+      <ol class="history-timeline">${c.milestones.map((m, i) => {
+        const d = decisions.find((entry) => entry.index === i);
+        return `<li><b>${m.year} 年 · 史實參照</b><p>${$(m.fact)}</p><p class="muted">${d ? `第 ${d.quarter} 季的決定：${$(d.direction)}（${d.route === "historical" ? "史實方向" : "假設方向"}）` : "此節點尚未決定。"}</p></li>`;
+      }).join("")}</ol>
+      <p>史實不會自動發生在你的模擬中；角色、結果和數字都是遊戲創作。後續節點仍作為現實世界的參考。</p><p><a href="${$(c.source)}" target="_blank" rel="noopener noreferrer">查看企業歷史資料 ↗</a></p>` : `<p>此範本資料已不可用。</p>`;
   } else if (id === "time") {
     const items = (run.timeline || []).slice().reverse();
     body = `<h2>時間線</h2><p class="small">按時間保留最多約 180 則紀錄。</p>${items.length ? `<ul class="symptoms">${items.map((t) => `<li>第 ${t.m} 季 · ${$(t.title)}。${$(t.text)}${t.choice ? ` · 你的決定：${$(t.choice)}` : ""}</li>`).join("")}</ul>` : `<p>歷史會從第一個選擇開始，不能改寫。</p>`}
@@ -760,14 +812,15 @@ function eventView() {
       <span class="brief"><i class="b-who">影響</i>${$(b.affects)}</span>
     </button>`;
   }).join("");
-  const who = ev.subject && ev.object ? `<div class="who"><span>誰</span><b>${$(ev.subject)}</b><span>什麼事</span><b>${$(ev.object)}</b></div>` : "";
+  const who = !ev.historicalCompany && ev.subject && ev.object ? `<div class="who"><span>誰</span><b>${$(ev.subject)}</b><span>什麼事</span><b>${$(ev.object)}</b></div>` : "";
   const banner = cause
     ? `<p class="chain-banner">這不是隨機事件。第 ${cause.causeMonth} 季你選了「${$(cause.choice)}」（${$(cause.event)}），它走到今天。</p>`
     : ev.major && !ui.seenMajor
       ? `<p class="chain-banner first">第一次出大事，時間會按停，遊戲不會替你選。</p>`
       : "";
+  const reference = ev.historicalCompany ? `<section class="history-reference"><p class="fold-k">真實世界 · ${$(ev.historicalYear)} 年</p><p>${$(ev.historicalFact)}</p><a href="${$(ev.historicalSource)}" target="_blank" rel="noopener noreferrer">查閱歷史來源 ↗</a><p class="small">以下是遊戲決策。效果以遊戲單位計算，不是史實交易金額；另一個方向屬於假設。</p></section>` : "";
   return sheet(`${businessStrip(run)}<p class="kicker">要決定 · 第 ${run.month} 季 · 時間按停</p>${banner}<h2>${$(ev.title)}</h2>
-    ${who}
+    ${who}${reference}
     ${ev.omen ? `<p class="muted">事前的徵兆：${$(ev.omen)}</p>` : ""}
     <p>${$(ev.body)}</p><div class="stack">${choices}</div>
     <p class="small">確定的合約成本會照付；有標示機率的結果由本局種子決定，並受配合度、信任和現金影響。這是遊戲機率，不是現實成功率。</p>`);
@@ -856,8 +909,7 @@ function endingView() {
       <div><span>虧損季數</span><b>${m.lossMonths} 季</b></div>
       <div><span>據點</span><b>${m.branches} 個</b></div>
     </section>
-    <p class="percentile">以同樣的開局條件看，你走得比 <b>${m.percentile}%</b> 的創業者久、或走得比他們清楚。這是遊戲內分布，不是現實統計。</p>
-    <p>${$(P.rarityLine(end.prior))}。若按這套規則長期來看，這種結局大約每一千局有 ${end.prior} 局。</p>
+    ${run.mode === "history" ? `<section class="history-reference"><p class="fold-k">這是模擬，不是企業史</p><p>歷史範本：${$(Historical.historicalCompany(data, run.historical?.companyId)?.name || "企業")}。以上成敗和數字屬於你的遊戲，並不描述真實公司。</p><p>${(run.historical?.decisions || []).length ? `你的路線：${(run.historical.decisions || []).map((d) => $(d.direction)).join(" → ")}。` : "這局尚未走到歷史轉折。"}</p></section>` : `<p class="percentile">以同樣的開局條件看，你走得比 <b>${m.percentile}%</b> 的創業者久、或走得比他們清楚。這是遊戲內分布，不是現實統計。</p><p>${$(P.rarityLine(end.prior))}。若按這套規則長期來看，這種結局大約每一千局有 ${end.prior} 局。</p>`}
     <hr class="cardline">
     <section class="scores" aria-label="八個軸"><p class="fold-k">這一局在八個軸上的位置</p><ul>${scores}</ul></section>
     <section class="marks-line"><p class="fold-k">你是怎麼經營的</p><p>${$(Story.marksLine(data, run))}</p></section>
@@ -901,7 +953,7 @@ function diagnosisView() {
     <p>身邊的同行：${$(peers || "沒有形成。")}</p>
     <p>看不見的同行：${(run.far || []).map((f) => `${$(f.kind)} ${$(f.name)}`).join("。") || "沒有。"}</p>
     <p>${cf ? `若第一個重大選擇改成「${$(cf.choice)}」，那間公司可能走到第 ${cf.months} 季，結局傾向「${$(cf.ending)}」。這是可能，不是保證。` : "這局還沒有足夠的分岔可以對照。"}</p>
-    <p>種子 ${$(run.seed)}。在沙盒輸入同一種子且不改條件，世界會重現。選擇仍由你決定。</p>
+    <p>種子 ${$(run.seed)}。${run.mode === "history" ? "這是歷史範本的模擬紀錄，不是真實公司表現。" : "在沙盒輸入同一種子且不改條件，世界會重現。選擇仍由你決定。"}</p>
     <p class="muted">${$(data.narrative.disclaimer)}</p>
     <button class="go" data-act="back-ending" data-autofocus>回到結局</button>`);
 }
@@ -913,7 +965,7 @@ function archiveView() {
     if (!item) return sheet(`<p>這一頁已經不在。</p><button class="go" data-act="archive">返回</button>`);
     const comments = (item.comments || []).filter((c) => !c.hidden);
     return sheet(`<p class="kicker">檔案</p><h2>${$(item.name)}</h2><p>${$(item.fact)}</p><p>${$(item.cost)}</p>
-      <p class="muted">${item.official ? "正式紀錄" : "沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
+      <p class="muted">${item.official ? "正式紀錄" : item.mode === "history" ? "歷史模擬，不計入正式統計" : "沙盒，不計入正式統計"} · 種子 ${$(item.seed)}</p>
       <h3>留言</h3>
       ${comments.length ? comments.map((c, i) => `<p>${$(c.role)}：${$(c.text)} <button data-act="report" data-i="${i}">隱藏</button></p>`).join("") : `<p>還沒有留言。</p>`}
       <div class="stack">${data.narrative.comments.map((c) => `<button class="alt" data-act="comment" data-role="${$(c.role)}" data-text="${$(c.text)}">以${$(c.role)}的身份留一句</button>`).join("")}</div>
@@ -931,6 +983,20 @@ app.addEventListener("click", (ev) => {
   const el = ev.target.closest("[data-act]");
   if (!el || !app.contains(el)) return;
   act(el.dataset.act, el.dataset);
+});
+
+app.addEventListener("input", (ev) => {
+  if (ev.target?.id !== "history-search") return;
+  const query = ev.target.value.trim().toLocaleLowerCase();
+  let visible = 0;
+  for (const card of app.querySelectorAll(".history-item")) {
+    card.hidden = !card.dataset.search.includes(query);
+    if (!card.hidden) visible += 1;
+  }
+  const count = app.querySelector("#history-count");
+  if (count) count.textContent = `顯示 ${visible} 間企業`;
+  const empty = app.querySelector("#history-empty");
+  if (empty) empty.hidden = visible !== 0;
 });
 
 document.addEventListener("visibilitychange", () => {
@@ -1001,6 +1067,19 @@ function act(name, ds = {}) {
   }
   if (name === "pick-mode") {
     ui.mode = ds.id;
+    if (ds.id === "history") { ui.screen = "historicalSelect"; return render(); }
+    return beginRun();
+  }
+  if (name === "to-history") { ui.mode = "history"; ui.screen = "historicalSelect"; return render(); }
+  if (name === "history-pick") {
+    if (!Historical.historicalCompany(data, ds.id)) { say("找不到這間企業。"); return; }
+    ui.historyCompanyId = ds.id; ui.mode = "history";
+    return beginRun();
+  }
+  if (name === "history-random") {
+    const list = data.historical?.companies || [];
+    if (!list.length) { say("歷史範本暫時未能載入。"); return; }
+    ui.historyCompanyId = list[Math.floor(Math.random() * list.length)].id; ui.mode = "history";
     return beginRun();
   }
   if (name === "to-sandbox") { ui.screen = "sandbox"; return render(); }
@@ -1109,7 +1188,7 @@ function act(name, ds = {}) {
   if (name === "do-close") { Sim.confirmClose(data, run, ds.how); afterStep(); return; }
   if (name === "close-book") { Sim.closeBook(data, run); ui.screen = "ending"; finishWorld(); saveRun(); return render(); }
   if (name === "pause") { saveRun(); ui.screen = "title"; say("這一章已留下。"); return render(); }
-  if (name === "continue") { ui.run = ui.saved; ui.screen = ui.saved.venture ? "play" : screenFor(ui.saved); return render(); }
+  if (name === "continue") { ui.run = ui.saved; ui.screen = screenFor(ui.saved); return render(); }
   if (name === "drop-save") { localStorage.removeItem(KEY.run); ui.saved = null; ui.corrupt = false; ui.screen = "title"; return render(); }
   if (name === "speed-slower" || name === "speed-faster" || name === "cycle-speed") {
     const order = ["slow", "immerse", "standard", "fast", "blitz"];
@@ -1171,15 +1250,18 @@ function beginRun() {
     seed,
     history: ui.mode === "daily" || ui.mode === "sandbox" ? { cities: [], families: [], gaps: [] } : recent,
     sandbox: ui.mode === "sandbox" ? ui.sandbox : null,
+    historicalCompanyId: ui.mode === "history" ? ui.historyCompanyId : null,
     year: new Date().getFullYear(),
   });
-  const eco = read(KEY.eco, {});
-  if (eco[run.cityId]?.[0]) run.ecosystemHint = eco[run.cityId][0];
-  recent.cities = [run.cityId, ...recent.cities.filter((c) => c !== run.cityId)].slice(0, 3);
-  const gap = data.content.gaps.find((g) => g.id === run.gapId);
-  recent.gaps = [run.gapId, ...recent.gaps.filter((g) => g !== run.gapId)].slice(0, 3);
-  recent.families = [gap.family, ...recent.families.filter((f) => f !== gap.family)].slice(0, 3);
-  write(KEY.recent, recent);
+  if (ui.mode !== "history") {
+    const eco = read(KEY.eco, {});
+    if (eco[run.cityId]?.[0]) run.ecosystemHint = eco[run.cityId][0];
+    recent.cities = [run.cityId, ...recent.cities.filter((c) => c !== run.cityId)].slice(0, 3);
+    const gap = data.content.gaps.find((g) => g.id === run.gapId);
+    recent.gaps = [run.gapId, ...recent.gaps.filter((g) => g !== run.gapId)].slice(0, 3);
+    recent.families = [gap.family, ...recent.families.filter((f) => f !== gap.family)].slice(0, 3);
+    write(KEY.recent, recent);
+  }
   run.speed = ui.settings.speed;
   run.smart = ui.settings.smart;
   run.autoplay = !!ui.settings.autoplay;
@@ -1249,6 +1331,7 @@ function finishWorld() {
   const run = ui.run;
   if (!run?.cityId || run._remembered) return;
   run._remembered = true;
+  if (run.mode === "history") return; // 歷史模擬不污染故事模式的本地生態。
   const eco = read(KEY.eco, {});
   const type = run.flags?.compliance_risk ? "scandal" : run.shape?.venue === "street" ? "vacant" : run.shape?.venue === "factory" ? "equipment" : (run.team?.headcount || 0) > 2 ? "people" : run.coreKept ? "memory" : "brand";
   eco[run.cityId] = [{ name: run.venture?.name, ending: run.ending?.id, type, at: Date.now() }, ...(eco[run.cityId] || [])].slice(0, 8);
@@ -1698,6 +1781,7 @@ function archiveThis() {
   list.unshift({
     id: `${Date.now()}`,
     seed: run.seed,
+    mode: run.mode,
     name: run.venture?.name || "未開的店",
     city: P.worldLine(data, run).city.name,
     ending: end.title,

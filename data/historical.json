@@ -1,0 +1,3312 @@
+{
+  "meta": {
+    "id": "pwc-2026-03-31",
+    "title": "PwC 全球上市公司市值百強",
+    "asOf": "2026-03-31",
+    "rankingSource": "https://www.pwc.co.uk/audit/assets/pdf/global-100/companies/global-top-100-companies-2026.pdf",
+    "methodology": "普華永道以 S&P Global Market Intelligence 資料分析，按 2026 年 3 月 31 日上市公司美元市值排名；並非營收排名，亦非即時排名。",
+    "note": "每家公司選取兩個可追溯史料的里程碑；決策、假設分支、遊戲數值及觸發時間均為創作。模擬不是完整企業傳記。"
+  },
+  "companies": [
+    {
+      "id": "nvidia",
+      "rank": 1,
+      "name": "輝達",
+      "english": "NVIDIA",
+      "startYear": 1993,
+      "origin": "美國加州",
+      "sector": "chips",
+      "startingBusiness": "三維圖形晶片",
+      "source": "https://blogs.nvidia.com/blog/what-is-accelerated-computing/",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "nvidia_1",
+          "year": 1999,
+          "fact": "NVIDIA 推出 GeForce 256 圖形處理器。",
+          "historical": "推出面向玩家的 GeForce 圖形處理器",
+          "alternate": "專做遊戲主機廠商的客製晶片",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "nvidia_2",
+          "year": 2006,
+          "fact": "NVIDIA 推出 CUDA，讓 GPU 可作通用平行運算。",
+          "historical": "投入 CUDA 開發平台",
+          "alternate": "只支援遊戲圖形並授權技術予合作夥伴",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "apple",
+      "rank": 2,
+      "name": "蘋果",
+      "english": "Apple",
+      "startYear": 1976,
+      "origin": "美國加州",
+      "sector": "electronics",
+      "startingBusiness": "個人電腦",
+      "source": "https://www.cnn.com/us/apple-fast-facts",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "apple_1",
+          "year": 1977,
+          "fact": "Apple II 在 1977 年推出。",
+          "historical": "推出面向更廣大市場的 Apple II",
+          "alternate": "維持小批量電腦板，專攻發燒友",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "apple_2",
+          "year": 2007,
+          "fact": "蘋果在 2007 年推出 iPhone。",
+          "historical": "投入研發整合式手機",
+          "alternate": "專注改良桌上電腦與操作系統",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "alphabet",
+      "rank": 3,
+      "name": "Alphabet（Google）",
+      "english": "Alphabet",
+      "startYear": 1998,
+      "origin": "美國加州",
+      "sector": "platform",
+      "startingBusiness": "網頁搜尋服務",
+      "source": "https://www.bccresearch.com/company-index/profile/alphabet-inc-google-inc/history",
+      "modelGap": "group_buy",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "alphabet_1",
+          "year": 2000,
+          "fact": "Google 推出 AdWords 搜尋廣告。",
+          "historical": "建立關鍵字廣告服務",
+          "alternate": "向企業出售搜尋技術授權",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "alphabet_2",
+          "year": 2006,
+          "fact": "Google 收購 YouTube。",
+          "historical": "收購影片分享平台",
+          "alternate": "只擴充自家的文字搜尋服務",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "microsoft",
+      "rank": 4,
+      "name": "微軟",
+      "english": "Microsoft",
+      "startYear": 1975,
+      "origin": "美國新墨西哥州",
+      "sector": "software",
+      "startingBusiness": "BASIC 程式語言軟件",
+      "source": "https://atouchofbusiness.com/companies/the-history-of-microsoft/",
+      "modelGap": "inventory_tool",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "microsoft_1",
+          "year": 1981,
+          "fact": "微軟的 MS-DOS 用於 IBM 個人電腦。",
+          "historical": "為 IBM 個人電腦提供作業系統並保留授權",
+          "alternate": "只為單一電腦廠商做客製軟件",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "microsoft_2",
+          "year": 1985,
+          "fact": "微軟推出 Windows 1.0。",
+          "historical": "投資圖形介面的 Windows",
+          "alternate": "集中改良命令列與程式語言工具",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "amazon",
+      "rank": 5,
+      "name": "亞馬遜",
+      "english": "Amazon",
+      "startYear": 1994,
+      "origin": "美國華盛頓州",
+      "sector": "retail",
+      "startingBusiness": "網上書籍",
+      "source": "https://www.timelinesphere.com/timeline/amazon",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "amazon_1",
+          "year": 2005,
+          "fact": "Amazon 推出 Prime 會員服務。",
+          "historical": "建立付費會員及快速配送",
+          "alternate": "只向每筆訂單收配送費",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "amazon_2",
+          "year": 2006,
+          "fact": "Amazon Web Services 開始提供雲端服務。",
+          "historical": "把運算基建發展成 AWS 雲端服務",
+          "alternate": "將所有資金留在書籍與零售",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "aramco",
+      "rank": 6,
+      "name": "沙特阿美",
+      "english": "Saudi Aramco",
+      "startYear": 1933,
+      "origin": "沙特阿拉伯",
+      "sector": "energy",
+      "startingBusiness": "石油勘探",
+      "source": "https://matrixbcg.com/blogs/brief-history/aramco",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "aramco_1",
+          "year": 1938,
+          "fact": "達曼七號井發現具商業價值的石油。",
+          "historical": "投入資源開發達曼油田",
+          "alternate": "暫停擴採，先與外部夥伴分攤勘探風險",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "aramco_2",
+          "year": 1950,
+          "fact": "橫阿拉伯輸油管道竣工。",
+          "historical": "建設長距離輸油與出口能力",
+          "alternate": "集中服務本地市場，減少大型管線投入",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "broadcom",
+      "rank": 7,
+      "name": "博通",
+      "english": "Broadcom",
+      "startYear": 2005,
+      "origin": "美國加州",
+      "sector": "chips",
+      "startingBusiness": "半導體元件",
+      "source": "https://www.companieshistory.com/company/broadcom/",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "broadcom_1",
+          "year": 2005,
+          "fact": "安華高 Avago 從安捷倫半導體業務分拆成立。",
+          "historical": "獨立經營半導體元件業務",
+          "alternate": "保留與原集團的合作，專注少數元件",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "broadcom_2",
+          "year": 2016,
+          "fact": "Avago 收購 Broadcom Corporation 並採用博通名稱。",
+          "historical": "收購 Broadcom，擴展網絡晶片組合",
+          "alternate": "不作收購，集中自研連接晶片",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "meta",
+      "rank": 8,
+      "name": "Meta（Facebook）",
+      "english": "Meta Platforms",
+      "startYear": 2004,
+      "origin": "美國麻省劍橋",
+      "sector": "platform",
+      "startingBusiness": "校園社交網絡",
+      "source": "https://www.companieshistory.com/company/meta/",
+      "modelGap": "group_buy",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "meta_1",
+          "year": 2012,
+          "fact": "Facebook 上市，亦在同年收購 Instagram。",
+          "historical": "收購 Instagram，擴大照片分享業務",
+          "alternate": "只在 Facebook 內建照片工具",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "meta_2",
+          "year": 2021,
+          "fact": "Facebook 公司更名為 Meta Platforms。",
+          "historical": "投資沉浸式平台並調整集團定位",
+          "alternate": "集中改善既有社交網絡與私隱",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "tsmc",
+      "rank": 9,
+      "name": "台積電",
+      "english": "TSMC",
+      "startYear": 1987,
+      "origin": "台灣新竹",
+      "sector": "chips",
+      "startingBusiness": "為客戶代工半導體晶圓",
+      "source": "https://investor.tsmc.com/sites/ir/sec-filings/20F-2015.pdf",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "tsmc_1",
+          "year": 1987,
+          "fact": "台積電成立，採取專業晶圓代工模式。",
+          "historical": "專注為其他設計公司代工",
+          "alternate": "自設晶片設計部門並銷售自家產品",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "tsmc_2",
+          "year": 1997,
+          "fact": "台積電在紐約證券交易所上市。",
+          "historical": "進入海外資本市場籌集資金",
+          "alternate": "保留較封閉的資本結構，分階段擴廠",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "tesla",
+      "rank": 10,
+      "name": "特斯拉",
+      "english": "Tesla",
+      "startYear": 2003,
+      "origin": "美國加州",
+      "sector": "auto",
+      "startingBusiness": "電動跑車",
+      "source": "https://electricvehicletalks.com/history-of-tesla/",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "tesla_1",
+          "year": 2008,
+          "fact": "Tesla Roadster 開始交付。",
+          "historical": "推出高性能電動跑車",
+          "alternate": "先向其他車廠提供電池動力系統",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "tesla_2",
+          "year": 2017,
+          "fact": "Tesla 開始交付 Model 3。",
+          "historical": "投資較大量生產的 Model 3",
+          "alternate": "維持小量高端車，優先改善現金流",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "berkshire",
+      "rank": 11,
+      "name": "巴郡",
+      "english": "Berkshire Hathaway",
+      "startYear": 1955,
+      "origin": "美國麻省新貝德福德",
+      "sector": "industrial",
+      "startingBusiness": "紡織布料",
+      "source": "https://hdfcsky.com/sky-learn/global-investing/history-of-berkshire-hathaway",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "berkshire_1",
+          "year": 1965,
+          "fact": "巴菲特取得 Berkshire Hathaway 的控制權。",
+          "historical": "引入新股東重整經營",
+          "alternate": "由原團隊繼續投資紡織設備",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "berkshire_2",
+          "year": 1967,
+          "fact": "Berkshire 收購 National Indemnity，進入保險業。",
+          "historical": "買入保險業務並分散投資",
+          "alternate": "集中重整紡織廠，暫不跨行業",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "walmart",
+      "rank": 12,
+      "name": "沃爾瑪",
+      "english": "Walmart",
+      "startYear": 1962,
+      "origin": "美國阿肯色州羅傑斯",
+      "sector": "retail",
+      "startingBusiness": "平價日用品",
+      "source": "https://corporate.walmart.com/about/history",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "walmart_1",
+          "year": 1970,
+          "fact": "沃爾瑪在 1970 年公開上市。",
+          "historical": "引入公眾資本擴張折扣店",
+          "alternate": "以自有現金逐家增加分店",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "walmart_2",
+          "year": 1983,
+          "fact": "沃爾瑪開設第一間 Sam's Club 會員倉儲店。",
+          "historical": "開會員制倉儲店",
+          "alternate": "繼續以普通折扣商店服務小鎮",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "lilly",
+      "rank": 13,
+      "name": "禮來",
+      "english": "Eli Lilly",
+      "startYear": 1876,
+      "origin": "美國印第安納波利斯",
+      "sector": "pharma",
+      "startingBusiness": "藥品",
+      "source": "https://www.encyclopedia.com/social-sciences-and-law/economics-business-and-labor/businesses-and-occupations/eli-lilly-company",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "lilly_1",
+          "year": 1923,
+          "fact": "禮來推出商業胰島素 Iletin。",
+          "historical": "與研究者合作生產胰島素",
+          "alternate": "先擴充既有藥品產能，不進入胰島素",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "lilly_2",
+          "year": 1982,
+          "fact": "禮來推出以重組 DNA 技術製造的人類胰島素 Humulin。",
+          "historical": "投資生物技術製造人類胰島素",
+          "alternate": "繼續優化既有胰島素生產",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "jpmorgan",
+      "rank": 14,
+      "name": "摩根大通",
+      "english": "JPMorgan Chase",
+      "startYear": 1799,
+      "origin": "美國紐約",
+      "sector": "bank",
+      "startingBusiness": "供水與銀行服務",
+      "source": "https://www.jpmorganchase.com/about/our-history",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "jpmorgan_1",
+          "year": 1955,
+          "fact": "曼哈頓公司銀行與 Chase National Bank 合併成 Chase Manhattan Bank。",
+          "historical": "與 Chase National 合併",
+          "alternate": "維持獨立，擴充本地存貸款服務",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "jpmorgan_2",
+          "year": 2000,
+          "fact": "Chase Manhattan 與 J.P. Morgan & Co. 合併。",
+          "historical": "結合商業銀行與投資銀行",
+          "alternate": "以合作協議取代合併",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "exxon",
+      "rank": 15,
+      "name": "埃克森美孚",
+      "english": "Exxon Mobil",
+      "startYear": 1870,
+      "origin": "美國俄亥俄州克利夫蘭",
+      "sector": "energy",
+      "startingBusiness": "石油煉製",
+      "source": "https://www.bccresearch.com/company-index/profile/exxon-mobil-corp/history",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "exxon_1",
+          "year": 1911,
+          "fact": "Standard Oil 在反壟斷判決後分拆，產生後來的 Exxon 與 Mobil 前身。",
+          "historical": "按分拆後的新公司結構經營",
+          "alternate": "縮減投資並專注單一區域煉油",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "exxon_2",
+          "year": 1999,
+          "fact": "Exxon 與 Mobil 合併。",
+          "historical": "尋求與 Mobil 合併",
+          "alternate": "不合併，透過供應合作維持獨立",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "samsung",
+      "rank": 16,
+      "name": "三星電子",
+      "english": "Samsung Electronics",
+      "startYear": 1969,
+      "origin": "韓國水原",
+      "sector": "electronics",
+      "startingBusiness": "黑白電視",
+      "source": "https://applescoop.org/story/history-of-samsung-trading-company-to-galaxy",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "samsung_1",
+          "year": 1974,
+          "fact": "三星集團購入韓國半導體公司股權，進入晶片業務。",
+          "historical": "投入半導體供應鏈",
+          "alternate": "只擴充電視與家電業務",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "samsung_2",
+          "year": 1983,
+          "fact": "三星投入 DRAM 記憶體晶片。",
+          "historical": "投資 DRAM 記憶體研發",
+          "alternate": "採購外部晶片，專注消費電子",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "johnson",
+      "rank": 17,
+      "name": "強生",
+      "english": "Johnson & Johnson",
+      "startYear": 1886,
+      "origin": "美國新澤西州新不倫瑞克",
+      "sector": "pharma",
+      "startingBusiness": "無菌手術敷料",
+      "source": "https://www.usatoday.com/story/news/usa250/2026/04/15/johnson-and-johnson-iconic-american-brand/88885232007/",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "johnson_1",
+          "year": 1921,
+          "fact": "強生開始銷售 Band-Aid 黏貼式繃帶。",
+          "historical": "把敷料改良為家用黏貼繃帶",
+          "alternate": "維持醫院專用的無菌敷料",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "johnson_2",
+          "year": 1959,
+          "fact": "強生收購 McNeil Laboratories。",
+          "historical": "收購藥品公司擴展醫療產品",
+          "alternate": "與藥廠簽分銷協議，不收購",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "visa",
+      "rank": 18,
+      "name": "Visa",
+      "english": "Visa",
+      "startYear": 1958,
+      "origin": "美國加州弗雷斯諾",
+      "sector": "payments",
+      "startingBusiness": "銀行信用卡網絡",
+      "source": "https://pestel-analysis.com/blogs/brief-history/visa",
+      "modelGap": "merchant_payments",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "visa_1",
+          "year": 1976,
+          "fact": "BankAmericard 及其國際網絡採用 Visa 品牌。",
+          "historical": "以 Visa 統一支付網絡品牌",
+          "alternate": "保留地方品牌並只建立互通協議",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "visa_2",
+          "year": 2008,
+          "fact": "Visa Inc. 完成首次公開招股。",
+          "historical": "引入公開市場投資者",
+          "alternate": "維持成員機構主導的資本結構",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "tencent",
+      "rank": 19,
+      "name": "騰訊",
+      "english": "Tencent",
+      "startYear": 1998,
+      "origin": "中國深圳",
+      "sector": "platform",
+      "startingBusiness": "即時通訊軟件",
+      "source": "https://www.companieshistory.com/company/tencent/",
+      "modelGap": "group_buy",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "tencent_1",
+          "year": 1999,
+          "fact": "騰訊推出 OICQ，即後來的 QQ。",
+          "historical": "擴大即時通訊服務",
+          "alternate": "只向企業客戶提供收費通訊工具",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "tencent_2",
+          "year": 2011,
+          "fact": "騰訊推出微信 WeChat。",
+          "historical": "開發面向手機的微信",
+          "alternate": "只改良桌面版 QQ",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "asml",
+      "rank": 20,
+      "name": "阿斯麥",
+      "english": "ASML",
+      "startYear": 1984,
+      "origin": "荷蘭埃因霍溫",
+      "sector": "industrial",
+      "startingBusiness": "半導體光刻設備",
+      "source": "https://quartr.com/insights/edge/asml-architecting-earths-most-complex-machines",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "asml_1",
+          "year": 2001,
+          "fact": "ASML 收購 Silicon Valley Group，獲得更多光刻技術資源。",
+          "historical": "收購設備商，拓展光刻技術",
+          "alternate": "透過授權合作保留獨立研發",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "asml_2",
+          "year": 2012,
+          "fact": "Intel、Samsung 和台積電參與 ASML 的研發投資計劃。",
+          "historical": "引入客戶資金支持長期 EUV 研發",
+          "alternate": "以內部資金慢速改良既有光刻設備",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "mastercard",
+      "rank": 21,
+      "name": "萬事達卡",
+      "english": "Mastercard",
+      "startYear": 1966,
+      "origin": "美國紐約",
+      "sector": "payments",
+      "startingBusiness": "銀行卡支付網絡",
+      "source": "https://pestel-analysis.com/blogs/brief-history/mastercard",
+      "modelGap": "merchant_payments",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "mastercard_1",
+          "year": 1979,
+          "fact": "Interbank Card Association 將品牌改為 Mastercard。",
+          "historical": "以 Mastercard 統一網絡品牌",
+          "alternate": "保留成員銀行各自的支付品牌",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "mastercard_2",
+          "year": 2006,
+          "fact": "Mastercard 完成首次公開招股。",
+          "historical": "引入公眾股東籌集資金",
+          "alternate": "維持銀行成員主導的網絡",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "costco",
+      "rank": 22,
+      "name": "好市多",
+      "english": "Costco",
+      "startYear": 1983,
+      "origin": "美國西雅圖",
+      "sector": "retail",
+      "startingBusiness": "會員制批量商品",
+      "source": "https://www.britannica.com/money/Costco",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "costco_1",
+          "year": 1993,
+          "fact": "Costco 與 Price Club 合併成 PriceCostco。",
+          "historical": "與 Price Club 合併",
+          "alternate": "保留獨立，以自有倉庫擴張",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "costco_2",
+          "year": 1997,
+          "fact": "PriceCostco 的公司名稱改為 Costco Companies。",
+          "historical": "整合會員倉儲品牌",
+          "alternate": "保留不同地區的雙品牌經營",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "oracle",
+      "rank": 23,
+      "name": "甲骨文",
+      "english": "Oracle",
+      "startYear": 1977,
+      "origin": "美國加州",
+      "sector": "software",
+      "startingBusiness": "資料庫軟件",
+      "source": "https://corpdigest.com/company/oracle/company-history",
+      "modelGap": "inventory_tool",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "oracle_1",
+          "year": 1979,
+          "fact": "Oracle 推出商業 SQL 資料庫 Oracle Version 2。",
+          "historical": "推出可用 SQL 查詢的商業資料庫",
+          "alternate": "只為少數客戶訂製資料管理系統",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "oracle_2",
+          "year": 2010,
+          "fact": "Oracle 收購 Sun Microsystems。",
+          "historical": "收購伺服器及 Java 相關業務",
+          "alternate": "與硬件廠商合作而不收購",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "chevron",
+      "rank": 24,
+      "name": "雪佛龍",
+      "english": "Chevron",
+      "startYear": 1879,
+      "origin": "美國三藩市",
+      "sector": "energy",
+      "startingBusiness": "石油生產與煉製",
+      "source": "https://matrixbcg.com/blogs/brief-history/chevron",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "chevron_1",
+          "year": 1984,
+          "fact": "加州標準石油與 Gulf Oil 合併並採用 Chevron 名稱。",
+          "historical": "合併 Gulf Oil 並整合品牌",
+          "alternate": "保持獨立，只購買部分供應合約",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "chevron_2",
+          "year": 2001,
+          "fact": "Chevron 與 Texaco 合併。",
+          "historical": "合併 Texaco 擴大能源業務",
+          "alternate": "集中既有油田和煉油業務",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "netflix",
+      "rank": 25,
+      "name": "Netflix",
+      "english": "Netflix",
+      "startYear": 1997,
+      "origin": "美國加州斯科茨谷",
+      "sector": "media",
+      "startingBusiness": "郵寄 DVD 租借",
+      "source": "https://www.preceden.com/timeline/history-of-netflix",
+      "modelGap": "creator_venue",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "netflix_1",
+          "year": 2007,
+          "fact": "Netflix 推出網上串流服務。",
+          "historical": "投資按需串流平台",
+          "alternate": "繼續擴大郵寄 DVD 的選片量",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "netflix_2",
+          "year": 2013,
+          "fact": "Netflix 推出原創劇集《紙牌屋》。",
+          "historical": "投資原創劇集",
+          "alternate": "只購買外部影視作品播放權",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "abbvie",
+      "rank": 26,
+      "name": "艾伯維",
+      "english": "AbbVie",
+      "startYear": 2013,
+      "origin": "美國伊利諾州",
+      "sector": "pharma",
+      "startingBusiness": "處方藥研發",
+      "source": "https://dcf-analysis.com/blogs/history/abbv",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "abbvie_1",
+          "year": 2013,
+          "fact": "AbbVie 從 Abbott 的研究型製藥業務分拆。",
+          "historical": "以獨立製藥公司繼續經營",
+          "alternate": "與原集團維持更緊密的營運合作",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "abbvie_2",
+          "year": 2020,
+          "fact": "AbbVie 完成收購 Allergan。",
+          "historical": "收購 Allergan 擴充藥物組合",
+          "alternate": "集中自研既有免疫疾病產品",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "micron",
+      "rank": 27,
+      "name": "美光",
+      "english": "Micron Technology",
+      "startYear": 1978,
+      "origin": "美國愛達荷州博伊西",
+      "sector": "chips",
+      "startingBusiness": "半導體設計",
+      "source": "https://www.thestreet.com/investing/stocks/micron-history-timeline-facts",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "micron_1",
+          "year": 1980,
+          "fact": "美光開始興建博伊西首座晶圓廠。",
+          "historical": "自建晶圓廠製造記憶體",
+          "alternate": "維持輕資產，將生產外判",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "micron_2",
+          "year": 2013,
+          "fact": "美光收購日本記憶體廠 Elpida。",
+          "historical": "收購 Elpida 擴大 DRAM 產能",
+          "alternate": "不收購，以新產品自力擴張",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "icbc",
+      "rank": 28,
+      "name": "中國工商銀行",
+      "english": "Industrial and Commercial Bank of China",
+      "startYear": 1984,
+      "origin": "中國北京",
+      "sector": "bank",
+      "startingBusiness": "工商信貸與存款",
+      "source": "https://www.icbcasia.com/ICBC/EN/AboutUs/BriefIntroduction/briefintroduction.htm",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "icbc_1",
+          "year": 2005,
+          "fact": "工商銀行完成股份制改造。",
+          "historical": "重組為股份制銀行",
+          "alternate": "維持原有架構並逐步改善流程",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "icbc_2",
+          "year": 2006,
+          "fact": "工商銀行同日在上海及香港上市。",
+          "historical": "安排兩地公開上市",
+          "alternate": "先集中現有存款與企業客戶",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "skhynix",
+      "rank": 29,
+      "name": "SK 海力士",
+      "english": "SK hynix",
+      "startYear": 1983,
+      "origin": "韓國利川",
+      "sector": "chips",
+      "startingBusiness": "記憶體晶片",
+      "source": "https://en.wikipedia.org/wiki/SK_Hynix",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "skhynix_1",
+          "year": 2001,
+          "fact": "現代電子改名為 Hynix Semiconductor，並出售或分拆部分業務。",
+          "historical": "重組公司並集中半導體",
+          "alternate": "保留多元業務，減少單一產品依賴",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "skhynix_2",
+          "year": 2012,
+          "fact": "SK 集團收購 Hynix，其後更名為 SK hynix。",
+          "historical": "接受新股東支持並投入記憶體業務",
+          "alternate": "維持獨立，以合作方式補充資金",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "palantir",
+      "rank": 30,
+      "name": "Palantir",
+      "english": "Palantir Technologies",
+      "startYear": 2003,
+      "origin": "美國加州帕洛阿爾托",
+      "sector": "software",
+      "startingBusiness": "資料整合分析軟件",
+      "source": "https://www.thestreet.com/investing/stocks/history-of-palantir-company-timeline-facts-milestones",
+      "modelGap": "inventory_tool",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "palantir_1",
+          "year": 2008,
+          "fact": "Palantir 推出供政府情報客戶使用的 Gotham。",
+          "historical": "推出政府資料分析平台",
+          "alternate": "只向私人企業提供資料整理工具",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "palantir_2",
+          "year": 2020,
+          "fact": "Palantir 透過直接上市進入公開市場。",
+          "historical": "安排直接上市",
+          "alternate": "維持非上市公司並逐步擴張",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "rank": 31,
+      "name": "美國銀行",
+      "english": "Bank of America",
+      "startYear": 1904,
+      "origin": "美國三藩市",
+      "sector": "bank",
+      "startingBusiness": "移民及小商戶銀行服務",
+      "source": "https://www.ebsco.com/research-starters/history/bank-america-corporation/",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "bofa_1",
+          "year": 1909,
+          "fact": "前身 Bank of Italy 開始在加州擴展分行。",
+          "historical": "擴展服務一般客戶的分行網絡",
+          "alternate": "留在原區，深耕小商戶貸款",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "bofa_2",
+          "year": 1998,
+          "fact": "NationsBank 收購 BankAmerica，合併後沿用 Bank of America 名稱。",
+          "historical": "參與跨地區銀行合併",
+          "alternate": "維持區域銀行獨立經營",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "pg",
+      "rank": 32,
+      "name": "寶潔",
+      "english": "Procter & Gamble",
+      "startYear": 1837,
+      "origin": "美國辛辛那提",
+      "sector": "consumer",
+      "startingBusiness": "肥皂與蠟燭",
+      "source": "https://everything-pr.com/procter-gamble",
+      "modelGap": "d2c_brand",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "pg_1",
+          "year": 1879,
+          "fact": "寶潔推出 Ivory 肥皂。",
+          "historical": "推出獨立品牌肥皂",
+          "alternate": "專注為其他零售商代工肥皂",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "pg_2",
+          "year": 1931,
+          "fact": "Neil McElroy 的備忘錄推動寶潔的品牌管理制度。",
+          "historical": "為不同產品建立專責品牌團隊",
+          "alternate": "讓同一團隊統一管理所有產品",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "abc",
+      "rank": 33,
+      "name": "中國農業銀行",
+      "english": "Agricultural Bank of China",
+      "startYear": 1951,
+      "origin": "中國北京",
+      "sector": "bank",
+      "startingBusiness": "農業與農村金融服務",
+      "source": "https://matrixbcg.com/blogs/brief-history/abchina",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "abc_1",
+          "year": 1979,
+          "fact": "中國農業銀行恢復設立。",
+          "historical": "重建專門服務農業的銀行網絡",
+          "alternate": "與地方機構合作，不自行擴張網點",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "abc_2",
+          "year": 2010,
+          "fact": "中國農業銀行在上海及香港上市。",
+          "historical": "引入公開市場資本",
+          "alternate": "維持既有股權並專注農村貸款",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "amd",
+      "rank": 34,
+      "name": "超微",
+      "english": "AMD",
+      "startYear": 1969,
+      "origin": "美國加州桑尼維爾",
+      "sector": "chips",
+      "startingBusiness": "半導體元件",
+      "source": "https://swotanalysisexample.com/blogs/brief-history/amd-brief-history",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "amd_1",
+          "year": 2006,
+          "fact": "AMD 收購 ATI Technologies，進入圖形處理領域。",
+          "historical": "收購圖形晶片公司 ATI",
+          "alternate": "繼續專注 CPU，與顯示晶片商合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "amd_2",
+          "year": 2017,
+          "fact": "AMD 推出以 Zen 架構為基礎的 Ryzen 處理器。",
+          "historical": "投入新架構處理器",
+          "alternate": "延長既有晶片產品週期並降低研發",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "caterpillar",
+      "rank": 35,
+      "name": "卡特彼勒",
+      "english": "Caterpillar",
+      "startYear": 1925,
+      "origin": "美國加州",
+      "sector": "industrial",
+      "startingBusiness": "履帶式拖拉機",
+      "source": "https://matrixbcg.com/blogs/brief-history/caterpillar",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "caterpillar_1",
+          "year": 1925,
+          "fact": "Holt Manufacturing 與 C. L. Best 合併成立 Caterpillar。",
+          "historical": "整合兩家履帶機械製造商",
+          "alternate": "維持獨立並共享零件標準",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "caterpillar_2",
+          "year": 1931,
+          "fact": "Caterpillar 推出柴油引擎及柴油機械。",
+          "historical": "投入柴油動力設備",
+          "alternate": "繼續改善既有汽油動力機械",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "homedepot",
+      "rank": 36,
+      "name": "家得寶",
+      "english": "The Home Depot",
+      "startYear": 1978,
+      "origin": "美國喬治亞州亞特蘭大",
+      "sector": "retail",
+      "startingBusiness": "家居維修及建材用品",
+      "source": "https://www.britannica.com/money/Home-Depot",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "homedepot_1",
+          "year": 1979,
+          "fact": "家得寶在亞特蘭大附近開出首兩間店。",
+          "historical": "開設大型倉儲式建材商店",
+          "alternate": "先開小型專門店並提供上門諮詢",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "homedepot_2",
+          "year": 1981,
+          "fact": "家得寶首次公開招股。",
+          "historical": "透過公開市場集資開店",
+          "alternate": "只靠現有店舖利潤擴張",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "cocacola",
+      "rank": 37,
+      "name": "可口可樂",
+      "english": "The Coca-Cola Company",
+      "startYear": 1892,
+      "origin": "美國喬治亞州亞特蘭大",
+      "sector": "food",
+      "startingBusiness": "可口可樂飲料及糖漿",
+      "source": "https://corpdigest.com/company/coca-cola/company-history",
+      "modelGap": "kitchen_prep",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "cocacola_1",
+          "year": 1899,
+          "fact": "可口可樂授予合作方在美國多地的裝瓶權。",
+          "historical": "建立與地方裝瓶商合作的網絡",
+          "alternate": "由公司自行經營全部裝瓶配送",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "cocacola_2",
+          "year": 1985,
+          "fact": "可口可樂推出 New Coke，之後恢復原配方。",
+          "historical": "嘗試更新飲料配方",
+          "alternate": "保留原配方，只推出獨立新口味",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "petrochina",
+      "rank": 38,
+      "name": "中國石油",
+      "english": "PetroChina",
+      "startYear": 1999,
+      "origin": "中國北京",
+      "sector": "energy",
+      "startingBusiness": "石油與天然氣生產",
+      "source": "https://matrixbcg.com/blogs/brief-history/petrochina",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "petrochina_1",
+          "year": 2000,
+          "fact": "中國石油在香港及紐約上市。",
+          "historical": "進入海外資本市場",
+          "alternate": "保留現有股東結構，分階段投資",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "petrochina_2",
+          "year": 2004,
+          "fact": "西氣東輸一期工程竣工。",
+          "historical": "投資長途天然氣管道",
+          "alternate": "優先提升現有油田效率",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "roche",
+      "rank": 39,
+      "name": "羅氏",
+      "english": "Roche",
+      "startYear": 1896,
+      "origin": "瑞士巴塞爾",
+      "sector": "pharma",
+      "startingBusiness": "工業化生產的藥品",
+      "source": "https://www.roche-middleeast.com/about/history",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "roche_1",
+          "year": 1979,
+          "fact": "羅氏與 Genentech 合作開發干擾素生產過程。",
+          "historical": "與生物技術公司合作",
+          "alternate": "先集中傳統藥品與診斷業務",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "roche_2",
+          "year": 2009,
+          "fact": "羅氏收購 Genentech 其餘股份。",
+          "historical": "整合 Genentech 的研究業務",
+          "alternate": "維持少數股權及研發合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "cisco",
+      "rank": 40,
+      "name": "思科",
+      "english": "Cisco",
+      "startYear": 1984,
+      "origin": "美國加州",
+      "sector": "network",
+      "startingBusiness": "多協定網絡路由器",
+      "source": "https://growthsharematrix.com/blogs/brief-history/cisco",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "cisco_1",
+          "year": 1986,
+          "fact": "Cisco 交付第一款多協定路由器。",
+          "historical": "推出連接不同網絡的路由器",
+          "alternate": "只為大學客戶提供客製網絡服務",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "cisco_2",
+          "year": 1993,
+          "fact": "Cisco 收購 Crescendo Communications，進入交換設備市場。",
+          "historical": "收購交換設備公司",
+          "alternate": "以內部研發擴展路由器功能",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "astrazeneca",
+      "rank": 41,
+      "name": "阿斯利康",
+      "english": "AstraZeneca",
+      "startYear": 1999,
+      "origin": "英國倫敦",
+      "sector": "pharma",
+      "startingBusiness": "處方藥研發",
+      "source": "https://pestel-analysis.com/blogs/brief-history/astrazeneca",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "astrazeneca_1",
+          "year": 1999,
+          "fact": "Astra AB 與 Zeneca 合併成立 AstraZeneca。",
+          "historical": "整合兩家藥廠的研發團隊",
+          "alternate": "不合併，建立跨國聯合研發",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "astrazeneca_2",
+          "year": 2007,
+          "fact": "阿斯利康收購 MedImmune，擴展生物藥研發。",
+          "historical": "收購生物藥公司 MedImmune",
+          "alternate": "繼續以內部研究開拓生物藥",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "merck",
+      "rank": 42,
+      "name": "默沙東",
+      "english": "Merck & Co.",
+      "startYear": 1891,
+      "origin": "美國紐約",
+      "sector": "pharma",
+      "startingBusiness": "藥品與化學製劑",
+      "source": "https://en.wikipedia.org/wiki/Merck_%26_Co.",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "merck_1",
+          "year": 1917,
+          "fact": "美國的 Merck & Co. 在第一次世界大戰期間與德國原公司分離。",
+          "historical": "建立獨立的美國製藥公司",
+          "alternate": "以授權合作維持與海外夥伴的關係",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "merck_2",
+          "year": 1953,
+          "fact": "Merck & Co. 與 Sharp & Dohme 合併。",
+          "historical": "合併藥廠與分銷網絡",
+          "alternate": "維持獨立，只簽銷售合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "ge",
+      "rank": 43,
+      "name": "通用電氣（GE Aerospace）",
+      "english": "General Electric",
+      "startYear": 1892,
+      "origin": "美國紐約州斯克內克塔迪",
+      "sector": "industrial",
+      "startingBusiness": "電氣設備",
+      "source": "https://en.wikipedia.org/wiki/General_Electric",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "ge_1",
+          "year": 1892,
+          "fact": "Edison General Electric 與 Thomson-Houston 合併成通用電氣。",
+          "historical": "整合電氣設備與技術",
+          "alternate": "維持兩套獨立產品，以專利授權合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "ge_2",
+          "year": 2024,
+          "fact": "GE 分拆能源業務為 GE Vernova，餘下公司聚焦航空。",
+          "historical": "聚焦航空推進系統",
+          "alternate": "維持多元工業集團",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "novartis",
+      "rank": 44,
+      "name": "諾華",
+      "english": "Novartis",
+      "startYear": 1996,
+      "origin": "瑞士巴塞爾",
+      "sector": "pharma",
+      "startingBusiness": "藥物研發及製造",
+      "source": "https://www.novartis.com/au-en/about/novartis-australia/company-history",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "novartis_1",
+          "year": 1996,
+          "fact": "Ciba-Geigy 與 Sandoz 合併成立 Novartis。",
+          "historical": "整合藥物與化學研發",
+          "alternate": "維持兩家公司並合作研究",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "novartis_2",
+          "year": 2023,
+          "fact": "諾華分拆 Sandoz，集中創新藥。",
+          "historical": "分拆仿製藥業務並專注創新藥",
+          "alternate": "保留仿製藥和創新藥雙線發展",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "ccb",
+      "rank": 45,
+      "name": "中國建設銀行",
+      "english": "China Construction Bank",
+      "startYear": 1954,
+      "origin": "中國北京",
+      "sector": "bank",
+      "startingBusiness": "建設項目資金管理",
+      "source": "https://www.encyclopedia.com/books/politics-and-business-magazines/china-construction-bank-corp",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "ccb_1",
+          "year": 1979,
+          "fact": "建設銀行轉為國有專業銀行，逐步經營存貸款。",
+          "historical": "擴充商業存貸款服務",
+          "alternate": "只管理基建項目的專項資金",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "ccb_2",
+          "year": 2005,
+          "fact": "建設銀行在香港完成首次公開招股。",
+          "historical": "引入公開市場股東",
+          "alternate": "保留原有股權，緩步擴張",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "alibaba",
+      "rank": 46,
+      "name": "阿里巴巴",
+      "english": "Alibaba Group",
+      "startYear": 1999,
+      "origin": "中國杭州",
+      "sector": "platform",
+      "startingBusiness": "企業網上貿易平台",
+      "source": "https://matrixbcg.com/blogs/brief-history/alibabagroup",
+      "modelGap": "group_buy",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "alibaba_1",
+          "year": 2003,
+          "fact": "阿里巴巴推出面向消費者的淘寶市場。",
+          "historical": "開拓消費者之間的網上市場",
+          "alternate": "專心為中小出口商服務",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "alibaba_2",
+          "year": 2009,
+          "fact": "阿里巴巴成立阿里雲。",
+          "historical": "投資雲端運算服務",
+          "alternate": "只租用外部基建並專注電商",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "hsbc",
+      "rank": 47,
+      "name": "滙豐",
+      "english": "HSBC",
+      "startYear": 1865,
+      "origin": "中國香港",
+      "sector": "bank",
+      "startingBusiness": "國際貿易融資",
+      "source": "https://matrixbcg.com/blogs/brief-history/hsbc",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "hsbc_1",
+          "year": 1959,
+          "fact": "滙豐收購中東英國銀行及 Mercantile Bank。",
+          "historical": "收購銀行擴充國際網絡",
+          "alternate": "維持亞洲基地並與海外銀行合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "hsbc_2",
+          "year": 1992,
+          "fact": "滙豐收購英國 Midland Bank。",
+          "historical": "整合英國零售銀行",
+          "alternate": "保持亞洲業務規模，不作大型收購",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "applied",
+      "rank": 48,
+      "name": "應用材料",
+      "english": "Applied Materials",
+      "startYear": 1967,
+      "origin": "美國加州",
+      "sector": "industrial",
+      "startingBusiness": "半導體製造設備",
+      "source": "https://www.financialcontent.com/article/marketminute-2025-8-1-applied-materials-engineering-the-future-of-electronics",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "applied_1",
+          "year": 1972,
+          "fact": "應用材料在 NASDAQ 上市。",
+          "historical": "以公開市場資金擴張",
+          "alternate": "以現金流慢慢增加設備產能",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "applied_2",
+          "year": 1987,
+          "fact": "應用材料推出 Precision 5000 多製程設備平台。",
+          "historical": "投入整合多道製程的設備平台",
+          "alternate": "只改良單一製程設備",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "catl",
+      "rank": 49,
+      "name": "寧德時代",
+      "english": "CATL",
+      "startYear": 2011,
+      "origin": "中國福建寧德",
+      "sector": "industrial",
+      "startingBusiness": "電動車鋰離子電池",
+      "source": "https://www.batterydesign.net/battery-cell/cell-benchmarking/catl/",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "catl_1",
+          "year": 2012,
+          "fact": "寧德時代與華晨寶馬建立汽車電池合作。",
+          "historical": "投資配合汽車廠的電池研發",
+          "alternate": "專注服務儲能設備客戶",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "catl_2",
+          "year": 2018,
+          "fact": "寧德時代在深圳證券交易所上市。",
+          "historical": "公開上市籌集擴產資金",
+          "alternate": "維持較小股權結構並緩步增產",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "lam",
+      "rank": 50,
+      "name": "泛林集團",
+      "english": "Lam Research",
+      "startYear": 1980,
+      "origin": "美國加州",
+      "sector": "industrial",
+      "startingBusiness": "晶圓蝕刻設備",
+      "source": "https://www.financecharts.com/stocks/LRCX/profile",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "lam_1",
+          "year": 1982,
+          "fact": "Lam 推出 AutoEtch 480 蝕刻設備。",
+          "historical": "推出自動化晶圓蝕刻設備",
+          "alternate": "繼續為少數客戶製作客製機器",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "lam_2",
+          "year": 1984,
+          "fact": "Lam Research 完成首次公開招股。",
+          "historical": "引入公眾資本擴充研發",
+          "alternate": "延後擴張，保留控制權",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "shell",
+      "rank": 51,
+      "name": "殼牌",
+      "english": "Shell",
+      "startYear": 1897,
+      "origin": "英國倫敦",
+      "sector": "energy",
+      "startingBusiness": "石油運輸與貿易",
+      "source": "https://corpdigest.com/company/shell/company-history",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "shell_1",
+          "year": 1907,
+          "fact": "Shell Transport 與 Royal Dutch Petroleum 結合成 Royal Dutch Shell 集團。",
+          "historical": "結合運輸與油田資源",
+          "alternate": "保留獨立，以運輸協約合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "shell_2",
+          "year": 2016,
+          "fact": "殼牌收購 BG Group。",
+          "historical": "收購天然氣業務",
+          "alternate": "只發展既有油氣資產",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "lvmh",
+      "rank": 52,
+      "name": "LVMH",
+      "english": "LVMH",
+      "startYear": 1987,
+      "origin": "法國巴黎",
+      "sector": "luxury",
+      "startingBusiness": "奢侈皮具與酒類",
+      "source": "https://www.lvmh.com/en/our-group",
+      "modelGap": "missing_sizes",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "lvmh_1",
+          "year": 1987,
+          "fact": "Moët Hennessy 與 Louis Vuitton 合併成立 LVMH。",
+          "historical": "建立多品牌奢侈品集團",
+          "alternate": "維持獨立品牌，只合作分銷",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "lvmh_2",
+          "year": 1989,
+          "fact": "Bernard Arnault 在 1989 年開始領導 LVMH。",
+          "historical": "引入新的集團領導及資本",
+          "alternate": "由各品牌管理團隊共同決策",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "moutai",
+      "rank": 53,
+      "name": "貴州茅台",
+      "english": "Kweichow Moutai",
+      "startYear": 1951,
+      "origin": "中國貴州茅台鎮",
+      "sector": "food",
+      "startingBusiness": "茅台酒",
+      "source": "https://en.wikipedia.org/wiki/Kweichow_Moutai",
+      "modelGap": "kitchen_prep",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "moutai_1",
+          "year": 1951,
+          "fact": "三家當地酒坊合併，成立國營茅台酒廠。",
+          "historical": "整合酒坊並統一生產",
+          "alternate": "保留各酒坊獨立配方，以聯合品牌銷售",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "moutai_2",
+          "year": 2001,
+          "fact": "貴州茅台在上海證券交易所上市。",
+          "historical": "引入公眾資本",
+          "alternate": "控制擴產速度並保留既有結構",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "morganstanley",
+      "rank": 54,
+      "name": "摩根士丹利",
+      "english": "Morgan Stanley",
+      "startYear": 1935,
+      "origin": "美國紐約",
+      "sector": "bank",
+      "startingBusiness": "企業融資與證券承銷",
+      "source": "https://en.wikipedia.org/wiki/Morgan_Stanley",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "morganstanley_1",
+          "year": 1986,
+          "fact": "摩根士丹利完成首次公開招股。",
+          "historical": "引入公眾股東擴展金融服務",
+          "alternate": "保留合夥制並控制擴張",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "morganstanley_2",
+          "year": 1997,
+          "fact": "摩根士丹利與 Dean Witter Discover 合併。",
+          "historical": "合併零售經紀與投資銀行",
+          "alternate": "專注企業融資並與經紀商合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "rtx",
+      "rank": 55,
+      "name": "RTX",
+      "english": "RTX",
+      "startYear": 2020,
+      "origin": "美國麻省",
+      "sector": "industrial",
+      "startingBusiness": "航空與防務設備",
+      "source": "https://en.wikipedia.org/wiki/Raytheon",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "rtx_1",
+          "year": 2020,
+          "fact": "Raytheon 與 United Technologies 合併成 Raytheon Technologies。",
+          "historical": "整合航空與防務業務",
+          "alternate": "維持獨立，合作研發航空設備",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "rtx_2",
+          "year": 2023,
+          "fact": "Raytheon Technologies 更名為 RTX，並整合部分業務部門。",
+          "historical": "整合業務並統一 RTX 品牌",
+          "alternate": "保留各部門品牌獨立經營",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "goldman",
+      "rank": 56,
+      "name": "高盛",
+      "english": "Goldman Sachs",
+      "startYear": 1869,
+      "origin": "美國紐約",
+      "sector": "bank",
+      "startingBusiness": "商業票據融資",
+      "source": "https://timepath.org/goldman-sachs",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "goldman_1",
+          "year": 1999,
+          "fact": "高盛結束長期合夥制並首次公開招股。",
+          "historical": "公開上市籌集資本",
+          "alternate": "維持合夥制，限制擴張速度",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "goldman_2",
+          "year": 2008,
+          "fact": "高盛在金融危機期間轉為銀行控股公司。",
+          "historical": "轉為銀行控股公司並調整風險管理",
+          "alternate": "縮減交易部位並維持原有模式",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "toyota",
+      "rank": 57,
+      "name": "豐田",
+      "english": "Toyota",
+      "startYear": 1937,
+      "origin": "日本愛知縣",
+      "sector": "auto",
+      "startingBusiness": "汽車",
+      "source": "https://pestel-analysis.com/blogs/brief-history/toyota",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "toyota_1",
+          "year": 1966,
+          "fact": "豐田推出 Corolla 車系。",
+          "historical": "推出面向大眾市場的 Corolla",
+          "alternate": "專注少量商用車與零部件",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "toyota_2",
+          "year": 1997,
+          "fact": "豐田在日本推出 Prius 混合動力車。",
+          "historical": "投資混合動力車型",
+          "alternate": "繼續改善傳統引擎效率",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "pmi",
+      "rank": 58,
+      "name": "菲利普莫里斯國際",
+      "english": "Philip Morris International",
+      "startYear": 2008,
+      "origin": "美國紐約",
+      "sector": "consumer",
+      "startingBusiness": "國際煙草產品",
+      "source": "https://umbrex.com/resources/company-profiles/philip-morris-international/",
+      "modelGap": "d2c_brand",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "pmi_1",
+          "year": 2008,
+          "fact": "菲利普莫里斯國際從 Altria 分拆為獨立公司。",
+          "historical": "建立獨立的國際業務",
+          "alternate": "維持母公司內部事業部形式",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "pmi_2",
+          "year": 2014,
+          "fact": "PMI 開始商業推出 IQOS 加熱煙草產品。",
+          "historical": "投資加熱煙草產品",
+          "alternate": "集中管理現有煙草業務與合規成本",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "bankofchina",
+      "rank": 59,
+      "name": "中國銀行",
+      "english": "Bank of China",
+      "startYear": 1912,
+      "origin": "中國上海",
+      "sector": "bank",
+      "startingBusiness": "國際匯兌與銀行服務",
+      "source": "https://www.boc.cn/en/aboutboc/ab1/200809/t20080901_1601737.html",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "bankofchina_1",
+          "year": 1949,
+          "fact": "1949 年後中國銀行長期擔任外匯及對外貿易專業銀行。",
+          "historical": "發展國際匯兌與貿易結算",
+          "alternate": "集中本地企業存款服務",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "bankofchina_2",
+          "year": 2011,
+          "fact": "中國銀行被列為全球系統重要性銀行。",
+          "historical": "投資跨境風險和資本管理",
+          "alternate": "縮小國際承諾，先服務本地市場",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "nestle",
+      "rank": 60,
+      "name": "雀巢",
+      "english": "Nestlé",
+      "startYear": 1867,
+      "origin": "瑞士沃韋",
+      "sector": "food",
+      "startingBusiness": "嬰兒麥乳食品",
+      "source": "https://www.nestle.com/about/history/nestle-company-history",
+      "modelGap": "kitchen_prep",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "nestle_1",
+          "year": 1905,
+          "fact": "Nestlé 與 Anglo-Swiss Condensed Milk 合併。",
+          "historical": "合併煉乳及嬰兒食品業務",
+          "alternate": "維持獨立，只合作出口",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "nestle_2",
+          "year": 1938,
+          "fact": "雀巢推出 Nescafé 即溶咖啡。",
+          "historical": "開發即溶咖啡產品",
+          "alternate": "集中奶製品與原有嬰兒食品",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "wellsfargo",
+      "rank": 61,
+      "name": "富國銀行",
+      "english": "Wells Fargo",
+      "startYear": 1852,
+      "origin": "美國紐約",
+      "sector": "bank",
+      "startingBusiness": "銀行及快遞服務",
+      "source": "https://en.wikipedia.org/wiki/Wells_Fargo",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "wellsfargo_1",
+          "year": 1995,
+          "fact": "Wells Fargo 開始提供網上銀行服務。",
+          "historical": "投資網上銀行渠道",
+          "alternate": "優先擴大實體分行及面對面服務",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "wellsfargo_2",
+          "year": 1998,
+          "fact": "Norwest 收購 Wells Fargo，合併後沿用 Wells Fargo 名稱。",
+          "historical": "參與跨地區銀行合併",
+          "alternate": "維持獨立並改善既有分行",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "unitedhealth",
+      "rank": 62,
+      "name": "聯合健康集團",
+      "english": "UnitedHealth Group",
+      "startYear": 1974,
+      "origin": "美國明尼蘇達州",
+      "sector": "insurance",
+      "startingBusiness": "醫療計劃及服務",
+      "source": "https://portersfiveforce.com/blogs/brief-history/unitedhealthgroup",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "unitedhealth_1",
+          "year": 1977,
+          "fact": "United HealthCare Corporation 成立，管理醫療計劃。",
+          "historical": "建立結合醫療網絡與保障的計劃",
+          "alternate": "只為醫療機構提供行政服務",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "unitedhealth_2",
+          "year": 2011,
+          "fact": "集團推出 Optum 品牌，整合醫療服務業務。",
+          "historical": "整合醫療服務及數據業務",
+          "alternate": "只經營原有健康保障計劃",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "gevernova",
+      "rank": 63,
+      "name": "GE Vernova",
+      "english": "GE Vernova",
+      "startYear": 2022,
+      "origin": "美國麻省劍橋",
+      "sector": "energy",
+      "startingBusiness": "發電、風電及電網設備",
+      "source": "https://pestel-analysis.com/blogs/brief-history/gevernova",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "gevernova_1",
+          "year": 2022,
+          "fact": "GE 為其計劃分拆的能源業務採用 GE Vernova 名稱。",
+          "historical": "建立聚焦能源設備的業務品牌",
+          "alternate": "在綜合集團內保留獨立能源部門",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "gevernova_2",
+          "year": 2024,
+          "fact": "GE Vernova 從通用電氣分拆並獨立上市。",
+          "historical": "分拆能源業務，獨立經營",
+          "alternate": "留在大型工業集團共享資源",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "ihc",
+      "rank": 64,
+      "name": "國際控股公司",
+      "english": "International Holding Company",
+      "startYear": 1998,
+      "origin": "阿聯酋阿布扎比",
+      "sector": "agri",
+      "startingBusiness": "水產養殖",
+      "source": "https://globalswf.com/fund/IHC",
+      "modelGap": "farm_sourcing",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "ihc_1",
+          "year": 1998,
+          "fact": "IHC 的前身 Asmak 以水產養殖業務起步。",
+          "historical": "擴充水產養殖和供應",
+          "alternate": "只服務本地海鮮市場",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "ihc_2",
+          "year": 2019,
+          "fact": "IHC 的前身開始轉向多行業投資控股模式。",
+          "historical": "發展多行業投資組合",
+          "alternate": "繼續專注水產與食品供應鏈",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "tmobile",
+      "rank": 65,
+      "name": "T-Mobile US",
+      "english": "T-Mobile US",
+      "startYear": 1994,
+      "origin": "美國華盛頓州",
+      "sector": "telecom",
+      "startingBusiness": "流動通訊服務",
+      "source": "https://matrixbcg.com/blogs/brief-history/t-mobile",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "tmobile_1",
+          "year": 2002,
+          "fact": "VoiceStream 更名為 T-Mobile USA。",
+          "historical": "整合流動通訊品牌",
+          "alternate": "保留地方品牌，與海外電訊商合作",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "tmobile_2",
+          "year": 2020,
+          "fact": "T-Mobile US 完成與 Sprint 的合併。",
+          "historical": "合併 Sprint 擴充網絡",
+          "alternate": "保留獨立並租用其他網絡容量",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "linde",
+      "rank": 66,
+      "name": "林德",
+      "english": "Linde",
+      "startYear": 1879,
+      "origin": "德國威斯巴登",
+      "sector": "industrial",
+      "startingBusiness": "製冷機械",
+      "source": "https://en.wikipedia.org/wiki/Linde_plc",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "linde_1",
+          "year": 1895,
+          "fact": "Carl von Linde 取得空氣液化相關專利，為氣體分離技術奠基。",
+          "historical": "研發空氣液化與工業氣體",
+          "alternate": "專注為釀酒業提供製冷機械",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "linde_2",
+          "year": 2018,
+          "fact": "Linde 與 Praxair 合併。",
+          "historical": "合併工業氣體業務",
+          "alternate": "保持獨立，與海外供應商合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "ibm",
+      "rank": 67,
+      "name": "IBM",
+      "english": "IBM",
+      "startYear": 1911,
+      "origin": "美國紐約州恩迪科特",
+      "sector": "industrial",
+      "startingBusiness": "計算與製表設備",
+      "source": "https://growthsharematrix.com/blogs/brief-history/ibm",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "ibm_1",
+          "year": 1964,
+          "fact": "IBM 推出相容系列大型電腦 System/360。",
+          "historical": "研發跨機型相容的電腦系列",
+          "alternate": "保留專用機器並減少研發投入",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "ibm_2",
+          "year": 1981,
+          "fact": "IBM 推出 IBM Personal Computer。",
+          "historical": "進入個人電腦市場",
+          "alternate": "繼續專注大型企業電腦",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "rbc",
+      "rank": 68,
+      "name": "加拿大皇家銀行",
+      "english": "Royal Bank of Canada",
+      "startYear": 1864,
+      "origin": "加拿大哈利法克斯",
+      "sector": "bank",
+      "startingBusiness": "商業與海運貿易銀行服務",
+      "source": "https://en.wikipedia.org/wiki/Royal_Bank_of_Canada",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "rbc_1",
+          "year": 1901,
+          "fact": "Merchants Bank of Halifax 更名為 Royal Bank of Canada。",
+          "historical": "擴展至全國並採用新名稱",
+          "alternate": "維持海事地區專業銀行",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "rbc_2",
+          "year": 1907,
+          "fact": "皇家銀行將總部從哈利法克斯遷至蒙特利爾。",
+          "historical": "擴展主要金融中心的業務",
+          "alternate": "保留海事地區總部並與其他城市合作",
+          "type": "network",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "chinamobile",
+      "rank": 69,
+      "name": "中國移動",
+      "english": "China Mobile",
+      "startYear": 1997,
+      "origin": "中國香港",
+      "sector": "telecom",
+      "startingBusiness": "流動通訊服務",
+      "source": "https://portersfiveforce.com/blogs/brief-history/chinamobileltd",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "chinamobile_1",
+          "year": 2000,
+          "fact": "China Telecom (Hong Kong) 更名為 China Mobile。",
+          "historical": "統一流動通訊品牌及網絡",
+          "alternate": "維持區域品牌，優先提升本地服務",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "chinamobile_2",
+          "year": 2013,
+          "fact": "中國移動開始提供商用 4G TD-LTE 服務。",
+          "historical": "投入第四代流動通訊網絡",
+          "alternate": "延長既有網絡壽命並控制資本開支",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "intel",
+      "rank": 70,
+      "name": "英特爾",
+      "english": "Intel",
+      "startYear": 1968,
+      "origin": "美國加州山景城",
+      "sector": "chips",
+      "startingBusiness": "半導體記憶體",
+      "source": "https://timeline.intel.com/",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "intel_1",
+          "year": 1971,
+          "fact": "Intel 推出 4004 微處理器。",
+          "historical": "開發可程式化微處理器",
+          "alternate": "專注記憶體產品",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "intel_2",
+          "year": 1978,
+          "fact": "Intel 推出 8086 處理器。",
+          "historical": "建立新一代處理器架構",
+          "alternate": "只供應既有晶片，減少研發",
+          "type": "product",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "mcdonalds",
+      "rank": 71,
+      "name": "麥當勞",
+      "english": "McDonald's",
+      "startYear": 1940,
+      "origin": "美國加州聖貝納迪諾",
+      "sector": "food",
+      "startingBusiness": "漢堡及快餐",
+      "source": "https://en.wikipedia.org/wiki/McDonald%27s",
+      "modelGap": "kitchen_prep",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "mcdonalds_1",
+          "year": 1955,
+          "fact": "Ray Kroc 成為麥當勞特許經營代理並在伊利諾伊州開店。",
+          "historical": "以特許經營擴展餐廳",
+          "alternate": "只由公司自己經營少量分店",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "mcdonalds_2",
+          "year": 1961,
+          "fact": "Ray Kroc 買下麥當勞兄弟的公司權益。",
+          "historical": "收購原有權益統一品牌",
+          "alternate": "保留與原創團隊的長期合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "loreal",
+      "rank": 72,
+      "name": "歐萊雅",
+      "english": "L'Oréal",
+      "startYear": 1909,
+      "origin": "法國巴黎",
+      "sector": "consumer",
+      "startingBusiness": "染髮產品",
+      "source": "https://canvasbusinessmodel.com/blogs/brief-history/loreal-brief-history",
+      "modelGap": "d2c_brand",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "loreal_1",
+          "year": 1928,
+          "fact": "歐萊雅收購 Monsavon，擴展日用品。",
+          "historical": "收購清潔用品品牌",
+          "alternate": "專注染髮產品及髮廊客戶",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "loreal_2",
+          "year": 1964,
+          "fact": "歐萊雅收購 Lancôme。",
+          "historical": "收購 Lancôme 進入高端化妝品",
+          "alternate": "發展自有平價護髮品牌",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "pepsico",
+      "rank": 73,
+      "name": "百事公司",
+      "english": "PepsiCo",
+      "startYear": 1965,
+      "origin": "美國紐約",
+      "sector": "food",
+      "startingBusiness": "汽水與零食",
+      "source": "https://en.wikipedia.org/wiki/PepsiCo",
+      "modelGap": "kitchen_prep",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "pepsico_1",
+          "year": 1965,
+          "fact": "Pepsi-Cola 與 Frito-Lay 合併成立 PepsiCo。",
+          "historical": "整合飲料及零食渠道",
+          "alternate": "保留獨立飲料公司，與零食商合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "pepsico_2",
+          "year": 1998,
+          "fact": "PepsiCo 收購 Tropicana。",
+          "historical": "收購果汁業務",
+          "alternate": "集中汽水與鹹零食品牌",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "verizon",
+      "rank": 74,
+      "name": "Verizon",
+      "english": "Verizon",
+      "startYear": 1984,
+      "origin": "美國紐約",
+      "sector": "telecom",
+      "startingBusiness": "固定及流動通訊服務",
+      "source": "https://www.verizon.com/about/sites/default/files/bellatlantic/index.html",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "verizon_1",
+          "year": 1997,
+          "fact": "Verizon 前身 Bell Atlantic 與 NYNEX 合併。",
+          "historical": "整合兩家區域通訊網絡",
+          "alternate": "維持獨立網絡並共享基建",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "verizon_2",
+          "year": 2000,
+          "fact": "Bell Atlantic 與 GTE 合併成立 Verizon。",
+          "historical": "結合固定及通訊網絡",
+          "alternate": "只擴充本地服務並租用外部網絡",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "amex",
+      "rank": 75,
+      "name": "美國運通",
+      "english": "American Express",
+      "startYear": 1850,
+      "origin": "美國紐約州布法羅",
+      "sector": "payments",
+      "startingBusiness": "快遞與匯款服務",
+      "source": "https://matrixbcg.com/blogs/brief-history/americanexpress",
+      "modelGap": "merchant_payments",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "amex_1",
+          "year": 1891,
+          "fact": "美國運通推出旅行支票。",
+          "historical": "推出方便旅客使用的旅行支票",
+          "alternate": "繼續專注快遞及匯款",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "amex_2",
+          "year": 1958,
+          "fact": "美國運通推出簽帳卡。",
+          "historical": "建立簽帳卡網絡",
+          "alternate": "繼續以旅行支票和旅行服務為主",
+          "type": "network",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "att",
+      "rank": 76,
+      "name": "AT&T",
+      "english": "AT&T",
+      "startYear": 1885,
+      "origin": "美國紐約",
+      "sector": "telecom",
+      "startingBusiness": "長途電話服務",
+      "source": "https://pestel-analysis.com/blogs/brief-history/att",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "att_1",
+          "year": 1984,
+          "fact": "Bell System 分拆為多家地區電話公司。",
+          "historical": "重整長途業務並適應分拆",
+          "alternate": "縮減長途擴張，轉向設備服務",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "att_2",
+          "year": 2005,
+          "fact": "SBC 收購 AT&T 並採用 AT&T 名稱。",
+          "historical": "整合電話網絡與品牌",
+          "alternate": "維持區域電訊公司獨立經營",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "total",
+      "rank": 77,
+      "name": "道達爾能源",
+      "english": "TotalEnergies",
+      "startYear": 1924,
+      "origin": "法國巴黎",
+      "sector": "energy",
+      "startingBusiness": "石油勘探與生產",
+      "source": "https://corpdigest.com/company/totalenergies/company-history",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "total_1",
+          "year": 1954,
+          "fact": "法國石油公司推出 Total 品牌。",
+          "historical": "建立零售燃料品牌及分銷網絡",
+          "alternate": "只向工業客戶批發能源",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "total_2",
+          "year": 2021,
+          "fact": "Total 更名為 TotalEnergies。",
+          "historical": "擴展多種能源並調整集團品牌",
+          "alternate": "專注原有石油與天然氣業務",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "citigroup",
+      "rank": 78,
+      "name": "花旗集團",
+      "english": "Citigroup",
+      "startYear": 1812,
+      "origin": "美國紐約",
+      "sector": "bank",
+      "startingBusiness": "商戶銀行服務",
+      "source": "https://web.archive.org/web/20070416132329/http://www.citigroup.com/citigroup/corporate/history/citibank.htm",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "citigroup_1",
+          "year": 1968,
+          "fact": "銀行控股公司 First National City Corporation 成為 Citibank 的母公司。",
+          "historical": "建立控股公司管理多類金融業務",
+          "alternate": "只經營單一銀行並控制風險",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "citigroup_2",
+          "year": 1998,
+          "fact": "Citicorp 與 Travelers Group 合併成立 Citigroup。",
+          "historical": "結合銀行與保險業務",
+          "alternate": "維持獨立並透過合作銷售保險",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "sap",
+      "rank": 79,
+      "name": "SAP",
+      "english": "SAP",
+      "startYear": 1972,
+      "origin": "德國瓦爾多夫",
+      "sector": "software",
+      "startingBusiness": "企業即時財務軟件",
+      "source": "https://www.technosap.com/sap-overview/sap-r3-history/",
+      "modelGap": "inventory_tool",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "sap_1",
+          "year": 1979,
+          "fact": "SAP 推出 R/2 企業管理軟件。",
+          "historical": "推出整合財務與營運的標準軟件",
+          "alternate": "只為少數企業提供客製程式",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "sap_2",
+          "year": 1992,
+          "fact": "SAP 推出客戶端／伺服器架構的 R/3。",
+          "historical": "投資新一代 R/3 軟件",
+          "alternate": "繼續維護既有大型主機版本",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "hermes",
+      "rank": 80,
+      "name": "愛馬仕",
+      "english": "Hermès",
+      "startYear": 1837,
+      "origin": "法國巴黎",
+      "sector": "luxury",
+      "startingBusiness": "馬具與皮革製品",
+      "source": "https://www.christies.com/en/stories/the-history-of-hermes-217f8a0c0f494e16995f51679a9ca0d4",
+      "modelGap": "missing_sizes",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "hermes_1",
+          "year": 1935,
+          "fact": "愛馬仕推出後來稱為 Kelly 的 Sac à Dépêches 手袋。",
+          "historical": "把皮革工藝擴展到手袋",
+          "alternate": "只供應馬具及修理服務",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "hermes_2",
+          "year": 1978,
+          "fact": "愛馬仕在瑞士成立 La Montre Hermès，發展腕錶業務。",
+          "historical": "建立腕錶業務",
+          "alternate": "維持專注皮具，與鐘錶商授權合作",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "reliance",
+      "rank": 81,
+      "name": "信實工業",
+      "english": "Reliance Industries",
+      "startYear": 1966,
+      "origin": "印度古吉拉特邦",
+      "sector": "industrial",
+      "startingBusiness": "紡織品",
+      "source": "https://matrixbcg.com/blogs/brief-history/ril",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "reliance_1",
+          "year": 1977,
+          "fact": "信實紡織業務進行首次公開招股。",
+          "historical": "公開集資擴大紡織生產",
+          "alternate": "只以既有營運現金擴張",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "reliance_2",
+          "year": 2016,
+          "fact": "信實旗下 Jio 開始商業提供流動通訊服務。",
+          "historical": "投資全新流動通訊網絡",
+          "alternate": "繼續專注紡織及能源產業",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "nextera",
+      "rank": 82,
+      "name": "NextEra Energy",
+      "english": "NextEra Energy",
+      "startYear": 1925,
+      "origin": "美國佛羅里達州",
+      "sector": "energy",
+      "startingBusiness": "電力供應",
+      "source": "https://handwiki.org/wiki/Company:NextEra_Energy",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "nextera_1",
+          "year": 1984,
+          "fact": "Florida Power & Light 重組為 FPL Group 控股公司。",
+          "historical": "建立控股公司探索新電力業務",
+          "alternate": "只經營本地公用電力",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "nextera_2",
+          "year": 2010,
+          "fact": "FPL Group 更名為 NextEra Energy。",
+          "historical": "擴大能源業務並採用新名稱",
+          "alternate": "維持原有地區電力品牌",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "kla",
+      "rank": 83,
+      "name": "科磊",
+      "english": "KLA",
+      "startYear": 1975,
+      "origin": "美國加州",
+      "sector": "industrial",
+      "startingBusiness": "半導體檢測設備",
+      "source": "https://baike.baidu.com/en/item/KLA%20Corporation/3474952",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "kla_1",
+          "year": 1997,
+          "fact": "KLA Instruments 與 Tencor Instruments 合併成 KLA-Tencor。",
+          "historical": "整合晶圓檢測與量測設備",
+          "alternate": "維持獨立，與量測設備商合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "kla_2",
+          "year": 2019,
+          "fact": "KLA 收購 Orbotech，擴展檢測設備業務。",
+          "historical": "收購其他電子產品檢測業務",
+          "alternate": "集中服務既有晶圓廠",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "cba",
+      "rank": 84,
+      "name": "澳洲聯邦銀行",
+      "english": "Commonwealth Bank of Australia",
+      "startYear": 1911,
+      "origin": "澳洲墨爾本",
+      "sector": "bank",
+      "startingBusiness": "儲蓄及一般銀行服務",
+      "source": "https://matrixbcg.com/blogs/brief-history/commbank",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "cba_1",
+          "year": 1912,
+          "fact": "澳洲聯邦銀行首間分行在墨爾本開業。",
+          "historical": "建設全國分行服務",
+          "alternate": "先與其他機構共享網點",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "cba_2",
+          "year": 1991,
+          "fact": "澳洲政府開始部分私有化聯邦銀行。",
+          "historical": "引入公開市場股東",
+          "alternate": "保留現有結構並漸進改善服務",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "amgen",
+      "rank": 85,
+      "name": "安進",
+      "english": "Amgen",
+      "startYear": 1980,
+      "origin": "美國加州千橡市",
+      "sector": "pharma",
+      "startingBusiness": "生物技術藥物研發",
+      "source": "https://businessmodelcanvastemplate.com/blogs/brief-history/amgen-brief-history",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "amgen_1",
+          "year": 1989,
+          "fact": "美國 FDA 批准安進的 Epogen。",
+          "historical": "投入生產及推廣生物藥 Epogen",
+          "alternate": "繼續專注研究並授權其他公司生產",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "amgen_2",
+          "year": 2002,
+          "fact": "安進收購 Immunex。",
+          "historical": "收購 Immunex 擴大藥物組合",
+          "alternate": "集中內部研發，不作大型收購",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "mufg",
+      "rank": 86,
+      "name": "三菱日聯金融集團",
+      "english": "Mitsubishi UFJ Financial Group",
+      "startYear": 2005,
+      "origin": "日本東京",
+      "sector": "bank",
+      "startingBusiness": "銀行、信託及金融服務",
+      "source": "https://growthsharematrix.com/blogs/brief-history/mufg",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "mufg_1",
+          "year": 2005,
+          "fact": "三菱東京金融集團與 UFJ Holdings 合併成立 MUFG。",
+          "historical": "整合兩家金融集團",
+          "alternate": "維持獨立，合作提供金融服務",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "mufg_2",
+          "year": 2008,
+          "fact": "MUFG 投資摩根士丹利。",
+          "historical": "投資海外投資銀行",
+          "alternate": "集中改善本地存貸款服務",
+          "type": "capital",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "siemens",
+      "rank": 87,
+      "name": "西門子",
+      "english": "Siemens",
+      "startYear": 1847,
+      "origin": "德國柏林",
+      "sector": "industrial",
+      "startingBusiness": "指針式電報機",
+      "source": "https://www.dw.com/en/siemens-model-company-and-global-player/a-36742363",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "siemens_1",
+          "year": 1866,
+          "fact": "Werner von Siemens 發展發電機的自激原理。",
+          "historical": "投資發電機及電氣設備",
+          "alternate": "集中改善長途電報網絡",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "siemens_2",
+          "year": 1870,
+          "fact": "公司參與興建的歐印電報線完工。",
+          "historical": "投入跨境電報基建",
+          "alternate": "專門製造設備，不承接長距離工程",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "thermofisher",
+      "rank": 88,
+      "name": "賽默飛世爾",
+      "english": "Thermo Fisher Scientific",
+      "startYear": 2006,
+      "origin": "美國麻省",
+      "sector": "industrial",
+      "startingBusiness": "實驗室設備與耗材",
+      "source": "https://dcf-model.com/blogs/history/tmo-history-mission-ownership",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "thermofisher_1",
+          "year": 2006,
+          "fact": "Thermo Electron 與 Fisher Scientific 合併。",
+          "historical": "整合儀器製造與實驗室分銷",
+          "alternate": "保留獨立並簽分銷合作",
+          "type": "acquisition",
+          "due": 2
+        },
+        {
+          "id": "thermofisher_2",
+          "year": 2014,
+          "fact": "賽默飛收購 Life Technologies。",
+          "historical": "收購基因分析及生命科學業務",
+          "alternate": "集中實驗室儀器與耗材",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "abbott",
+      "rank": 89,
+      "name": "雅培",
+      "english": "Abbott Laboratories",
+      "startYear": 1888,
+      "origin": "美國芝加哥",
+      "sector": "pharma",
+      "startingBusiness": "定量藥物顆粒",
+      "source": "https://trendspider.com/learning-center/abbott-laboratories-abt/",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "abbott_1",
+          "year": 1985,
+          "fact": "雅培研發出首個獲美國許可的 HIV 血液篩查測試。",
+          "historical": "投入血液篩查與診斷設備",
+          "alternate": "繼續專注傳統藥品生產",
+          "type": "technology",
+          "due": 2
+        },
+        {
+          "id": "abbott_2",
+          "year": 2013,
+          "fact": "雅培分拆研究型製藥業務成立 AbbVie。",
+          "historical": "分拆製藥業務，集中醫療產品",
+          "alternate": "保留藥品與診斷業務在同一公司",
+          "type": "restructure",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "deutschetelekom",
+      "rank": 90,
+      "name": "德國電信",
+      "english": "Deutsche Telekom",
+      "startYear": 1995,
+      "origin": "德國波恩",
+      "sector": "telecom",
+      "startingBusiness": "固定及流動電訊服務",
+      "source": "https://portersfiveforce.com/blogs/brief-history/telekom",
+      "modelGap": "legacy_data",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "deutschetelekom_1",
+          "year": 1996,
+          "fact": "德國電信首次公開招股。",
+          "historical": "公開上市並投資電訊網絡",
+          "alternate": "留在現有資本結構下分期升級",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "deutschetelekom_2",
+          "year": 2001,
+          "fact": "德國電信收購 VoiceStream，進入美國市場。",
+          "historical": "收購美國流動通訊業務",
+          "alternate": "集中歐洲市場並與海外網絡合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "inditex",
+      "rank": 91,
+      "name": "Inditex（Zara）",
+      "english": "Inditex",
+      "startYear": 1985,
+      "origin": "西班牙拉科魯尼亞",
+      "sector": "retail",
+      "startingBusiness": "服裝",
+      "source": "https://growthsharematrix.com/blogs/brief-history/inditex",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "inditex_1",
+          "year": 1985,
+          "fact": "Inditex 成立，作為 Zara 等業務的母公司。",
+          "historical": "整合設計、生產及零售業務",
+          "alternate": "保留單一服裝店，向外採購",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "inditex_2",
+          "year": 1988,
+          "fact": "Zara 首間國際店在葡萄牙波爾圖開業。",
+          "historical": "開拓海外服裝零售",
+          "alternate": "只在本地擴充店舖",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "tjx",
+      "rank": 92,
+      "name": "TJX",
+      "english": "TJX Companies",
+      "startYear": 1987,
+      "origin": "美國麻省",
+      "sector": "retail",
+      "startingBusiness": "折扣服裝",
+      "source": "https://matrixbcg.com/blogs/brief-history/tjx",
+      "modelGap": "same_day",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "tjx_1",
+          "year": 1987,
+          "fact": "Zayre 重組，TJX 成為獨立實體。",
+          "historical": "建立聚焦折扣零售的公司",
+          "alternate": "維持百貨集團內部部門",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "tjx_2",
+          "year": 1995,
+          "fact": "TJX 收購 Marshalls。",
+          "historical": "收購另一折扣零售品牌",
+          "alternate": "集中自有店舖及採購網絡",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "ti",
+      "rank": 93,
+      "name": "德州儀器",
+      "english": "Texas Instruments",
+      "startYear": 1930,
+      "origin": "美國德州",
+      "sector": "chips",
+      "startingBusiness": "地球物理勘測設備",
+      "source": "https://matrixbcg.com/blogs/brief-history/ti",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "ti_1",
+          "year": 1951,
+          "fact": "Geophysical Service 重組並改名為 Texas Instruments。",
+          "historical": "把電子設備發展成公司核心",
+          "alternate": "繼續專注地球物理勘測服務",
+          "type": "restructure",
+          "due": 2
+        },
+        {
+          "id": "ti_2",
+          "year": 1958,
+          "fact": "Jack Kilby 在德州儀器研發集成電路。",
+          "historical": "投入集成電路研發",
+          "alternate": "集中銷售獨立電晶體和現有設備",
+          "type": "technology",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "cnooc",
+      "rank": 94,
+      "name": "中海油",
+      "english": "CNOOC Limited",
+      "startYear": 1999,
+      "origin": "中國香港",
+      "sector": "energy",
+      "startingBusiness": "海上石油與天然氣開採",
+      "source": "https://baike.baidu.com/en/item/CNOOC%20Limited/949669",
+      "modelGap": "energy_audit",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "cnooc_1",
+          "year": 2001,
+          "fact": "CNOOC Limited 在紐約及香港上市。",
+          "historical": "公開集資發展海上油氣田",
+          "alternate": "以現有股東資金分階段開發",
+          "type": "capital",
+          "due": 2
+        },
+        {
+          "id": "cnooc_2",
+          "year": 2013,
+          "fact": "中海油完成對加拿大 Nexen 的收購。",
+          "historical": "收購海外油氣資產",
+          "alternate": "專注本地海上油田",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "bhp",
+      "rank": 95,
+      "name": "必和必拓",
+      "english": "BHP",
+      "startYear": 1885,
+      "origin": "澳洲新南威爾斯州布羅肯希爾",
+      "sector": "industrial",
+      "startingBusiness": "銀、鉛及鋅礦",
+      "source": "https://www.dcfmodeling.com/blogs/history/bhp-history-mission-ownership",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "bhp_1",
+          "year": 1915,
+          "fact": "BHP 在澳洲紐卡素開始煉鋼。",
+          "historical": "投資鋼鐵生產",
+          "alternate": "只供應礦石給其他鋼廠",
+          "type": "expansion",
+          "due": 2
+        },
+        {
+          "id": "bhp_2",
+          "year": 2001,
+          "fact": "BHP 與 Billiton 合併成立 BHP Billiton。",
+          "historical": "合併多元礦業資產",
+          "alternate": "保持獨立並集中原有礦場",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "gilead",
+      "rank": 96,
+      "name": "吉利德科學",
+      "english": "Gilead Sciences",
+      "startYear": 1987,
+      "origin": "美國加州福斯特城",
+      "sector": "pharma",
+      "startingBusiness": "抗病毒藥物研究",
+      "source": "https://www.bccresearch.com/company-index/profile/gilead-sciences-inc/history",
+      "modelGap": "telehealth_support",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "gilead_1",
+          "year": 1996,
+          "fact": "吉利德的抗病毒藥物 Vistide 獲批。",
+          "historical": "投入製造及提供 Vistide",
+          "alternate": "只做藥物研發，將商業化交給合作方",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "gilead_2",
+          "year": 2012,
+          "fact": "吉利德收購 Pharmasset。",
+          "historical": "收購新藥研發公司 Pharmasset",
+          "alternate": "集中原有抗病毒研發項目",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "salesforce",
+      "rank": 97,
+      "name": "Salesforce",
+      "english": "Salesforce",
+      "startYear": 1999,
+      "origin": "美國三藩市",
+      "sector": "software",
+      "startingBusiness": "網上客戶關係管理軟件",
+      "source": "https://portersfiveforce.com/blogs/brief-history/salesforce",
+      "modelGap": "inventory_tool",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "salesforce_1",
+          "year": 2005,
+          "fact": "Salesforce 推出 AppExchange 應用程式生態。",
+          "historical": "開放平台給第三方開發者",
+          "alternate": "只提供自家客戶管理工具",
+          "type": "network",
+          "due": 2
+        },
+        {
+          "id": "salesforce_2",
+          "year": 2021,
+          "fact": "Salesforce 完成收購 Slack。",
+          "historical": "收購企業協作軟件",
+          "alternate": "只與外部通訊工具整合",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "disney",
+      "rank": 98,
+      "name": "迪士尼",
+      "english": "The Walt Disney Company",
+      "startYear": 1923,
+      "origin": "美國加州荷里活",
+      "sector": "media",
+      "startingBusiness": "動畫短片",
+      "source": "https://atouchofbusiness.com/companies/the-walt-disney-company/",
+      "modelGap": "creator_venue",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "disney_1",
+          "year": 1937,
+          "fact": "迪士尼推出長篇動畫《白雪公主》。",
+          "historical": "投入長篇動畫製作",
+          "alternate": "繼續製作成本較低的動畫短片",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "disney_2",
+          "year": 1955,
+          "fact": "迪士尼樂園在加州開幕。",
+          "historical": "投資故事主題樂園",
+          "alternate": "只授權角色給現有遊樂場",
+          "type": "expansion",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "schwab",
+      "rank": 99,
+      "name": "嘉信理財",
+      "english": "Charles Schwab",
+      "startYear": 1971,
+      "origin": "美國三藩市",
+      "sector": "bank",
+      "startingBusiness": "投資資訊與經紀服務",
+      "source": "https://pestel-analysis.com/blogs/brief-history/schwab",
+      "modelGap": "micro_float",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "schwab_1",
+          "year": 1975,
+          "fact": "美國證券佣金放寬管制後，嘉信發展折扣經紀。",
+          "historical": "以較低佣金服務自助投資者",
+          "alternate": "維持傳統全服務經紀模式",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "schwab_2",
+          "year": 2020,
+          "fact": "嘉信完成收購 TD Ameritrade。",
+          "historical": "收購網上經紀業務",
+          "alternate": "繼續以自有平台自然增長",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    },
+    {
+      "id": "intuitive",
+      "rank": 100,
+      "name": "直覺外科",
+      "english": "Intuitive Surgical",
+      "startYear": 1995,
+      "origin": "美國加州桑尼維爾",
+      "sector": "industrial",
+      "startingBusiness": "手術機械人設備",
+      "source": "https://isrg.intuitive.com/static-files/bc6e0c86-88a4-4997-9dea-705a8c124184",
+      "modelGap": "short_run",
+      "modelCity": "taipei",
+      "milestones": [
+        {
+          "id": "intuitive_1",
+          "year": 2000,
+          "fact": "da Vinci 手術系統獲美國許可，公司同年上市。",
+          "historical": "投資醫院導入及臨床培訓",
+          "alternate": "只向研究機構提供試驗設備",
+          "type": "product",
+          "due": 2
+        },
+        {
+          "id": "intuitive_2",
+          "year": 2003,
+          "fact": "Intuitive Surgical 與 Computer Motion 合併。",
+          "historical": "整合機械手術設備與研發",
+          "alternate": "維持獨立並與其他廠商合作",
+          "type": "acquisition",
+          "due": 8
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,13 @@
 import { cityById, gapById, industry, companyType, calendarLabel, lifeLabel, computeRedline, symptomIds, endingFlags, topDrivers, describeWorld, stageOf, fillText } from "./sim.js";
+import { historicalCompany } from "./historical.js";
 
 export { calendarLabel };
 
 export function money(data, state, units) {
+  if (state.mode === "history") {
+    const n = Number(units) || 0;
+    return `${n < 0 ? "−" : ""}${Math.round(Math.abs(n) * 100) / 100} 遊戲單位`;
+  }
   const city = cityById(data, state.cityId);
   const n = (Number(units) || 0) * city.median_wage;
   const sign = n < 0 ? "−" : "";
@@ -35,6 +40,14 @@ export function driverLabel(k) {
 
 export function worldLine(data, state) {
   const { city, country, gap, fam } = describeWorld(data, state);
+  const company = state.mode === "history" ? historicalCompany(data, state.historical?.companyId) : null;
+  if (company) {
+    return {
+      city: { ...city, name: company.origin, diffs: [] },
+      country: { name: "史實起點" }, gap,
+      fam: { ...fam, name: state.work?.industry || fam?.name || "企業經營" },
+    };
+  }
   return { city, country, gap, fam };
 }
 
@@ -74,8 +87,9 @@ export function business(data, state) {
     unit: work.unit || "一筆",
     scale: work.scale || "",
     hire: work.hire || "",
-    industry: fam?.name || "",
-    companyType: companyType(data, gap?.company_type)?.name || work.companyTypeName || "",
+    industry: state.mode === "history" ? (work.industry || fam?.name || "") : (fam?.name || ""),
+    direction: state.mode === "history" ? (state.historical?.currentDirection || "") : "",
+    companyType: state.mode === "history" ? "歷史範本" : (companyType(data, gap?.company_type)?.name || work.companyTypeName || ""),
     title: gap?.title || "",
     problem: gap?.problem || "",
     unknown: gap?.unknown || "",
@@ -182,6 +196,7 @@ export function commitmentLine(state) {
 }
 
 export function legalLabel(data, state) {
+  if (state.mode === "history") return "遊戲中的公司形式（不模擬實際法律制度）";
   const city = cityById(data, state.cityId);
   const form = data.economy.ownership[state.shape?.ownership]?.form || "limited";
   return data.content.legal_forms[city.country][form];
