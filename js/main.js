@@ -51,7 +51,7 @@ function say(text) { if (statusEl) statusEl.textContent = text || ""; }
 
 async function boot() {
   try {
-    const files = ["world", "economy", "content", "events", "narrative"];
+    const files = ["world", "economy", "content", "events", "narrative", "life-events"];
     const loaded = await Promise.all(files.map(async (name) => {
       const res = await fetch(`data/${name}.json`);
       if (!res.ok) throw new Error(name);
@@ -59,7 +59,8 @@ async function boot() {
     }));
     data = {
       world: loaded[0], economy: loaded[1], content: loaded[2],
-      events: loaded[3].events, narrative: loaded[4],
+      events: [...loaded[3].events, ...loaded[5].events],
+      narrative: { ...loaded[4], beats: [...loaded[4].beats, ...loaded[5].beats] },
     };
     const savedSettings = read(KEY.settings, {});
     ui.settings = { ...ui.settings, ...savedSettings };
@@ -86,10 +87,17 @@ function render() {
   if (data && ui.run) {
     Sim.ensureCast(data, ui.run);
     Sim.ensureWork(data, ui.run);
+    if (!ui.run.venture) Sim.ensureOpeningSupport(data, ui.run);
     // 舊存檔停在舊的三頁塑形；回到第一個還沒有答案的那一頁，不要留下空白的一頁。
     if (ui.screen === "shaping" && ui.run.phase === "shaping") syncShapeStep(ui.run);
   }
+  const oldJournal = app.querySelector(".journal-list");
+  const journalTop = oldJournal?.scrollTop || 0;
+  const journalHeight = oldJournal?.scrollHeight || 0;
   app.innerHTML = views[ui.screen]?.() || views.error();
+  const newJournal = app.querySelector(".journal-list");
+  // 閱讀較早記錄時，季結插入新內容不應把讀者拉回最上方。
+  if (newJournal && journalTop > 8) newJournal.scrollTop = journalTop + Math.max(0, newJournal.scrollHeight - journalHeight);
   const pendingAuto = ui.settings.autoplay ? autoTarget() : null;
   const focus = app.querySelector("[data-autofocus]");
   const quietTick = ui.tickAuto && ui.screen === "play" && ui.run?.phase === "play";
@@ -168,6 +176,11 @@ const views = {
     const biz = P.business(data, run);
     const job = P.jobLine(data, run);
     const n = Math.max(1, run.perThousand);
+    const origin = [
+      `你向${biz.buyer}了解需要後，一位熟人願意支持你試做${biz.sells}。`,
+      `過去認識的導師留意到「${w.gap.title}」，介紹支持者讓你試做${biz.sells}。`,
+      `有人在這座城市也遇到「${w.gap.title}」，集合了一筆資源，支持你試做${biz.sells}。`,
+    ][run.openingSupport?.source ?? 0];
     return sheet(`<p class="kicker">開局${run.rejected.length ? ` · 第 ${run.rejected.length + 1} 個機會` : ""}</p>
       <h1>${$(w.city.name)}</h1>
       <p class="muted">${$(w.country.name)} · 約每一千個開局，有 ${n} 局落在這座城市的「${$(w.gap.title)}」。</p>
@@ -194,6 +207,7 @@ const views = {
           <p class="fold-k">街上的缺口</p>
           <p><b>「${$(w.gap.title)}」</b>：${$(w.gap.problem)}</p>
           <p>你還不知道的是：${$(biz.unknown)}</p>
+          ${run.openingSupport ? `<p><b>創業契機 · ${$(run.openingSupport.label)}</b>：${$(origin)}開業時提供 ${$(P.money(data, run, run.openingSupport.cash))} 專作營運的啟動資金（不用償還）；前 ${run.openingSupport.quarters} 季補貼基本場地費的 ${Math.round(run.openingSupport.relief * 100)}%，之後恢復原價。其他成本仍要付。</p>` : ""}
           ${run.ecosystemHint ? `<p class="muted">這座城市還留著「${$(run.ecosystemHint.name || "一間舊店")}」的痕跡。</p>` : ""}
         </section>
       </div>
@@ -230,6 +244,7 @@ const views = {
     return sheet(`${businessStrip(run)}<p class="kicker">開業之前</p><h2>這就是你的結構</h2>
       <p>公司現金大約 ${$(P.money(data, run, p.cash))}${p.severance > 0 ? `（含遣散費約 ${$(P.money(data, run, p.severance))}）` : ""}，債務 ${$(P.money(data, run, p.debt))}。你自己留下約 ${$(P.money(data, run, p.personalLeft))}。</p>
       <p>若第一季大致如此，帳面收入約 ${$(P.money(data, run, p.revenue))}，公司要付的約 ${$(P.money(data, run, p.costs))}。${gapLine}跑道大約 ${p.runway > 36 ? "很長" : Math.max(0, Math.round(p.runway)) + " 季"}。</p>
+      ${run.openingSupport ? `<p>以上現金已計入契機的啟動資金；預算使用首季場地補貼。第 ${run.openingSupport.quarters + 1} 季起基本場地費恢復原價。</p>` : ""}
       <p>主要紅線會是：${$(rl.name)}。牌照大約 ${p.license} 季。</p>
       <p class="muted">這是確定會寫進結構的部分。市場結果仍是區間。外面的錢（天使、創投）不在開局選項裡，它們要等公司站穩之後才會上門。</p>
 
@@ -424,7 +439,7 @@ function playView() {
   const rl = P.redlineView(data, run) || { name: "尚未結算", text: "結算第一季之後，紅線才有數字。", level: "ok", mark: "穩" };
   const fc = run.month >= 0 && run.phase === "play" ? Sim.forecast(data, run) : null;
   const last = run.last;
-  const drawer = ui.drawer ? drawerHtml() : "";
+  const drawer = ui.drawer === "initiative" ? initiativeModal(run) : ui.drawer ? drawerHtml() : "";
   const biz = P.business(data, run);
   const from = P.calendarLabel(run);
   const to = P.calendarLabel(run, 1);
@@ -462,13 +477,7 @@ function playView() {
           <div id="live-feed" class="feed" aria-live="polite" aria-label="這季出現的小事"></div>`
           : `<p class="sub-text">時間按停。可以按「直接到季末」，或按「讓它跑」看這季怎麼走。</p>`}
         </section>
-        <section class="month-story" aria-label="上季發生了什麼">
-          <p class="fold-k">上季發生的事</p>
-          ${story.length ? `<ol class="story-lines">${story.map((line) => `<li>${$(line)}</li>`).join("")}</ol>` : `<p class="muted">名字已經寫上。第一季還沒有故事。</p>`}
-          ${last ? `<p class="muted">${$(last.line)}</p>` : ""}
-          ${last?.aside && mode.dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
-          <p class="small">主畫面的「公司現金流」已列出收款與流出來源；完整歷史在「帳簿」。</p>
-        </section>
+        ${journalHtml(run, story)}
       </div>
       <aside class="rail" aria-label="快速狀態與操作">
         <section class="rail-kpis">${kpis.map((m) => `<div class="kpi ${m.level}" data-id="${m.id}">
@@ -488,9 +497,11 @@ function playView() {
           <summary>季初：預測與部署</summary>
           ${fc ? Charts.forecastPanel(data, run, fc) : `<p class="muted">結算第一季之後，這裡會有區間預測。</p>`}
         </details>
+        ${run.openingSupport && run.month < run.openingSupport.quarters ? `<p class="small">契機支援：基本場地費減 ${Math.round(run.openingSupport.relief * 100)}%，到第 ${run.openingSupport.quarters} 季結束；第 ${run.openingSupport.quarters + 1} 季恢復原價。</p>` : ""}
         <section class="rail-card rail-decisions">
-          <p class="fold-k">本季決策</p>
-          ${railDecisions(run)}
+          <p class="fold-k">經營公司</p>
+          <p class="small">時間會自己走。需要調整時，打開行動選單；選擇期間時間會暫停。</p>
+          <button class="go initiative-trigger" data-act="initiative-open" aria-haspopup="dialog">經營行動 <span aria-hidden="true">↗</span></button>
         </section>
         <nav class="dock" aria-label="抽屜">
           <button data-act="drawer" data-id="ledger">帳簿</button>
@@ -506,21 +517,42 @@ function playView() {
   </article></div>`;
 }
 
-/** 季初的決策區。只給最該看的那幾件，其餘放在帳簿抽屜裡。 */
-function railDecisions(run) {
-  const all = Sim.initiatives(data, run);
-  const main = all.filter((o) => o.id !== "close");
-  const close = all.find((o) => o.id === "close");
-  const stage = data.economy.stages.find((x) => run.month <= x.until) || data.economy.stages.at(-1);
-  const ready = run.month >= (run.initiativeReady || 0);
-  const status = ready
-    ? `做了之後，下一次可以主動做事大約是第 ${run.month + (stage.decision_gap || 3)} 季。`
-    : `下一次可以主動做事是第 ${run.initiativeReady || run.month + 1} 季。這段時間讓上季的決定發酵。`;
-  const buttons = main.map((o) => `<button class="choice" data-act="initiative" data-id="${$(o.id)}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("");
-  return `<p class="decision-count">本季可執行 ${main.length} 項行動；以下列出全部，不會把後面的選項藏起來。</p>
-    <div class="stack">${buttons || `<p class="muted">這季沒有可以主動做的事。</p>`}</div>
-    ${close ? `<button class="ghost danger-ghost" data-act="initiative" data-id="close">${$(close.label)}</button>` : ""}
-    <p class="small">${$(status)}</p>`;
+/** 大事、小事及結算都留在同一條可回看的時間線。 */
+function journalHtml(run, story) {
+  const entries = (run.timeline || []).slice(-60).reverse();
+  const rows = entries.map((item) => {
+    const kind = item.kind || "history";
+    const label = { beat: "日常", decision: "決定", quarter: "季結", history: "紀錄" }[kind] || "紀錄";
+    const financial = kind === "quarter" && Number.isFinite(item.cash)
+      ? `<p class="journal-numbers">收款 ${$(P.money(data, run, item.collected))} · 支出 ${$(P.money(data, run, item.out))} · 結算時現金 ${$(P.money(data, run, item.cash))}</p>` : "";
+    return `<li class="journal-entry" data-kind="${$(kind)}">
+      <div class="journal-meta"><span class="journal-tag">${label}</span><time>第 ${item.m} 季${item.when ? ` · ${$(item.when)}` : ""}</time></div>
+      <h4>${$(item.title)}</h4>
+      ${item.subject && item.subject !== item.title ? `<p class="journal-subject">${$(item.subject)}</p>` : ""}
+      ${item.text ? `<p>${$(item.text)}</p>` : ""}
+      ${item.choice ? `<p class="journal-choice">你的決定：${$(item.choice)}</p>` : ""}
+      ${item.note ? `<p class="journal-note">${$(item.note)}</p>` : ""}${financial}
+    </li>`;
+  }).join("");
+  return `<section class="company-journal" aria-label="公司生活紀錄">
+    <header class="journal-head"><div><p class="fold-k">COMPANY JOURNAL</p><h3>公司生活紀錄</h3><p>日常、決定與收支，按時間留下。</p></div><button class="ghost" data-act="drawer" data-id="time">較早紀錄</button></header>
+    ${story.length ? `<div class="journal-recap"><b>上季一瞥</b><ul>${story.map((line) => `<li>${$(line)}</li>`).join("")}</ul></div>` : `<p class="muted journal-empty">開業了。第一季的小事和決定會從這裡開始。</p>`}
+    ${entries.length ? `<ol class="journal-list">${rows}</ol>` : ""}
+    ${(run.timeline || []).length > 60 ? `<p class="small">這裡顯示最近 60 則；較早紀錄可在時間線查看。</p>` : ""}
+  </section>`;
+}
+
+/** 以 modal 集中所有行動；不刪減可用選項。 */
+function initiativeModal(run) {
+  const list = Sim.initiatives(data, run);
+  const items = list.map((it) => `<button class="choice${it.id === "close" ? " warn" : ""}" data-act="initiative" data-id="${$(it.id)}"><b>${$(it.label)}</b><span>${$(it.detail)}</span></button>`).join("");
+  return `<div class="initiative-overlay">
+    <button class="initiative-backdrop" data-act="close-drawer" aria-label="關閉經營行動"></button>
+    <section class="initiative-dialog" role="dialog" aria-modal="true" aria-labelledby="initiative-title" tabindex="-1">
+      <header class="initiative-head"><div><p class="fold-k">時間已暫停 · 第 ${run.month} 季</p><h2 id="initiative-title">經營行動</h2><p>選擇一項行動，或關閉後繼續觀察。</p></div><button class="modal-close" data-act="close-drawer" aria-label="關閉經營行動" data-autofocus>✕</button></header>
+      <div class="initiative-list stack">${items || `<p>目前沒有可執行的行動。</p>`}</div>
+    </section>
+  </div>`;
 }
 
 /** 時間按停的原因。事件不是隨機跳出來的，它要講得出是哪一件事引來的。 */
@@ -632,8 +664,8 @@ function drawerHtml() {
     const list = run.commitments || [];
     body = `<h2>承諾</h2>${list.length ? `<ul class="symptoms">${list.map((c) => `<li>${$(c.name)} · 剩 ${c.monthsLeft} 季</li>`).join("")}</ul>` : `<p>你還沒有簽下不能隨便反悔的東西。</p>`}`;
   } else if (id === "time") {
-    const items = (run.timeline || []).slice().reverse().slice(0, 30);
-    body = `<h2>時間線</h2>${items.length ? `<ul class="symptoms">${items.map((t) => `<li>第 ${t.m} 季 · ${$(t.title)}。${$(t.text)}</li>`).join("")}</ul>` : `<p>歷史會從第一個選擇開始，不能改寫。</p>`}
+    const items = (run.timeline || []).slice().reverse();
+    body = `<h2>時間線</h2><p class="small">按時間保留最多約 180 則紀錄。</p>${items.length ? `<ul class="symptoms">${items.map((t) => `<li>第 ${t.m} 季 · ${$(t.title)}。${$(t.text)}${t.choice ? ` · 你的決定：${$(t.choice)}` : ""}</li>`).join("")}</ul>` : `<p>歷史會從第一個選擇開始，不能改寫。</p>`}
       <button class="alt" data-act="drawer" data-id="analysis">看徵兆怎麼來</button>`;
   } else if (id === "analysis") {
     const sym = P.symptomTexts(data, run);
@@ -641,10 +673,6 @@ function drawerHtml() {
       <p>配合度 ${Math.round((run.venture?.marketFit || 0) * 100)}。品質 ${Math.round((run.venture?.quality || 0) * 100)}。信任 ${Math.round((run.venture?.trust || 0) * 100)}。</p>
       <p>健康 ${Math.round(run.founder.health * 100)}。意志 ${Math.round(run.founder.will * 100)}。控制權 ${Math.round(run.founder.control * 100)}%。</p>
       <p class="muted">人物會不會答應、市場會不會買單，仍不給假精確機率。</p>`;
-  } else if (id === "initiative") {
-    const list = Sim.initiatives(data, run);
-    body = `<h2>主動做一件事</h2><div class="stack">${list.map((it) => `<button class="choice" data-act="initiative" data-id="${it.id}"><b>${$(it.label)}</b><span>${$(it.detail)}</span></button>`).join("")}</div>
-      <p class="muted">每一項都是確定的動作，不是抽卡。後果要幾季之後才看得見。</p>`;
   } else if (id === "charts") {
     body = `<h2>五張圖</h2>
       <p class="muted">這些圖不是報表的裝飾。破產之後，你要能從這裡看出是哪一層先壞掉。</p>
@@ -731,7 +759,7 @@ function lastView() {
   const opts = Sim.rescueOptions(data, run);
   return sheet(`${businessStrip(run)}<p class="kicker">最後階段</p><h2>現金不夠付這一輪</h2>
     <p>帳上 ${$(P.money(data, run, run.finance.cash))}。以日計，這個模式大約還有 ${run.rescueDays} 天的緩衝，行動還剩 ${run.rescueLeft} 次。</p>
-    <p>你通常不能同時保住公司、員工、家庭與控制權。</p>
+    <p>短期周轉只是爭取時間；長期重整才有機會改善每季的收支。重整不能憑空填補眼前欠款，選錯仍可能倒閉。</p>
     <div class="stack">${opts.map((o) => `<button class="choice ${o.id === "close" ? "warn" : ""}" data-act="rescue" data-id="${o.id}">
         <b>${$(o.label)}</b><span>${$(o.detail)}</span>
         ${o.likely ? `<span class="brief"><i class="b-likely">最可能</i>${$(o.likely)}</span>` : ""}
@@ -896,7 +924,16 @@ document.addEventListener("visibilitychange", () => {
 });
 
 document.addEventListener("keydown", (ev) => {
-  if (ev.key === "Escape" && ui.drawer) { ui.drawer = null; render(); return; }
+  if (ev.key === "Escape" && ui.drawer) { ev.preventDefault(); closeDrawer(); return; }
+  if (ev.key === "Tab" && ui.drawer === "initiative") {
+    const dialog = app.querySelector(".initiative-dialog");
+    const focusable = [...(dialog?.querySelectorAll("button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex='-1'])") || [])];
+    if (!focusable.length) { ev.preventDefault(); dialog?.focus(); return; }
+    const i = focusable.indexOf(document.activeElement);
+    if (ev.shiftKey && i <= 0) { ev.preventDefault(); focusable.at(-1).focus(); }
+    else if (!ev.shiftKey && (i < 0 || i === focusable.length - 1)) { ev.preventDefault(); focusable[0].focus(); }
+    return;
+  }
   const n = Number(ev.key);
   if (n >= 1 && n <= 4 && ui.run?.phase === "event") {
     const choice = ui.run.pendingEvent?.choices[n - 1];
@@ -907,6 +944,22 @@ document.addEventListener("keydown", (ev) => {
     if (go && document.activeElement === document.body) act("settle");
   }
 });
+
+function modalTransition(update) {
+  // 不支援 View Transition 或要求減少動效時，仍立即切換；CSS 有入場 fallback。
+  if (!ui.settings.still && !matchMedia("(prefers-reduced-motion: reduce)").matches && document.startViewTransition) {
+    document.startViewTransition(update);
+  } else update();
+}
+function closeDrawer() {
+  const wasInitiative = ui.drawer === "initiative";
+  const update = () => {
+    ui.drawer = null;
+    render();
+    if (wasInitiative) app.querySelector('[data-act="initiative-open"]')?.focus();
+  };
+  if (wasInitiative) modalTransition(update); else update();
+}
 
 function act(name, ds = {}) {
   if (!autoCommit) cancelAuto();
@@ -975,7 +1028,7 @@ function act(name, ds = {}) {
     return render();
   }
   if (name === "shape-back") {
-    if (ui.screen === "naming") { run.phase = "shaping"; run.shapeStep = Math.max(0, SHAPE_STEPS.length - 1); ui.screen = "shaping"; return render(); }
+    if (ui.screen === "naming") { if (!Sim.undoShape(run)) run.phase = "shaping"; run.shapeStep = Math.max(0, SHAPE_STEPS.length - 1); ui.screen = "shaping"; return render(); }
     run.shapeStep = Math.max(0, (run.shapeStep || 0) - 1);
     return render();
   }
@@ -1013,10 +1066,19 @@ function act(name, ds = {}) {
   if (name === "chapter-go") { Sim.continueChapter(run); ui.screen = "play"; saveRun(); return render(); }
   if (name === "ack-summary") { Sim.ackSummary(run); ui.screen = "play"; saveRun(); return render(); }
   if (name === "skip") { ui.clock = null; ui.preview = null; Sim.skipToEvent(data, run); ui.quiet = 0; ui.screen = "play"; saveRun(); return render(); }
-  if (name === "drawer") { ui.drawer = ds.id; if (ds.id === "ledger") Sim.logEvent?.(run, "ledger_open"); log(run, "ledger_open"); return render(); }
-  if (name === "close-drawer") { ui.drawer = null; return render(); }
-  if (name === "initiative-open") { ui.drawer = "initiative"; return render(); }
-  if (name === "initiative") { Sim.actInitiative(data, run, ds.id); ui.drawer = null; afterStep(); return; }
+  if (name === "drawer") { ui.drawer = ds.id; if (ds.id === "ledger") log(run, "ledger_open"); return render(); }
+  if (name === "close-drawer") return closeDrawer();
+  if (name === "initiative-open") return modalTransition(() => { ui.drawer = "initiative"; render(); });
+  if (name === "initiative") {
+    const result = Sim.actInitiative(data, run, ds.id);
+    if (!result.ok) { say("這項行動現在不能執行。"); return; }
+    ui.preview = null; // 行動改變財務或營運，舊的本季預演不能再使用。
+    return modalTransition(() => {
+      ui.drawer = null;
+      afterStep();
+      if (run.phase === "play") app.querySelector('[data-act="initiative-open"]')?.focus();
+    });
+  }
   if (name === "do-close") { Sim.confirmClose(data, run, ds.how); afterStep(); return; }
   if (name === "close-book") { Sim.closeBook(data, run); ui.screen = "ending"; finishWorld(); saveRun(); return render(); }
   if (name === "pause") { saveRun(); ui.screen = "title"; say("這一章已留下。"); return render(); }
@@ -1070,6 +1132,7 @@ function screenFor(run) {
 
 function beginRun() {
   const recent = read(KEY.recent, { cities: [], families: [], gaps: [] });
+  for (const key of ["cities", "families", "gaps"]) if (!Array.isArray(recent[key])) recent[key] = [];
   let seed = String(Math.floor(Math.random() * 1e9));
   if (ui.mode === "daily") {
     const d = new Date();
@@ -1167,6 +1230,29 @@ function finishWorld() {
 
 function saveRun() {
   if (!ui.run) return;
+  if (ui.run.mode === "story") {
+    const recent = read(KEY.recent, {});
+    const addRecent = (list, ids, max) => {
+      const result = Array.isArray(list) ? list.slice() : [];
+      for (const id of ids) {
+        if (!id) continue;
+        const i = result.indexOf(id);
+        if (i >= 0) result.splice(i, 1);
+        result.unshift(id);
+      }
+      return result.slice(0, max);
+    };
+    // 只寫尚未記錄過的事件；重新 render 或讀檔不改變排序。
+    const choiceN = ui.run.recentChoiceN || 0;
+    const beatN = ui.run.recentBeatSerial || 0;
+    const choices = (ui.run.choices || []).slice(choiceN);
+    const beats = (ui.run.feed || []).filter((b) => (b.serial || 0) > beatN);
+    recent.events = addRecent(recent.events, choices.map((c) => c.event), 30);
+    recent.beats = addRecent(recent.beats, beats.map((b) => b.id), 30);
+    ui.run.recentChoiceN = (ui.run.choices || []).length;
+    ui.run.recentBeatSerial = ui.run.beatSerial || beatN;
+    write(KEY.recent, recent);
+  }
   const ok = write(KEY.run, ui.run);
   if (!ok) say("這台裝置寫不進存檔。這一局仍可繼續，但重新整理會消失。");
   ui.saved = ui.run;
@@ -1350,6 +1436,7 @@ function shapeTarget(run) {
 function suggestRescueId(run, opts) {
   const trust = run.venture?.trust || 0;
   const order = [];
+  order.push("collect_early");
   if (trust >= 0.38) order.push("presell");
   order.push("delay", "nodraw", "shrink");
   if ((run.finance?.debt || 0) < 6) order.push("borrow");

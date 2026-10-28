@@ -74,7 +74,7 @@
     "forecast_band_early": 0.18,
     "peer_pressure_cap": 0.42,
     "employee_output": 1.05,
-    "founder_output": 2.05,
+    "founder_output": 2.56,
     "labor_per_head": 1.5,
     "tenure_per_month": 0.042,
     "tenure_cap": 1.4,
@@ -324,7 +324,7 @@
   "venues": {
     "street": {
       "label": "街舖",
-      "fixed": 1.2,
+      "fixed": 0.864,
       "capex": 1.7,
       "traffic": 1.38,
       "platform": 0,
@@ -338,7 +338,7 @@
     },
     "mall": {
       "label": "商場",
-      "fixed": 1.56,
+      "fixed": 1.1232,
       "capex": 2.1,
       "traffic": 1.58,
       "platform": 0.06,
@@ -352,7 +352,7 @@
     },
     "studio": {
       "label": "工作室",
-      "fixed": 0.78,
+      "fixed": 0.5616,
       "capex": 0.75,
       "traffic": 0.72,
       "platform": 0,
@@ -366,7 +366,7 @@
     },
     "home": {
       "label": "家居",
-      "fixed": 0.15,
+      "fixed": 0.108,
       "capex": 0.22,
       "traffic": 0.74,
       "platform": 0,
@@ -380,7 +380,7 @@
     },
     "mobile": {
       "label": "流動",
-      "fixed": 0.33,
+      "fixed": 0.2376,
       "capex": 0.55,
       "traffic": 0.88,
       "platform": 0,
@@ -394,7 +394,7 @@
     },
     "online": {
       "label": "網上",
-      "fixed": 0.21,
+      "fixed": 0.1512,
       "capex": 0.35,
       "traffic": 1.12,
       "platform": 0.09,
@@ -407,7 +407,7 @@
     },
     "shared": {
       "label": "共享設施",
-      "fixed": 0.48,
+      "fixed": 0.3456,
       "capex": 0.3,
       "traffic": 0.68,
       "platform": 0,
@@ -421,7 +421,7 @@
     },
     "factory": {
       "label": "工場",
-      "fixed": 1.38,
+      "fixed": 0.9936,
       "capex": 3.1,
       "traffic": 0.58,
       "platform": 0,
@@ -435,7 +435,7 @@
     },
     "onsite": {
       "label": "上門",
-      "fixed": 0.18,
+      "fixed": 0.1296,
       "capex": 0.28,
       "traffic": 0.84,
       "platform": 0,
@@ -2071,7 +2071,7 @@
   "stages": [
     {
       "id": "spark",
-      "label": "極短命",
+      "label": "創業起步",
       "min": 0,
       "max": 4,
       "decision_gap": 2
@@ -2106,7 +2106,7 @@
     },
     {
       "id": "century",
-      "label": "百年企業",
+      "label": "長壽企業",
       "min": 301,
       "max": 400,
       "decision_gap": 20

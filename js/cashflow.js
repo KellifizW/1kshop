@@ -18,6 +18,7 @@ const EXPENSES = [
   { key: "weather", label: "天氣／能源成本", shortLabel: "天氣／能源", at: 0.58 },
   { key: "tax", label: "稅款", shortLabel: "稅款", at: 0.76 },
   { key: "draw", label: "創辦人提款", shortLabel: "創辦人提款", at: 0.83 },
+  { key: "advance", label: "預售收入抵扣", shortLabel: "預售抵扣", at: 0.88 },
   { key: "principal", label: "償還貸款本金", shortLabel: "還本金", at: 0.9 },
   { key: "personalTransfer", label: "補貼創辦人生活費", shortLabel: "生活費補貼", at: 0.94 },
 ];

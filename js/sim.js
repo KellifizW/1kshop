@@ -679,6 +679,7 @@ function addCrisis(state, c) {
 function pushBeat(data, state, beat) {
   const b = {
     ...beat,
+    serial: state.beatSerial = (state.beatSerial || 0) + 1,
     m: beat.m ?? state.month,
     when: beat.when || calendarLabel(state),
     text: beat.text || "",
@@ -688,8 +689,22 @@ function pushBeat(data, state, beat) {
   state.feed.push(b);
   if (state.feed.length > 60) state.feed.splice(0, state.feed.length - 60);
   state.lastBeats.push(b);
-  pushTimeline(state, b.subject || "", `${b.object || ""}。${b.text || ""}`.trim());
+  pushTimeline(state, b.object || b.subject || "", b.text, { kind: "beat", subject: b.subject, note: b.note, when: b.when });
   return b;
+}
+
+// 獨立於模擬隨機序列：同一種子與機會必定得到同一個契機。
+export function ensureOpeningSupport(data, state) {
+  if (state.openingSupport || state.venture) return state.openingSupport || null;
+  const gap = gapById(data, state.gapId);
+  const roll = hashSeed(`${state.seed}:opportunity:${state.gapId}`) % 100;
+  const tier = roll < 20
+    ? { label: "微弱支援", cash: 1, relief: 0.25 }
+    : roll < 80
+      ? { label: "穩定支援", cash: 2, relief: 0.4 }
+      : { label: "難得機會", cash: 3.5, relief: 0.6 };
+  state.openingSupport = { ...tier, quarters: 4, gapId: gap.id, source: hashSeed(`${state.seed}:supporter:${state.gapId}`) % 3 };
+  return state.openingSupport;
 }
 
 export function createRun(data, opts = {}) {
@@ -836,6 +851,10 @@ export function createRun(data, opts = {}) {
     rescueLeft: mode.rescue_actions,
     rescueDays: mode.rescue_days,
     seen: {},
+    recentEvents: useHistory && Array.isArray(history.events) ? history.events.slice(0, 30) : [],
+    recentBeats: useHistory && Array.isArray(history.beats) ? history.beats.slice(0, 30) : [],
+    beatCounts: {},
+    beatSerial: 0,
     cooldown: {},
     spine: [],
     lastMajorMonth: 0,
@@ -883,6 +902,7 @@ export function createRun(data, opts = {}) {
     : "你現在沒有正職。";
   ensureCast(data, state);
   ensureWork(data, state);
+  ensureOpeningSupport(data, state);
   logEvent(state, "game_start", { seed, mode: modeId, city: city.id, gap: gap.id });
   return state;
 }
@@ -923,6 +943,8 @@ export function rejectOpportunity(data, state) {
   if (!gaps.length) gaps = data.content.gaps.filter((g) => g.id !== state.gapId);
   const gap = pickWeighted(rng, gaps, (g) => g.weight);
   state.gapId = gap.id;
+  state.openingSupport = null;
+  ensureOpeningSupport(data, state);
   state.founder.matched = state.founder.field === gap.field;
   state.rejectPreview = 1 + rng.int(2);
   const cityP = city.weight / data.world.cities.reduce((s, c) => s + c.weight, 0);
@@ -978,6 +1000,8 @@ const SHAPE_KEYS = ["style", "venue", "revenue", "fulfillment", "ownership", "po
 
 export function previewVenture(data, state, shape = state.shape) {
   if (!shape.style || !shape.venue) return null;
+  if (state.phase === "naming" && state.openingPreview) return state.openingPreview;
+  if (!state.venture) ensureOpeningSupport(data, state);
   const city = cityById(data, state.cityId);
   const gap = gapById(data, state.gapId);
   const E = econ(data);
@@ -1000,7 +1024,8 @@ export function previewVenture(data, state, shape = state.shape) {
     debt = -cash;
     cash = 0;
   }
-  const fixed = venue.fixed * city.rent_index * (shape.style === "test" ? 0.5 : 1);
+  cash += state.openingSupport?.cash || 0;
+  const fixed = venue.fixed * city.rent_index * (1 - (state.openingSupport?.relief || 0));
   const probe = buildProbe(data, state, shape, cash);
   const rev = probe.revenue;
   const costs = probe.costs;
@@ -1116,8 +1141,12 @@ export function confirmShape(data, state) {
   for (const k of SHAPE_KEYS) {
     if (!state.shape[k]) return { ok: false, reason: "結構還沒有選完。" };
   }
+  const snapshot = structuredClone(state);
+  delete snapshot.setupSnapshot;
+  state.setupSnapshot = snapshot;
   const E = econ(data);
   const preview = previewVenture(data, state);
+  state.openingPreview = preview;
   const own = E.ownership[state.shape.ownership];
   const style = E.commitment_styles[state.shape.style];
   const venue = E.venues[state.shape.venue];
@@ -1259,10 +1288,19 @@ function scheduleSpine(data, state) {
   state.spine.sort((a, b) => a.month - b.month);
 }
 
+export function undoShape(state) {
+  if (state.phase !== "naming" || !state.setupSnapshot) return false;
+  const snapshot = state.setupSnapshot;
+  for (const key of Object.keys(state)) delete state[key];
+  Object.assign(state, snapshot);
+  return true;
+}
+
 export function confirmName(state, name) {
   if (state.phase !== "naming") return;
   state.venture.name = String(name || nameOptions(state, { content: { name_a: ["店"], name_b: { x: ["社"] } } })[0]).slice(0, 16);
   state.phase = "play";
+  delete state.setupSnapshot;
   state.role = "創辦人";
   pushTimeline(state, "開業", `${state.venture.name}寫上帳簿。`);
   logEvent(state, "setup_choice", { step: "name", value: state.venture.name });
@@ -1273,8 +1311,8 @@ function logEvent(state, name, extra) {
   if (state.analytics.length > 500) state.analytics.shift();
 }
 
-function pushTimeline(state, title, text) {
-  state.timeline.push({ m: state.month, title, text });
+function pushTimeline(state, title, text, extra = {}) {
+  state.timeline.push({ m: state.month, title, text, ...extra });
   if (state.timeline.length > 180) state.timeline.splice(20, state.timeline.length - 160);
 }
 
@@ -1321,7 +1359,7 @@ export function forecast(data, state) {
   const releasing = (state.finance?.arQueue || [])
     .filter((item) => item.due <= nextMonth)
     .reduce((total, item) => total + num(item.amount, 0), 0);
-  const parts = costParts(data, state, rev, releasing);
+  const parts = costParts(data, { ...state, month: nextMonth, flags: { ...state.flags } }, rev, releasing);
   const band = state.month < 2 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
   return {
     revenue: [rev * (1 - band), rev * (1 + band)],
@@ -1411,7 +1449,11 @@ function costParts(data, state, revenue, released) {
   const ambientCost = clamp(state.ambient?.cost || 0, -0.08, 0.08);
   const weather = revenue * num(state.weather?.cost, 0) * weatherExposure(data, state);
   const variable = revenue * clamp(pos.variable + ful.variable_add + mods.cost, 0.12, 0.84) * (1 + ambientCost);
-  const premises = ven.fixed * city.rent_index * mods.fixed + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity;
+  // 契機的場地支援只補貼基本場地費，不豁免其他固定開支。
+  const support = state.openingSupport;
+  const relief = support && state.month >= 1 && state.month <= support.quarters ? support.relief : 0;
+  const premisesBase = ven.fixed * city.rent_index * mods.fixed;
+  const premises = premisesBase * (1 - relief) + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity;
   const platformRate = ven.platform + rev.platform + mods.platform + city.platform_pressure * ven.platform * 0.45;
   const platform = revenue * platformRate;
   const royalty = revenue * ((v.royalty || 0) + mods.royalty);
@@ -1427,11 +1469,12 @@ function costParts(data, state, revenue, released) {
   const interest = (state.finance?.debt || 0) * rate;
   let principal = 0;
   for (const c of state.commitments || []) if (c.kind === "debt" && c.monthsLeft > 0) principal += c.payment || 0;
+  const advance = (state.commitments || []).filter((c) => c.kind === "advance" && c.monthsLeft > 0).reduce((sum, c) => sum + (c.payment || 0), 0);
   const collectedNow = collectNow(state, revenue, city);
   const profitBase = collectedNow + released - variable - labor - premises - platform - royalty - interest - weather;
   const tax = profitBase > 0 ? profitBase * city.tax_rate : 0;
-  const operating = variable + labor + premises + platform + royalty + interest + weather + tax + draw + principal;
-  return { variable, premises, platform, royalty, labor, draw, interest, principal, weather, tax, collectedNow, releasing: released, operating, platformRate };
+  const operating = variable + labor + premises + platform + royalty + interest + weather + tax + draw + principal + advance;
+  return { advance, variable, premises, openingRelief: premisesBase * relief, platform, royalty, labor, draw, interest, principal, weather, tax, collectedNow, releasing: released, operating, platformRate };
 }
 
 function collectNow(state, revenue, city) {
@@ -1576,6 +1619,12 @@ function settleOne(data, state) {
     parts,
     ops,
   };
+  // 每季留一張可回看的收支紀錄，和人物小事、決策使用同一條時間線。
+  pushTimeline(state, "本季結算", line, {
+    kind: "quarter", when: calendarLabel(state),
+    collected: parts.collectedNow + released, out: parts.operating + personalTransfer,
+    cash: state.finance.cash,
+  });
   state.factors = explainFactors(data, state, revenue, parts);
   state.finance.runway = runwayOf(data, state);
   const cashOut = parts.operating + personalTransfer;
@@ -1815,8 +1864,9 @@ function takeEvent(data, state, rng) {
   }
   const due = state.spine.find((s) => !s.done && s.month <= state.month);
   if (due) {
-    const ev = data.events.find((e) => e.spine === due.id);
-    if (ev && eligible(data, state, ev)) {
+    const candidates = data.events.filter((e) => e.spine === due.id && eligible(data, state, e));
+    if (candidates.length) {
+      const ev = pickWeighted(rng, candidates, (e) => weightOf(data, state, e));
       due.done = true;
       return decorate(data, state, ev);
     }
@@ -1829,8 +1879,11 @@ function takeEvent(data, state, rng) {
   if (since < stage.decision_gap * 0.6) return null;
   const p = clamp((since - stage.decision_gap * 0.6) / stage.decision_gap, 0, 0.8);
   if (rng.next() > p && since < stage.decision_gap * 1.45) return null;
-  const pool = data.events.filter((e) => !e.spine && !e.chain_only && eligible(data, state, e));
+  let pool = data.events.filter((e) => !e.spine && !e.chain_only && eligible(data, state, e));
   if (!pool.length) return null;
+  // 選項足夠時不重播本局同一事件；事件鏈和必經節點仍可按因果正常回來。
+  const fresh = pool.filter((e) => !state.seen?.[e.id]);
+  if (fresh.length) pool = fresh;
   const picked = pickWeighted(rng, pool, (e) => weightOf(data, state, e));
   if (!picked || weightOf(data, state, picked) <= 0) return null;
   return decorate(data, state, picked);
@@ -1863,6 +1916,8 @@ function eligible(data, state, e) {
 
 function weightOf(data, state, e) {
   let w = e.weight || 10;
+  if ((state.recentEvents || []).includes(e.id)) w *= 0.12;
+  if (e.layer === "life") w *= 3;
   const stage = stageOf(data, state.month).id;
   if (["spark", "early"].includes(stage) && e.layer === "generic") w *= 1.1;
   if (["mature", "legacy", "century"].includes(stage) && e.min_month >= 24) w *= 1.15;
@@ -1909,7 +1964,8 @@ function decorate(data, state, e) {
   };
 }
 
-function beatOk(state, b) {
+function beatOk(data, state, b) {
+  if (b.stages && !b.stages.includes(stageOf(data, state.month).id)) return false;
   if ((state.beatUntil?.[b.id] || 0) > state.month) return false;
   const need = b.when || [];
   if (need.includes("kin") && !state.cast?.kin) return false;
@@ -1942,17 +1998,22 @@ function applyBeatEffects(state, effects = {}) {
 function rollBeats(data, state, rng) {
   ensureCast(data, state);
   state.lastBeats = [];
-  const pool = (data.narrative.beats || []).filter((b) => beatOk(state, b));
+  const pool = (data.narrative.beats || []).filter((b) => beatOk(data, state, b));
   if (!pool.length) return;
   const count = rng.next() < 0.28 ? 2 : 1;
   let rest = pool.slice();
   state.beatUntil = state.beatUntil || {};
   for (let i = 0; i < count && rest.length; i++) {
-    const b = pickWeighted(rng, rest, (x) => x.weight || 1);
+    const b = pickWeighted(rng, rest, (x) => {
+      const count = state.beatCounts?.[x.id] || 0;
+      return (x.weight || 1) * (x.stages ? 3 : 1) * (count ? 0.08 : 1) * ((state.recentBeats || []).includes(x.id) ? 0.2 : 1);
+    });
     if (!b) break;
     rest = rest.filter((x) => x.id !== b.id);
     applyBeatEffects(state, b.effects || {});
     state.beatUntil[b.id] = state.month + (b.cooldown || 4);
+    state.beatCounts = state.beatCounts || {};
+    state.beatCounts[b.id] = (state.beatCounts[b.id] || 0) + 1;
     pushBeat(data, state, {
       id: b.id,
       subject: fillText(data, state, b.subject || ""),
@@ -2003,7 +2064,7 @@ function applyChoice(data, state, ev, choice) {
     });
   }
   state.choices.push({ month: state.month, event: ev.id, choice: choice.id, grammar: ev.grammar, label: choice.label });
-  pushTimeline(state, ev.title, choice.label);
+  pushTimeline(state, ev.title, ev.body, { kind: "decision", choice: choice.label, when: calendarLabel(state) });
   logEvent(state, "event_choice", { id: ev.id, choice: choice.id });
   if (choice.effects?.flags?.price_hold) state.counts.priceHold += 1;
   if (["hold", "keep"].includes(choice.id) && ["OPENING_DEMAND", "CUT_VARIABLE_COST", "COMPETITION"].includes(ev.grammar)) state.counts.priceHold += 1;
@@ -2352,6 +2413,10 @@ export function initiatives(data, state) {
   const ready = state.month >= (state.initiativeReady || 0);
   const list = [];
   if (ready) {
+    const pending = (state.finance.arQueue || []).reduce((sum, q) => sum + q.amount, 0);
+    if (pending > 0.05) list.push({ id: "collect_early", label: "短期：提早收回應收款", detail: "把現有應收款以 95% 提前收回；餘下 5% 是費用，原定到期時不會再收一次。只改善現金時間，折讓會減少收益。" });
+    if (!state.flags.turnaround_lean) list.push({ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重新談場地與供應：基本固定成本減 25%，變動成本率減 5 個百分點；需求係數減 8%。不保證盈利。" });
+    if (!state.flags.turnaround_offer && state.finance.cash >= 0.35) list.push({ id: "turnaround_offer", label: "長期：調整產品與定價", detail: "投入 0.35 單位改善產品與客群；價格係數加 0.12，配合度提高，變動成本率增 2 個百分點。需求未必能填滿產能。" });
     list.push({ id: "price_up", label: "加價約 8%", detail: "確定：價格係數上升。量可能下降。" });
     list.push({ id: "price_down", label: "降價約 8%", detail: "確定：價格下降，較容易成交。" });
     if (state.team.headcount < 12) list.push({ id: "hire", label: "聘一個人", detail: "確定：每季多一份薪。產能上升。" });
@@ -2396,10 +2461,27 @@ export function initiatives(data, state) {
 
 export function actInitiative(data, state, id) {
   if (state.phase !== "play") return { ok: false };
+  const option = initiatives(data, state).find((item) => item.id === id);
+  if (!option) return { ok: false };
   const I = econ(data).initiatives;
   const gapMonths = state.month < 60 ? econ(data).formula.initiative_cooldown_early : econ(data).formula.initiative_cooldown_late;
   if (id !== "close") state.initiativeReady = state.month + gapMonths;
-  if (id === "price_up") {
+  if (id === "collect_early") {
+    const pending = state.finance.arQueue.reduce((sum, q) => sum + q.amount, 0);
+    state.finance.cash += pending * 0.95;
+    state.finance.arQueue = [];
+    state.finance.arPending = 0;
+    pushTimeline(state, "提早收款", `收回 ${round2(pending * 0.95)} 單位；費用 ${round2(pending * 0.05)} 單位。`);
+  } else if (id === "turnaround_lean") {
+    applyLeanTurnaround(state);
+  } else if (id === "turnaround_offer") {
+    state.finance.cash -= 0.35;
+    state.venture.perm.price += 0.12;
+    state.venture.perm.cost += 0.02;
+    state.venture.marketFit = clamp(state.venture.marketFit + 0.08, 0, 1);
+    state.flags.turnaround_offer = true;
+    pushTimeline(state, "調整產品與定價", "投入現金改善產品，價格和單位成本一同上升。");
+  } else if (id === "price_up") {
     state.venture.perm.price += I.price_step;
     state.venture.marketFit = clamp(state.venture.marketFit - 0.02, 0, 1);
     state.counts.priceHold = Math.max(0, state.counts.priceHold - 1);
@@ -2514,7 +2596,7 @@ export function actInitiative(data, state, id) {
     state.phase = "closing";
     return { ok: true };
   }
-  pushTimeline(state, "主動決定", id);
+  pushTimeline(state, option.label, option.detail, { kind: "decision", choice: option.label, when: calendarLabel(state) });
   logEvent(state, "event_choice", { id: "initiative", choice: id });
   if (state.finance.cash < 0) state.phase = "laststand";
   return { ok: true };
@@ -2563,27 +2645,47 @@ export function confirmClose(data, state, how) {
   closeBook(data, state, ending);
 }
 
+function applyLeanTurnaround(state) {
+  state.venture.perm.fixed *= 0.75;
+  state.venture.perm.cost -= 0.05;
+  state.venture.perm.revenue *= 0.92;
+  state.flags.turnaround_lean = true;
+}
+
 export function chooseRescue(data, state, id) {
   if (state.phase !== "laststand") return { ok: false };
+  const option = rescueOptions(data, state).find((o) => o.id === id);
+  if (!option) return { ok: false };
   const v = state.venture;
   let worked = false;
-  if (id === "shrink") {
+  if (id === "turnaround_lean" && !state.flags.turnaround_lean) {
+    applyLeanTurnaround(state);
+    worked = true;
+  } else if (id === "collect_early" && (state.finance.arQueue || []).length) {
+    const pending = state.finance.arQueue.reduce((sum, q) => sum + q.amount, 0);
+    state.finance.cash += pending * 0.95;
+    state.finance.arQueue = [];
+    state.finance.arPending = 0;
+    worked = pending > 0;
+  } else if (id === "shrink") {
     v.perm.fixed *= 0.75;
     v.perm.revenue *= 0.82;
     if (state.team.headcount > 0) fire(data, state, 1);
     state.flags.shrunk = true;
     worked = true;
   } else if (id === "presell") {
-    if (v.trust >= 0.38) {
+    if (v.trust >= 0.38 && !state.flags.rescue_presell) {
       state.finance.cash += 1.15;
-      v.timed.push({ months: 3, revenue: 0.9, price: 0, cost: 0 });
+      state.commitments.push({ name: "預售收入抵扣", monthsLeft: 5, total: 5, kind: "advance", payment: 1.15 / 4 });
+      state.flags.rescue_presell = true;
       worked = true;
     }
-  } else if (id === "delay") {
+  } else if (id === "delay" && !state.flags.rescue_delay) {
+    state.flags.rescue_delay = true;
     state.finance.cash += 0.85;
+    state.finance.debt += 0.85;
+    state.commitments.push({ name: "延期帳款", monthsLeft: 5, total: 5, kind: "debt", payment: 0.85 / 4 });
     v.trust = clamp(v.trust - 0.05, 0, 1);
-    const c = state.commitments[0];
-    if (c) c.monthsLeft += 2;
     worked = true;
   } else if (id === "asset") {
     if (v.capexBook > 0.3) {
@@ -2614,9 +2716,9 @@ export function chooseRescue(data, state, id) {
     state.founder.drawPause = 4;
     state.founder.will = clamp(state.founder.will - 0.08, 0, 1);
     state.founder.health = clamp(state.founder.health - 0.03, 0, 1);
-    state.finance.cash += state.founder.wantsDraw;
     worked = true;
-  } else if (id === "process") {
+  } else if (id === "process" && !state.flags.rescue_process) {
+    state.flags.rescue_process = true;
     state.rescueLeft += 1;
     state.founder.reputation = clamp(state.founder.reputation - 0.08, 0, 1);
     worked = false;
@@ -2624,10 +2726,10 @@ export function chooseRescue(data, state, id) {
     confirmClose(data, state, "voluntary");
     return { ok: true, closed: true };
   }
-  if (worked) state.finance.cash = Math.max(state.finance.cash, 0.05);
+  pushTimeline(state, "現金危機的應對", option.detail, { kind: "decision", choice: option.label, when: calendarLabel(state) });
   state.kpis = state.kpis || blankKpis();
   state.kpis.rescues += 1;
-  addCrisis(state, { m: state.month, kind: "cash", title: `用了「${id}」撐過這一季`, weight: 4 });
+  addCrisis(state, { m: state.month, kind: "cash", title: `嘗試以「${id}」應對現金危機`, weight: 4 });
   const proj = potentialRevenue(data, state, 0);
   const parts = costParts(data, state, proj, 0);
   const survive = state.finance.cash > 0.15 && (parts.collectedNow + state.finance.cash > parts.operating * 0.92);
@@ -2828,7 +2930,9 @@ export function symptomIds(data, state) {
  */
 export function rescueOptions(data, state) {
   const crewName = (state.crew || []).find((c) => !c.gone)?.name || state.team?.names?.[0] || "你的人";
-  return [
+  const options = [
+    ...(!state.flags.turnaround_lean ? [{ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重談場地及供應，基本固定成本減 25%，變動成本率減 5 個百分點，需求係數減 8%。不能立即填補欠款。", likely: "改善往後每季的成本，但不保證盈利。", downside: "規模變小，仍要先解決眼前欠款。" }] : []),
+    ...((state.finance.arQueue || []).length ? [{ id: "collect_early", label: "短期：提早收回應收款", detail: "按現有應收款的 95% 提前收回，餘下是費用；到期時不會重複收款。", likely: "改善眼前現金，不改變生意根本。", downside: "少收 5%，以後沒有這筆款項。" }] : []),
     {
       id: "shrink", label: "縮規模", detail: "砍固定成本與人手。收入會一起變小。",
       likely: "固定成本降約四分之一，收入降約兩成，跑道拉長兩到三季。",
@@ -2837,13 +2941,13 @@ export function rescueOptions(data, state) {
     },
     {
       id: "presell", label: "預售", detail: state.venture.trust >= 0.38 ? "信任還夠，可以先收一筆。" : "信任不夠，這一項做不到。",
-      likely: "現金立刻多約一季的開銷，接下來一季收入會被提前吃掉。",
-      downside: "如果一季後你交不出來，信任會掉得比現在更快。",
-      affects: "先付錢的客人、之後一季的現金",
+      likely: "現金立刻增加 1.15 單位；之後四季各抵扣 1.15 的四分之一。",
+      downside: "未來四季要交付預售訂單，收款會被抵扣。",
+      affects: "先付錢的客人、未來四季的現金",
     },
     {
       id: "delay", label: "談延期", detail: "把最近的承諾往後推，關係會損。",
-      likely: "這一季的壓力下降，信任小幅下降。",
+      likely: "現金暫時增加 0.85 單位，同額延期帳款分四季償還並計入債務，另付利息；信任下降。",
       downside: "對方會記住這件事，下一次的條件會更硬。",
       affects: "供應商、業主、你和他們之間的關係",
     },
@@ -2867,7 +2971,7 @@ export function rescueOptions(data, state) {
     },
     {
       id: "nodraw", label: "停發自己的錢", detail: "公司鬆一口。家里會緊。",
-      likely: "公司一季不用付你生活費，你的意志與健康會掉。",
+      likely: "往後暫停提款，眼前不會憑空增加現金；你的意志與健康會掉。",
       downside: "家裡的那件事不會因為你不領錢就消失。",
       affects: "你自己、家裡的人",
     },
@@ -2884,6 +2988,15 @@ export function rescueOptions(data, state) {
       affects: "每一個人、你自己、這條街",
     },
   ];
+  return options.filter((o) => {
+    if (o.id === "presell") return state.venture.trust >= 0.38 && !state.flags.rescue_presell;
+    if (o.id === "delay") return !state.flags.rescue_delay;
+    if (o.id === "process") return !state.flags.rescue_process;
+    if (o.id === "asset") return state.venture.capexBook > 0.3;
+    if (o.id === "borrow") return state.finance.debt < 6 && !(cityById(data, state.cityId).credit_tight > 0.5 && state.founder.guarantee > 2);
+    if (o.id === "equity") return state.venture.marketFit > 0.34 && (gapById(data, state.gapId).trend > -0.045 || state.flags.transformed);
+    return true;
+  });
 }
 
 export function topDrivers(state, sign) {
