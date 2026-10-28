@@ -38,6 +38,14 @@ python -m http.server 8080
 
 主畫面的「公司生活紀錄」按時間顯示季結、人物小事和決策；「經營行動」會暫停時間並開啟選單。`data/life-events.json` 收錄按公司壽命階段限定的重大事件與日常小事；故事模式會參考本機最近遇過的內容降低重複，沙盒與每日世界不讀取這份歷史。事件鏈和必經節點仍保留因果與必要的重現。
 
+## 歷史模式
+
+模式頁可搜尋或隨機挑選 100 間企業。範圍固定為 [PwC《Global Top 100 companies》](https://www.pwc.co.uk/audit/assets/pdf/global-100/companies/global-top-100-companies-2026.pdf) 截至 **2026 年 3 月 31 日的上市公司市值排名**，不是即時排名或營收排名。每間範本由前身或企業起點及兩個有年份、企業史料連結的里程碑組成；每個里程碑提供史實方向、作者設計的假設方向及保守選項。選項確實會改動現金、產能、信任或其他營運指標，並引出按所選路線編排、明確標為虛構的後續決策；下一個史實節點會區分真實世界與玩家路線。兩個史實節點通常由第 2 及第 8 季起排入；現金危機、章節及存檔不會使節點消失。
+
+沿用原有塑形、季度結算、經營行動、救援、接班、事件與存檔。史實年份只作參考，觸發時序為遊戲節奏而濃縮；玩家、其他人物、一般事件、成本、金額、分支與結果均為模擬，不是完整公司傳記、實際所在地法律、投資或健康建議。範本不保證企業成功，也不會把現實發生的事自動套用到玩家的分支。歷史局標為非正式，不會寫入故事模式的最近事件或城市生態。
+
+逐間史實、出處及替代決策見 [`research/historical-companies.psv`](research/historical-companies.psv)，方法見 [歷史模式研究](research/historical-mode.md)。`data/historical.json` 由 `node scripts/build-historical-data.mjs` 按該表產生；`js/historical.js` 定義可見的遊戲效果。
+
 ## 測試
 
 需要 Node.js 22 或更新版本，在倉庫根目錄執行：
@@ -47,7 +55,8 @@ node --experimental-default-type=module tests/gameplay.mjs
 node --experimental-default-type=module tests/lifecycle.mjs
 node --experimental-default-type=module tests/balance-sample.mjs
 node --experimental-default-type=module tests/operating.mjs
+node --experimental-default-type=module tests/historical.mjs
 node --experimental-default-type=module tests/long-balance.mjs
 ```
 
-最後一項以固定種子模擬 2、4、10 年；可用 `SAMPLE_SIZE` 調整樣本數，`ALL_GAPS=1` 納入十個新企業缺口。另有可選的瀏覽器冒煙測試：啟動 `python -m http.server 8000`，安裝 `playwright-core` 並備妥 Chromium，然後執行 `CHROMIUM_PATH=/path/to/chromium node tests/browser-smoke.cjs`（也可用 `GAME_URL` 指向其他測試網址）。瀏覽器測試涵蓋桌面、手機、沙盒、每日模式、自動選擇、舊存檔、決策及離線畫面。
+最後一項以固定種子模擬 2、4、10 年；可用 `SAMPLE_SIZE` 調整樣本數，`ALL_GAPS=1` 納入十個新企業缺口。另有可選的瀏覽器冒煙測試：啟動 `python -m http.server 8000`，安裝 `playwright-core` 並備妥 Chromium，然後執行 `CHROMIUM_PATH=/path/to/chromium node tests/browser-smoke.cjs`（也可用 `GAME_URL` 指向其他測試網址）。瀏覽器測試涵蓋桌面、手機、沙盒、每日模式、自動選擇、舊存檔、決策及離線畫面。歷史模式另有 `CHROMIUM_PATH=/path/to/chromium node tests/historical-browser.cjs`，涵蓋搜尋、開局、兩個事件、分支、讀檔、手機及離線。

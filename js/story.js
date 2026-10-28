@@ -290,6 +290,7 @@ export function epitaphOf(data, run, scores, key, group, cause) {
 }
 
 export function yearRange(run) {
+  if (run.mode === "history") return "歷史模擬";
   const cal = run.calendar || { year: 2026, month: 0 };
   const startYear = cal.year;
   const endYear = cal.year + Math.floor(((cal.month || 0) + (run.ending?.month ?? run.month ?? 0)) / 12);

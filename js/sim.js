@@ -1,4 +1,5 @@
 import { hashSeed, makeRng, pickWeighted } from "./rng.js";
+import { historicalCompany, historicalWork, dueHistoricalEvent, recordHistoricalDecision, recordHistoricalFollowup } from "./historical.js";
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
@@ -177,6 +178,8 @@ function effectiveMods(v) {
 }
 
 export function nameOptions(state, data) {
+  const historical = state.mode === "history" && historicalCompany(data, state.historical?.companyId);
+  if (historical) return [historical.name];
   const gap = gapById(data, state.gapId);
   const a = data.content.name_a;
   const b = data.content.name_b[gap.family] || ["社"];
@@ -271,6 +274,13 @@ export function ensureCast(data, state) {
 export function ensureWork(data, state) {
   if (!state?.gapId) return state?.work || null;
   const gap = gapById(data, state.gapId);
+  const company = state.mode === "history" ? historicalCompany(data, state.historical?.companyId) : null;
+  if (company && gap) {
+    // 每次讀檔都可從範本恢復名稱，但決策進度與財務只保存在該局。
+    state.work = { ...historicalWork(company), family: gap.family };
+    if (state.venture) state.venture.work = state.work;
+    return state.work;
+  }
   const work = gap?.work;
   if (!work) return state.work || null;
   const type = companyType(data, gap.company_type);
@@ -329,7 +339,7 @@ function castTokens(data, state) {
     kinRelation: kin?.relation || "家里",
     kinNeed: kin?.need || "一段離不開人的照護",
     kinWho: kin?.who || "家里的人",
-    city: city?.name || "這座城市",
+    city: (state.mode === "history" && historicalCompany(data, state.historical?.companyId)?.origin) || city?.name || "這座城市",
     company: state.venture?.name || "這間公司",
     landlord: cast.landlord || "業主",
     supplier: cast.supplier || "供應商",
@@ -741,11 +751,15 @@ export function ensureOpeningSupport(data, state) {
 export function createRun(data, opts = {}) {
   const modeId = opts.mode || "story";
   const mode = modeOf(data, modeId);
+  const company = modeId === "history" ? historicalCompany(data, opts.historicalCompanyId) : null;
+  if (modeId === "history" && (!company || !cityById(data, company.modelCity) || !gapById(data, company.modelGap))) {
+    throw new Error("歷史範本資料不完整或不存在。");
+  }
   const seed = String(opts.seed ?? Math.floor(Math.random() * 1e9));
   const rng = makeRng(hashSeed("world:" + seed + ":" + data.economy.meta.simulation_version));
   const history = opts.history || { cities: [], families: [], gaps: [] };
-  const sandbox = opts.sandbox || null;
-  const useHistory = modeId !== "daily" && modeId !== "sandbox";
+  const sandbox = modeId === "history" ? null : (opts.sandbox || null);
+  const useHistory = modeId !== "daily" && modeId !== "sandbox" && modeId !== "history";
 
   let cities = data.world.cities.slice();
   if (useHistory) {
@@ -753,6 +767,7 @@ export function createRun(data, opts = {}) {
     if (filtered.length) cities = filtered;
   }
   if (sandbox?.city && cityById(data, sandbox.city)) cities = [cityById(data, sandbox.city)];
+  if (company) cities = [cityById(data, company.modelCity)];
   const city = pickWeighted(rng, cities, (c) => c.weight);
 
   let gaps = data.content.gaps.slice();
@@ -761,6 +776,7 @@ export function createRun(data, opts = {}) {
     if (filtered.length) gaps = filtered;
   }
   if (sandbox?.gap && gapById(data, sandbox.gap)) gaps = [gapById(data, sandbox.gap)];
+  if (company) gaps = [gapById(data, company.modelGap)];
   const gap = pickWeighted(rng, gaps, (g) => g.weight);
 
   const ageBand = sandbox?.age
@@ -818,6 +834,7 @@ export function createRun(data, opts = {}) {
     rngState: rng.state,
     mode: modeId,
     official: mode.official !== false && !sandbox,
+    ...(company ? { historical: { companyId: company.id, nextMilestone: 0, decisions: [], followups: [], currentDirection: "" } } : {}),
     phase: "reveal",
     month: 0,
     speed: "standard",
@@ -1169,7 +1186,7 @@ function ventureSkeleton(data, state, shape) {
     skill: 0.5,
     keyDependency: 0.82,
     wagePressure: 1,
-    core: gap.core,
+    core: state.mode === "history" ? (state.work?.core || gap.core) : gap.core,
     unit: 0,
   };
 }
@@ -1264,13 +1281,15 @@ function buildPeers(data, state) {
   const rng = rngOf(state);
   const pers = data.economy.personalities.slice();
   const prefixes = data.content.peer_prefixes.slice();
+  // 同行仍是虛構對照，不借用真實範本的名字。
+  const peerNames = nameOptions(state.mode === "history" ? { ...state, mode: "story" } : state, data);
   state.peers = [];
   for (let i = 0; i < 3; i++) {
     const p = pers.splice(rng.int(pers.length), 1)[0];
     const pre = prefixes.splice(rng.int(prefixes.length), 1)[0];
     state.peers.push({
       id: "p" + i,
-      name: pre + "·" + nameOptions(state, data)[i % 3],
+      name: pre + "·" + peerNames[i % peerNames.length],
       personality: p.id,
       label: p.label,
       owner: personName(data, cityById(data, state.cityId).country, state.seed + ":peer" + i),
@@ -1376,6 +1395,11 @@ function award(data, state, id, weightBoost = 0) {
 }
 
 export function calendarLabel(state, add = 0) {
+  if (state.mode === "history") {
+    // 歷史節點為可玩性濃縮，不把模擬季度冒充為真實年代。
+    const q = Math.max(0, (state.month || 0) + (state.preMonths || 0) + add);
+    return `模擬第 ${Math.floor(q / 4) + 1} 年 第${q % 4 + 1}季`;
+  }
   // 季為單位：每季 = 3個月，顯示為 第x季
   const m = (state.month + state.preMonths + add) * 3;
   const month = (state.calendar.month + m) % 12;
@@ -1928,6 +1952,9 @@ function isChapter(state) {
 }
 
 function takeEvent(data, state, rng) {
+  // 歷史節點按順序等待；現金危機先處理，章節可暫存事件。
+  const historical = dueHistoricalEvent(data, state);
+  if (historical) return decorate(data, state, historical);
   // 第二層：幾個月前那個決定的後果，現在回來了。
   const chain = dueChain(state);
   if (chain) {
@@ -1976,6 +2003,8 @@ function takeEvent(data, state, rng) {
 }
 
 function eligible(data, state, e) {
+  // 歷史範本使用抽象化成本模型，不能把代理城市的地方制度當成公司所在地。
+  if (state.mode === "history" && (e.layer === "regional" || e.cities)) return false;
   if (e.once && state.seen[e.id]) return false;
   if ((state.cooldown[e.id] || 0) > state.month) return false;
   if (e.min_month && state.month < e.min_month) return false;
@@ -2125,6 +2154,8 @@ export function chooseEvent(data, state, choiceId) {
   // 反事實應從選擇之前出發，不能先套用本次效果再疊上另一個選項。
   const beforeChoice = !state._cf && !state.firstMajor && ev.major !== false ? structuredClone(state) : null;
   applyChoice(data, state, ev, choice);
+  if (ev.historicalCompany) recordHistoricalDecision(state, ev, choice);
+  if (ev.historyFollowup) recordHistoricalFollowup(state, ev);
   state.seen[ev.id] = true;
   state.cooldown[ev.id] = state.month + (ev.cooldown || 12);
   state.pendingEvent = null;

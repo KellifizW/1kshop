@@ -104,7 +104,9 @@ export async function paintCard(canvas, data, state, ending, memorial) {
   y += 12;
   g.fillStyle = SEAL;
   g.font = `28px ${CARD_FONT}`;
-  y = wrap(g, `以同樣的開局條件看，你走得比 ${m.percentile}% 的創業者久，或走得比他們清楚。${rarityLine(m.prior)}。`, 120, y, 840, 40);
+  y = wrap(g, state.mode === "history"
+    ? "歷史範本的遊戲模擬；經營結果和數字並非真實企業紀錄。"
+    : `以同樣的開局條件看，你走得比 ${m.percentile}% 的創業者久，或走得比他們清楚。${rarityLine(m.prior)}。`, 120, y, 840, 40);
 
   g.fillStyle = "#8a8178";
   g.font = `22px ${CARD_FONT}`;
@@ -271,7 +273,7 @@ export function shareText(data, state, ending, m) {
     `${mem.name}（${mem.years}）`,
     `${mem.title}：${mem.cause}`,
     `${mem.life} · 服務過 ${mem.customers.toLocaleString("zh-Hant")} 人 · 最多 ${mem.peakCrew} 個人`,
-    `你走得比 ${mem.percentile}% 的創業者久，或走得比他們清楚。`,
+    state.mode === "history" ? "歷史範本模擬；這不是企業的真實結果。" : `你走得比 ${mem.percentile}% 的創業者久，或走得比他們清楚。`,
     `${mem.epitaph}`,
   ].join("\n");
 }
