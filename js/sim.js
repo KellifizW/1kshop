@@ -672,13 +672,10 @@ export function createRun(data, opts = {}) {
   const seed = String(opts.seed ?? Math.floor(Math.random() * 1e9));
   const rng = makeRng(hashSeed("world:" + seed + ":" + data.economy.meta.simulation_version));
   const history = opts.history || { cities: [], families: [], gaps: [] };
-  const challenge = opts.challenge || null;
   const sandbox = opts.sandbox || null;
-  const useHistory = modeId !== "daily" && modeId !== "sandbox" && !challenge;
+  const useHistory = modeId !== "daily" && modeId !== "sandbox";
 
   let cities = data.world.cities.slice();
-  if (challenge === "high_rent") cities = cities.filter((c) => c.rent_index >= 1.5);
-  if (challenge === "gdl_example") cities = cities.filter((c) => c.id === "gdl");
   if (useHistory) {
     const filtered = cities.filter((c) => !history.cities.includes(c.id));
     if (filtered.length) cities = filtered;
@@ -687,8 +684,6 @@ export function createRun(data, opts = {}) {
   const city = pickWeighted(rng, cities, (c) => c.weight);
 
   let gaps = data.content.gaps.slice();
-  if (challenge === "decline") gaps = gaps.filter((g) => g.declining);
-  if (challenge === "gdl_example") gaps = gaps.filter((g) => g.id === "farm_sourcing");
   if (useHistory) {
     const filtered = gaps.filter((g) => !history.gaps.includes(g.id) && !history.families.includes(g.family));
     if (filtered.length) gaps = filtered;
@@ -700,29 +695,20 @@ export function createRun(data, opts = {}) {
     ? data.economy.age_bands.find((b) => sandbox.age >= b.min && sandbox.age <= b.max) || data.economy.age_bands[2]
     : pickWeighted(rng, data.economy.age_bands, (b) => b.weight);
   let age = sandbox?.age || ageBand.min + rng.int(ageBand.max - ageBand.min + 1);
-  if (challenge === "gdl_example") age = 34;
-  const assetBand = challenge === "in_debt"
-    ? data.economy.asset_bands[0]
-    : sandbox?.assets != null
-      ? data.economy.asset_bands.find((b) => sandbox.assets >= b.min && sandbox.assets <= b.max) || data.economy.asset_bands[2]
-      : pickWeighted(rng, data.economy.asset_bands, (b) => b.weight);
+  const assetBand = sandbox?.assets != null
+    ? data.economy.asset_bands.find((b) => sandbox.assets >= b.min && sandbox.assets <= b.max) || data.economy.asset_bands[2]
+    : pickWeighted(rng, data.economy.asset_bands, (b) => b.weight);
   let assets = sandbox?.assets != null ? sandbox.assets : assetBand.min + rng.int(assetBand.max - assetBand.min + 1);
-  if (challenge === "in_debt") assets = -2 - rng.int(5);
-  if (challenge === "gdl_example") assets = 14;
 
-  let family = challenge === "care_8" || challenge === "gdl_example" ? "elder" : pickWeighted(rng, Object.keys(data.economy.family_weights), (k) => data.economy.family_weights[k]);
+  let family = pickWeighted(rng, Object.keys(data.economy.family_weights), (k) => data.economy.family_weights[k]);
   if (sandbox?.family) family = sandbox.family;
 
-  const exp = challenge === "gdl_example" ? 7 : clamp(Math.round((age - 22) * 0.42 + rng.int(7) - 2), 0, 28);
+  const exp = clamp(Math.round((age - 22) * 0.42 + rng.int(7) - 2), 0, 28);
   const matchRoll = rng.next();
-  const field = challenge === "gdl_example" || sandbox?.match
-    ? gap.field
-    : matchRoll < 0.55
-      ? gap.field
-      : gap.field;
+  const field = gap.field;
 
   let fieldId = field;
-  if (challenge !== "gdl_example" && !sandbox?.match && matchRoll >= 0.55) {
+  if (!sandbox?.match && matchRoll >= 0.55) {
     const others = Object.keys(data.content.fields).filter((k) => k !== gap.field);
     fieldId = others[rng.int(others.length)];
   }
@@ -732,9 +718,9 @@ export function createRun(data, opts = {}) {
   const advantage = data.economy.advantages[rng.int(data.economy.advantages.length)];
   let riskPool = data.economy.risks.slice();
   if (!["elder", "child", "single_parent"].includes(family)) riskPool = riskPool.filter((r) => r.id !== "care");
-  const risk = challenge === "care_8" ? data.economy.risks.find((r) => r.id === "care") : riskPool[rng.int(riskPool.length)];
+  const risk = riskPool[rng.int(riskPool.length)];
   const careMonth = family === "elder"
-    ? (challenge === "care_8" || challenge === "gdl_example" ? 8 : 6 + rng.int(13))
+    ? 6 + rng.int(13)
     : family === "child"
       ? 10 + rng.int(8)
       : family === "single_parent"
@@ -760,7 +746,6 @@ export function createRun(data, opts = {}) {
     rngState: rng.state,
     mode: modeId,
     official: mode.official !== false && !sandbox,
-    challenge,
     phase: "reveal",
     month: 0,
     speed: "standard",
@@ -1296,7 +1281,7 @@ export function forecast(data, state) {
   if (!state.venture) return null;
   const rev = potentialRevenue(data, state, 0);
   const parts = costParts(data, state, rev, 0);
-  const band = state.mode === "hardcore" ? econ(data).formula.forecast_band_hardcore : state.month < 6 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
+  const band = state.month < 6 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
   return {
     revenue: [rev * (1 - band), rev * (1 + band)],
     collected: [parts.collectedNow * (1 - band), parts.collectedNow * (1 + band) + parts.releasing],
@@ -1959,7 +1944,7 @@ function applyChoice(data, state, ev, choice) {
 function applyEffects(data, state, effects, ev) {
   const v = state.venture;
   if (!v) return;
-  const tail = state.mode === "hardcore" ? modeOf(data, state.mode).tail_risk || 1 : 1;
+  const tail = modeOf(data, state.mode).tail_risk || 1;
   const timed = {};
   const permanent = { ...effects };
   if (effects.for_months) {

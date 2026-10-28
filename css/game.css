@@ -516,6 +516,31 @@ button.alt .auto-fill { background: #f4efe4; }
 .step-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 
+/* 一頁一題：頁面上方看得到還有幾題，不會一次面對好幾個問題 */
+.step-dots {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.step-dots i {
+  width: 22px; height: 4px; border-radius: 99px; background: var(--line);
+  transition: background 0.3s ease;
+}
+.step-dots i.done { background: var(--accent-green); }
+.step-dots i.here { background: var(--seal); }
+.step-dots span { margin-left: 6px; letter-spacing: 0.04em; }
+
+/* 頁尾角落：沙盒這種「不是正式模式」的入口，只留在角落 */
+.sheet-foot {
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+  margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--line);
+}
+.corner-link {
+  font-size: 12px; padding: 4px 8px; opacity: 0.62;
+  background: none; border-color: transparent; box-shadow: none;
+}
+.corner-link:first-child { margin-right: auto; }
+.corner-link:hover, .corner-link:focus-visible { opacity: 1; }
+
 .name-suggest .choice { min-height: 46px; }
 
 /* ══════════════════════════════════════════════════════════
@@ -569,13 +594,243 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .stage[data-mood="crisis"][data-era="3"], .stage[data-mood="crisis"][data-era="4"] { filter: saturate(0.45) brightness(0.9); }
 .stage[data-mood="closed"][data-era="3"], .stage[data-mood="closed"][data-era="4"] { filter: saturate(0.18) brightness(0.55); }
 
-.stage-caption {
-  position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
-  padding: 22px 14px 9px;
-  font-size: 13px; line-height: 1.5; color: var(--paper);
-  background: linear-gradient(transparent, rgba(28, 22, 18, 0.82));
+/* 場景底部的一條說明：老闆現在做甚麼、這個月怎麼了。兩句疊在一起，不會互相壓到。 */
+.stage-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 30px 14px 10px;
+  background: linear-gradient(transparent, rgba(28, 22, 18, 0.8) 58%);
   pointer-events: none;
 }
+.stage-caption {
+  margin: 0; max-width: 82%;
+  font-size: 13px; line-height: 1.5; color: var(--paper);
+}
+
+/* ── 斜進來的光。晴天才有，慢慢在地板上移。 ─────────────── */
+
+.ly-sun {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(104deg, transparent 6%, rgba(255, 230, 170, 0.26) 24%, rgba(255, 236, 190, 0.1) 44%, transparent 64%);
+  mix-blend-mode: screen;
+  transition: opacity 1.6s ease;
+  animation: sun-drift 28s ease-in-out infinite alternate;
+}
+.ly-sun.on { opacity: 0.9; }
+@keyframes sun-drift {
+  from { transform: translateX(-2.4%) scaleX(1); }
+  to { transform: translateX(3.2%) scaleX(1.06); }
+}
+
+/* ── 窗外。不是一塊藍色玻璃，是有東西在動的一條街。 ─────── */
+
+.win-person { animation: win-walk 19s linear infinite; }
+.win-person.wp2 { animation-duration: 26s; animation-delay: -7s; }
+.win-car { animation: win-car 21s linear infinite; animation-delay: -5s; }
+@keyframes win-walk {
+  0% { transform: translate(-18px, 118px); opacity: 0; }
+  6% { opacity: 1; }
+  94% { opacity: 1; }
+  100% { transform: translate(104px, 118px); opacity: 0; }
+}
+@keyframes win-car {
+  0%, 72% { transform: translate(-34px, 121px); opacity: 0; }
+  76% { opacity: 1; }
+  97% { opacity: 1; }
+  100% { transform: translate(108px, 121px); opacity: 0; }
+}
+.win-sun { animation: win-sun 12s ease-in-out infinite; }
+@keyframes win-sun { 0%, 100% { opacity: 0.65; } 50% { opacity: 0.95; } }
+.win-drops line { animation: drop-slide 5.5s linear infinite; }
+.win-drops line:nth-child(2n) { animation-duration: 7.5s; }
+.win-drops line:nth-child(3n) { animation-duration: 4.2s; }
+@keyframes drop-slide { 0% { transform: translateY(-4px); opacity: 0.15; } 60% { opacity: 0.55; } 100% { transform: translateY(16px); opacity: 0; } }
+
+/* ── 會動的物件：吊燈、牆上的鐘、光裡的塵、角落的貓 ────── */
+
+.lamp .lamp-cone { transition: opacity 1.2s ease; }
+.lamp[data-on="1"] .lamp-cone { animation: lamp-breathe 7.5s ease-in-out infinite; }
+.lamp[data-on="0"] .lamp-cone { opacity: 0.015 !important; }
+@keyframes lamp-breathe { 0%, 100% { opacity: 0.07; } 50% { opacity: 0.115; } }
+
+.clk-hand { transform-box: fill-box; transform-origin: 50% 100%; }
+.clk-m { animation: clock-spin 40s linear infinite; }
+.clk-h { animation: clock-spin 480s linear infinite; }
+@keyframes clock-spin { from { rotate: 0deg; } to { rotate: 360deg; } }
+
+.dust .mote {
+  animation: mote-float calc(11s + var(--i) * 1.7s) ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1.9s);
+  opacity: 0.5;
+}
+@keyframes mote-float {
+  0%, 100% { translate: 0 0; opacity: 0.1; }
+  35% { opacity: 0.7; }
+  60% { translate: 9px -14px; opacity: 0.45; }
+}
+
+.cat .cat-tail { transform-box: fill-box; transform-origin: 0 50%; animation: cat-tail 4.2s ease-in-out infinite; }
+@keyframes cat-tail { 0%, 100% { rotate: 0deg; } 40% { rotate: -14deg; } 70% { rotate: 6deg; } }
+
+.plant path { transform-box: fill-box; transform-origin: 50% 100%; animation: leaf-sway 7.5s ease-in-out infinite; }
+.plant path:last-child { animation-duration: 9.5s; animation-delay: -2s; }
+@keyframes leaf-sway { 0%, 100% { rotate: 0deg; } 45% { rotate: 1.6deg; } 80% { rotate: -1.2deg; } }
+
+.led { animation: led-pulse 2.6s ease-in-out infinite; }
+.ly-equipment.is-broken .led { animation: led-alarm 1.1s steps(2, end) infinite; }
+@keyframes led-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes led-alarm { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+.ly-equipment .spark { animation: spark-flicker 1.4s steps(3, end) infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+@keyframes spark-flicker { 0%, 100% { opacity: 0.9; scale: 1; } 50% { opacity: 0.25; scale: 0.85; } }
+
+.ticket { animation: ticket-flutter 5.5s ease-in-out infinite; }
+@keyframes ticket-flutter { 0%, 100% { translate: 0 0; } 50% { translate: 0 -1.4px; } }
+
+.screen { animation: screen-flicker 6.5s ease-in-out infinite; }
+@keyframes screen-flicker { 0%, 100% { opacity: 0.85; } 47% { opacity: 0.9; } 50% { opacity: 0.6; } }
+
+.stage[data-brand="4"] .ly-sign > rect:first-child { animation: sign-glow 6s ease-in-out infinite; }
+.stage[data-brand="3"] .ly-sign > rect:first-child { animation: sign-glow 9s ease-in-out infinite; }
+@keyframes sign-glow { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.42; } }
+
+/* 老闆現在在做甚麼：舞台上最短的一句話，前面一條紅線當記號 */
+.owner-note {
+  margin: 0; align-self: flex-start;
+  font-size: 12px; line-height: 1.6; color: var(--paper);
+  border-left: 2px solid var(--seal); padding: 1px 0 1px 8px;
+}
+
+/* ── 老闆本人 ─────────────────────────────────────────── */
+
+.ly-owner { position: absolute; inset: 0; pointer-events: none; }
+.owner {
+  position: absolute;
+  left: var(--owner-x, 44%);
+  bottom: 20%;
+  height: 18%;
+  aspect-ratio: 56 / 100;
+  translate: -50% 0;
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.28));
+  transition: filter 1.2s ease;
+}
+.owner-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.owner-tag {
+  position: absolute; left: 50%; top: -3%; translate: -50% 0;
+  font-size: 10px; line-height: 1.5; white-space: nowrap;
+  color: var(--paper); background: rgba(28, 22, 18, 0.55);
+  border-radius: 999px; padding: 0 6px; letter-spacing: 0.08em;
+}
+
+.owner .o-torso, .owner .o-head, .owner .o-arm, .owner .o-eye, .owner .o-leg {
+  transform-box: fill-box;
+}
+.owner .o-torso { transform-origin: 50% 100%; animation: owner-breathe calc(4.6s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-breathe {
+  0%, 100% { transform: scaleY(1) rotate(0deg); }
+  50% { transform: scaleY(1.018) rotate(-0.4deg); }
+}
+.owner .o-head { transform-origin: 50% 88%; animation: owner-look calc(8s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-look {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  28% { transform: rotate(-3.4deg) translateY(0.3px); }
+  56% { transform: rotate(2.6deg); }
+  78% { transform: rotate(-1.2deg) translateY(0.2px); }
+}
+.owner .o-eye { transform-origin: 50% 50%; animation: owner-blink 5.4s ease-in-out infinite; }
+@keyframes owner-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
+.owner .o-arm-l { transform-origin: 34% 8%; animation: owner-arm-idle calc(6.4s * var(--pace, 1)) ease-in-out infinite; }
+.owner .o-arm-r { transform-origin: 66% 8%; animation: owner-arm-idle calc(6.4s * var(--pace, 1)) ease-in-out infinite reverse; }
+@keyframes owner-arm-idle {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-3.4deg) translateY(-0.4px); }
+}
+
+/* 招呼客人：手抬起來示意 */
+.ly-owner[data-pose="serve"] .o-arm-r { animation: owner-wave calc(6.2s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-wave {
+  0%, 52%, 100% { transform: rotate(0deg); }
+  58% { transform: rotate(-46deg); }
+  64% { transform: rotate(-26deg); }
+  70% { transform: rotate(-50deg); }
+  78% { transform: rotate(0deg); }
+}
+.ly-owner[data-pose="serve"] .o-torso { animation: owner-serve calc(5.2s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-serve {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  40% { transform: rotate(1.6deg) translateX(1px); }
+  70% { transform: rotate(-1deg) translateX(-1px); }
+}
+
+/* 忙：兩邊跑 */
+.ly-owner[data-pose="busy"] .owner { animation: owner-rush calc(3.4s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-rush {
+  0%, 100% { transform: translateX(-7px) rotate(-1deg); }
+  50% { transform: translateX(7px) rotate(1deg); }
+}
+.ly-owner[data-pose="busy"] .o-arm-l { animation: owner-reach calc(1.6s * var(--pace, 1)) ease-in-out infinite; }
+.ly-owner[data-pose="busy"] .o-arm-r { animation: owner-reach calc(1.6s * var(--pace, 1)) ease-in-out infinite reverse; }
+@keyframes owner-reach { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-24deg); } }
+
+/* 沒人：走去整理貨架 */
+.ly-owner[data-pose="tidy"] .owner { animation: owner-walk calc(13s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-walk {
+  0%, 100% { transform: translateX(-26px) scale(0.985); }
+  50% { transform: translateX(30px) scale(1.005); }
+}
+.ly-owner[data-pose="tidy"] .o-leg-l { transform-origin: 50% 0%; animation: owner-step calc(1.7s * var(--pace, 1)) ease-in-out infinite; }
+.ly-owner[data-pose="tidy"] .o-leg-r { transform-origin: 50% 0%; animation: owner-step calc(1.7s * var(--pace, 1)) ease-in-out infinite reverse; }
+@keyframes owner-step { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(3.4deg) translateY(-0.6px); } }
+.ly-owner[data-pose="tidy"] .o-head { animation: owner-look-around calc(9s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-look-around {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(7deg); }
+}
+
+/* 帳緊：伏在桌上算 */
+.ly-owner[data-pose="desk"] .o-torso { animation: owner-desk calc(6s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-desk {
+  0%, 100% { transform: rotate(8deg) translateY(0.5px); }
+  50% { transform: rotate(10.5deg) translateY(1px); }
+}
+.ly-owner[data-pose="desk"] .o-head { animation: owner-head-down calc(11s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-head-down {
+  0%, 70%, 100% { transform: rotate(6deg) translateY(1px); }
+  80% { transform: rotate(-2deg) translateY(0); }
+}
+.ly-owner[data-pose="desk"] .o-arm-r { animation: owner-write calc(1.4s * var(--pace, 1)) linear infinite; }
+@keyframes owner-write { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(-16deg) translateY(-0.5px); } }
+.ly-owner[data-pose="desk"] .o-arm-l { animation: none; }
+
+/* 危急：手放在額頭上，站著不動 */
+.ly-owner[data-pose="strain"] .o-torso { animation: owner-strain calc(8s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-strain {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-1.6deg) translateY(1.6px); }
+}
+.ly-owner[data-pose="strain"] .o-arm-r { animation: owner-forehead calc(7s * var(--pace, 1)) ease-in-out infinite; }
+@keyframes owner-forehead {
+  0%, 100% { transform: rotate(-104deg) translate(-1px, 2px); }
+  50% { transform: rotate(-98deg) translate(-1px, 1px); }
+}
+.ly-owner[data-pose="strain"] .o-mouth { animation: none; }
+
+/* 結業：一個人站在關了燈的店裡 */
+.ly-owner[data-pose="alone"] .owner { filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.4)) saturate(0.5) brightness(0.8); }
+.ly-owner[data-pose="alone"] .o-arm-l, .ly-owner[data-pose="alone"] .o-arm-r { animation: none; }
+.ly-owner[data-pose="alone"] .o-head { animation: owner-look-down 14s ease-in-out infinite; }
+@keyframes owner-look-down {
+  0%, 100% { transform: rotate(-4deg) translateY(1.4px); }
+  50% { transform: rotate(-9deg) translateY(2px); }
+}
+
+/* 守護者：手背在後面看著 */
+.ly-owner[data-pose="guard"] .o-arm-l { animation: none; transform: rotate(8deg); }
+.ly-owner[data-pose="guard"] .o-arm-r { animation: none; transform: rotate(-8deg); }
+
+.ly-owner[data-tired="1"] .owner { filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.3)) saturate(0.78) brightness(0.94); }
 
 /* 燈光：不是開關，是慢慢暗 */
 .ly-light {
@@ -633,9 +888,16 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 /* ── 人 ───────────────────────────────────────────────── */
 
 .ly-people { position: absolute; inset: 0; pointer-events: none; }
-.ly-people .slot { position: absolute; bottom: 7%; width: 26px; height: 46px; opacity: 0; transition: opacity 0.7s ease; }
+/* 每個人有自己的站位：--x 是橫向、--depth 是往店裡退多深。少了 --x 就會全部疊在一起。 */
+.ly-people .slot {
+  position: absolute; left: var(--x, 0%); bottom: calc(4% + var(--depth, 8) * 0.8%);
+  width: 26px; height: 46px; opacity: 0; transition: opacity 0.7s ease;
+  /* 越靠近前景越大、越上面，才不會像貼紙 */
+  scale: calc(0.84 + var(--depth, 8) * 0.02);
+  z-index: calc(10 + var(--depth, 8));
+}
 .ly-people .slot.on { opacity: 1; }
-.ly-people .slot.staff { bottom: 26%; }
+.ly-people .slot.staff { bottom: calc(22% + var(--depth, 2) * 0.9%); }
 
 .agent { position: absolute; bottom: 0; left: 0; width: 18px; height: 42px; display: block; }
 .agent b {
@@ -711,14 +973,19 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 
 /* ── 舞台上的即時資訊 ─────────────────────────────────── */
 
-.stage-hud { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.stage-hud {
+  /* 天氣、日子、人數放在右上角：左上角是招牌，下面一條是說明 */
+  position: absolute; right: 8px; top: 8px; z-index: 3;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px;
+  max-width: 58%; pointer-events: none;
+}
 .stage-hud .chip {
   font-size: 11px; line-height: 1.5; color: var(--paper);
   background: rgba(28, 22, 18, 0.6); border: 1px solid rgba(244, 239, 228, 0.2);
   border-radius: 999px; padding: 1px 8px; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.stage-hud .chip-cash { margin-left: auto; background: rgba(244, 239, 228, 0.9); color: var(--ink); border-color: transparent; font-weight: 600; }
+.stage-hud .chip-cash { background: rgba(244, 239, 228, 0.9); color: var(--ink); border-color: transparent; font-weight: 600; }
 
 .stage-alerts { position: absolute; left: 0; right: 0; top: 34%; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .float-chip {

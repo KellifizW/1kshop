@@ -276,7 +276,6 @@ export function forecastPanel(data, run, fc) {
   const orderBand = [num(fc.revenue?.[0], 0) / aov, num(fc.revenue?.[1], 0) / aov];
   const capOrders = ops ? Math.max(ops.handsCap, ops.frontCap) : 0;
   const risk = biggestRisk(data, run, fc);
-  const info = data.economy.modes[run.mode]?.info;
   return `<section class="forecast" aria-label="這個月的預測與部署">
     <p class="fold-k">月初 · 預測與部署</p>
     <ul class="forecast-grid">
@@ -288,7 +287,7 @@ export function forecastPanel(data, run, fc) {
       <li><span>每月淨燃燒</span><b>${esc(money(data, run, burn))}</b></li>
     </ul>
     <p class="forecast-risk">最大風險來源：<b>${esc(risk)}</b></p>
-    ${info === "sparse" ? `<p class="muted">硬核不把區間收窄。你看得到的就是這些。</p>` : `<p class="muted">這是區間，不是答案。同一個決定，不同的月份會給不同的結果。</p>`}
+    <p class="muted">這是區間，不是答案。同一個決定，不同的月份會給不同的結果。</p>
   </section>`;
 }
 
