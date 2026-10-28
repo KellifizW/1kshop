@@ -3,6 +3,7 @@ import * as P from "./present.js";
 import * as Stage from "./stage.js";
 import * as Charts from "./charts.js";
 import * as Story from "./story.js";
+import { cashflowPulses } from "./cashflow.js";
 import { paintCard, cardBlob, shareText } from "./share.js";
 
 const app = document.querySelector("#app");
@@ -466,7 +467,7 @@ function playView() {
           ${story.length ? `<ol class="story-lines">${story.map((line) => `<li>${$(line)}</li>`).join("")}</ol>` : `<p class="muted">名字已經寫上。第一季還沒有故事。</p>`}
           ${last ? `<p class="muted">${$(last.line)}</p>` : ""}
           ${last?.aside && mode.dialogue ? `<p class="muted">${$(last.aside)}</p>` : ""}
-          <p class="small">先講故事，損益表在「帳簿」裡。</p>
+          <p class="small">主畫面的「公司現金流」已列出收款與流出來源；完整歷史在「帳簿」。</p>
         </section>
       </div>
       <aside class="rail" aria-label="快速狀態與操作">
@@ -475,13 +476,14 @@ function playView() {
             <b class="kpi-value" id="kpi-${m.id}">${$(m.value)}</b>
             <small class="kpi-note" id="kpi-${m.id}-note">${$(m.note)}</small>
           </div>`).join("")}</section>
+        ${Charts.cashflowPanel(data, run, fc)}
         <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%</p>
         <section class="rail-card redline-card ${rl.level}">
           <p class="fold-k">結構紅線</p>
           <p><b class="redline-icon">${$(rl.mark)}</b> ${$(rl.name || "尚未結算")}</p>
           <p class="small">${$(rl.text || "結算第一季之後，紅線才有數字。")}</p>
         </section>
-        ${Charts.runwayView(data, run, { debt: true })}
+        ${Charts.runwayView(data, run, { debt: true, forecast: fc })}
         <details class="rail-card rail-forecast" ${ui.forecastOpen === false ? "" : "open"}>
           <summary>季初：預測與部署</summary>
           ${fc ? Charts.forecastPanel(data, run, fc) : `<p class="muted">結算第一季之後，這裡會有區間預測。</p>`}
@@ -514,9 +516,9 @@ function railDecisions(run) {
   const status = ready
     ? `做了之後，下一次可以主動做事大約是第 ${run.month + (stage.decision_gap || 3)} 季。`
     : `下一次可以主動做事是第 ${run.initiativeReady || run.month + 1} 季。這段時間讓上季的決定發酵。`;
-  const buttons = main.slice(0, 4).map((o) => `<button class="choice" data-act="initiative" data-id="${$(o.id)}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("");
-  return `<div class="stack">${buttons || `<p class="muted">這季沒有可以主動做的事。</p>`}</div>
-    ${main.length > 4 ? `<button class="ghost" data-act="drawer" data-id="initiative">還有 ${main.length - 4} 件可以做</button>` : ""}
+  const buttons = main.map((o) => `<button class="choice" data-act="initiative" data-id="${$(o.id)}"><b>${$(o.label)}</b><span>${$(o.detail)}</span></button>`).join("");
+  return `<p class="decision-count">本季可執行 ${main.length} 項行動；以下列出全部，不會把後面的選項藏起來。</p>
+    <div class="stack">${buttons || `<p class="muted">這季沒有可以主動做的事。</p>`}</div>
     ${close ? `<button class="ghost danger-ghost" data-act="initiative" data-id="close">${$(close.label)}</button>` : ""}
     <p class="small">${$(status)}</p>`;
 }
@@ -688,8 +690,12 @@ function sparkTable() {
     return `${i ? "L" : "M"}${x},${y}`;
   }).join(" ");
   return `<div class="chartwrap"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="現金曲線"><path d="${d}" fill="none" stroke="#8f2d2d" stroke-width="2"/></svg>
-    <table><caption class="sr">近期現金</caption><thead><tr><th>季</th><th>現金</th><th>收入</th></tr></thead><tbody>
-    ${rows.map((r) => `<tr><td>${r.m}</td><td>${$(P.money(data, ui.run, r.cash))}</td><td>${$(P.money(data, ui.run, r.rev))}</td></tr>`).join("")}
+    <table><caption class="sr">近期公司現金收支</caption><thead><tr><th>季</th><th>期末現金</th><th>入帳</th><th>流出</th></tr></thead><tbody>
+    ${rows.map((r) => {
+      const collected = r.collected ?? (r.m === ui.run.last?.month ? ui.run.last.collected : null);
+      const cashOut = r.cashOut ?? r.cost;
+      return `<tr><td>${r.m}</td><td>${$(P.money(data, ui.run, r.cash))}</td><td>${collected == null ? "未記錄" : $(P.money(data, ui.run, collected))}</td><td>${$(P.money(data, ui.run, cashOut))}</td></tr>`;
+    }).join("")}
     </tbody></table></div>`;
 }
 
@@ -1195,26 +1201,14 @@ function monthPreview(run) {
     ...beat,
     at: arr.length === 1 ? 0.42 : 0.28 + (0.46 * i) / Math.max(1, arr.length - 1),
   }));
-  ui.preview = { key, ...raw, beats, pulses: buildPulses(run.finance.cash, raw.cash, raw.collected, raw.cost, biz), startCash: run.finance.cash };
+  ui.preview = {
+    key,
+    ...raw,
+    beats,
+    pulses: cashflowPulses(run.finance.cash, raw.cash, raw, biz),
+    startCash: run.finance.cash,
+  };
   return ui.preview;
-}
-
-function buildPulses(start, end, collected, cost, biz) {
-  const ticks = Math.max(1, Math.min(16, biz.ticks || 6));
-  const delta = end - start;
-  const outTotal = Math.min(Math.max(cost, 0), Math.max(collected, 0) * 0.9 + Math.max(-delta, 0));
-  const inTotal = delta + outTotal;
-  const pulses = [];
-  for (let i = 0; i < ticks; i++) {
-    const at = biz.late ? 0.58 + 0.36 * ((i + 1) / ticks) : (i + 1) / (ticks + 1);
-    pulses.push({ at, amount: inTotal / ticks, label: inTotal >= 0 ? `${biz.pulse} · ${biz.sells}` : `${biz.name}的結算` });
-  }
-  if (outTotal > 0.001) {
-    pulses.push({ at: 0.08, amount: -outTotal * 0.42, label: `${biz.name}的固定開支` });
-    pulses.push({ at: 0.5, amount: -outTotal * 0.58, label: `${biz.name}的營運開支` });
-  }
-  pulses.sort((a, b) => a.at - b.at);
-  return pulses;
 }
 
 function paintPassage(run, preview, t) {
@@ -1227,13 +1221,17 @@ function paintPassage(run, preview, t) {
   const biz = P.business(data, run);
   const dayN = Math.min(90, Math.max(1, Math.floor(Math.min(t, 0.999) * 90) + 1));
   marker.style.left = `${Math.min(100, t * 100)}%`;
-  day.textContent = `第 ${dayN} 日 / 30 · ${biz.name} · 走向${preview.when}`;
+  day.textContent = `第 ${dayN} 日 / 90 · ${biz.name} · 走向${preview.when}`;
   let shown = preview.startCash;
+  let received = 0;
+  let paid = 0;
   let last = null;
   let n = 0;
   for (const p of preview.pulses) {
     if (p.at <= t + 0.0001) {
       shown += p.amount;
+      if (p.amount > 0) received += p.amount;
+      else paid -= p.amount;
       last = p;
       n += 1;
     }
@@ -1252,6 +1250,16 @@ function paintPassage(run, preview, t) {
     void pulseEl.offsetWidth;
     pulseEl.classList.add("pulse-pop");
   }
+  const cashflowIn = document.querySelector("#cashflow-live-in");
+  const cashflowOut = document.querySelector("#cashflow-live-out");
+  if (cashflowIn) {
+    const text = P.money(data, run, received);
+    if (cashflowIn.textContent !== text) cashflowIn.textContent = text;
+  }
+  if (cashflowOut) {
+    const text = P.money(data, run, -paid);
+    if (cashflowOut.textContent !== text) cashflowOut.textContent = text;
+  }
   const due = (preview.beats || []).filter((b) => (b.at ?? 1) <= t + 0.0001);
   if (live && ui.clock && due.length !== ui.clock.beatN) {
     ui.clock.beatN = due.length;
@@ -1268,7 +1276,10 @@ function paintPassage(run, preview, t) {
     backlog: day0.backlog,
     light: day0.light,
     weatherText: run.weather ? `${run.weather.label}${run.weather.days ? ` · ${run.weather.days} 天` : ""}` : "天氣正常",
-    pulse: fresh ? { text: `${last.amount >= 0 ? "＋" : "－"}${P.money(data, run, Math.abs(last.amount))}`, amount: last.amount } : null,
+    pulse: fresh ? {
+      text: `${last.amount >= 0 ? "＋" : "－"}${P.money(data, run, Math.abs(last.amount))} · ${last.shortLabel || last.label}`,
+      amount: last.amount,
+    } : null,
   });
 }
 

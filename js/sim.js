@@ -1317,12 +1317,18 @@ export function lifeLabel(months) {
 export function forecast(data, state) {
   if (!state.venture) return null;
   const rev = potentialRevenue(data, state, 0);
-  const parts = costParts(data, state, rev, 0);
+  const nextMonth = state.month + 1;
+  const releasing = (state.finance?.arQueue || [])
+    .filter((item) => item.due <= nextMonth)
+    .reduce((total, item) => total + num(item.amount, 0), 0);
+  const parts = costParts(data, state, rev, releasing);
   const band = state.month < 2 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
   return {
     revenue: [rev * (1 - band), rev * (1 + band)],
-    collected: [parts.collectedNow * (1 - band), parts.collectedNow * (1 + band) + parts.releasing],
+    collected: [parts.collectedNow * (1 - band) + parts.releasing, parts.collectedNow * (1 + band) + parts.releasing],
     costs: [parts.operating * (1 - band * 0.5), parts.operating * (1 + band * 0.5)],
+    // 主畫面預估沿用實際帳簿的成本分項；這是區間估算，不另造一套總額。
+    parts,
   };
 }
 
@@ -1458,10 +1464,12 @@ export function previewMonth(data, state) {
   settleOne(data, ghost);
   return {
     month: ghost.month,
+    cashStart: state.finance.cash,
     cash: ghost.finance.cash,
     collected: ghost.last?.collected || 0,
     revenue: ghost.last?.revenue || 0,
     cost: ghost.last?.cost || 0,
+    parts: ghost.last?.parts || {},
     line: ghost.last?.line || "",
     beats: ghost.lastBeats || [],
     phase: ghost.phase,
@@ -1471,6 +1479,7 @@ export function previewMonth(data, state) {
 
 function settleOne(data, state) {
   ensureWork(data, state);
+  const cashStart = num(state.finance?.cash, 0);
   const rng = state._cf ? { next: () => 0.5, int: () => 0 } : rngOf(state);
   state.month += 1;
   if (state.month % 4 === 0) {
@@ -1508,8 +1517,10 @@ function settleOne(data, state) {
     : 0;
   state.personal.cash += parts.draw;
   state.personal.cash -= state.founder.exited ? 0 : livingCost(data, state);
+  let personalTransfer = 0;
   if (state.personal.cash < 0 && state.finance.cash > 0.4 - state.personal.cash) {
     const need = -state.personal.cash;
+    personalTransfer = need;
     state.finance.cash -= need;
     state.personal.cash = 0;
     state.flags.extra_draw = true;
@@ -1545,6 +1556,8 @@ function settleOne(data, state) {
   if (state.founder.hours > 0.92 && state.venture.utilization > 0.9) state.founder.health = clamp(state.founder.health - 0.008, 0, 1);
   state.venture.churn = clamp(state.venture.churn + (state.flags.discount ? -0.002 : 0.001) - state.venture.trust * 0.002, 0.015, 0.2);
 
+  // 個人現金不足時，公司可能會自動補貼；把這筆轉帳獨立記錄，免得被誤認成租金或營運成本。
+  parts.personalTransfer = personalTransfer;
   const line = monthLine(data, state, revenue, parts);
   state.finance.lastRevenue = revenue;
   state.finance.lastCollected = parts.collectedNow + released;
@@ -1552,10 +1565,28 @@ function settleOne(data, state) {
   state.finance.lastProfit = revenue - parts.variable - parts.labor - parts.premises - parts.platform - parts.royalty;
   const ops = computeOps(data, state, parts, probe);
   state.lastOps = ops;
-  state.last = { month: state.month, line, revenue, collected: state.finance.lastCollected, cost: parts.operating, cash: state.finance.cash, parts, ops };
+  state.last = {
+    month: state.month,
+    line,
+    revenue,
+    collected: state.finance.lastCollected,
+    cost: parts.operating,
+    cashStart,
+    cash: state.finance.cash,
+    parts,
+    ops,
+  };
   state.factors = explainFactors(data, state, revenue, parts);
   state.finance.runway = runwayOf(data, state);
-  state.series.push({ m: state.month, cash: round2(state.finance.cash), rev: round2(revenue), cost: round2(parts.operating) });
+  const cashOut = parts.operating + personalTransfer;
+  state.series.push({
+    m: state.month,
+    cash: round2(state.finance.cash),
+    rev: round2(revenue),
+    cost: round2(parts.operating),
+    collected: round2(parts.collectedNow + released),
+    cashOut: round2(cashOut),
+  });
   if (state.series.length > 1200) state.series.shift();
 
   const rl = computeRedline(data, state);
@@ -2179,7 +2210,8 @@ function runwayOf(data, state) {
   if (!state.venture) return 0;
   const rev = state.finance.lastRevenue || potentialRevenue(data, state, 0);
   const parts = costParts(data, state, rev, 0);
-  const burn = parts.operating - (state.finance.lastCollected || parts.collectedNow);
+  const personalTransfer = num(state.last?.parts?.personalTransfer, 0);
+  const burn = parts.operating + personalTransfer - (state.finance.lastCollected || parts.collectedNow);
   state.finance.runway = burn > 0.08 ? state.finance.cash / burn : 36;
   return state.finance.runway;
 }
@@ -2356,9 +2388,10 @@ export function initiatives(data, state) {
     if (list.length < 3 && !list.some(x=>x.id==="team_check")) list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -0.05，士氣 +0.03。" });
   }
   const close = { id: "close", label: "考慮結業", detail: "把結束當成一個決定，而不是一場意外。" };
-  const merged = list.slice(0, 8);
-  if (!merged.some((i) => i.id === "close")) merged.push(close);
-  return merged;
+  // Do not truncate this list: later-stage companies unlock more strategic
+  // actions, and silently dropping them made some decisions impossible to find.
+  if (!list.some((item) => item.id === "close")) list.push(close);
+  return list;
 }
 
 export function actInitiative(data, state, id) {

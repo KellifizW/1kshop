@@ -10,6 +10,7 @@
  */
 import { hashSeed } from "./rng.js";
 import { money, monthsLabel, worldLine, rarityLine } from "./present.js";
+import { cashflowLedger } from "./cashflow.js";
 import { confirmedMarks, fillCrew, lifeLabel } from "./sim.js";
 import { SCENES, sceneOf } from "./stage.js";
 
@@ -429,12 +430,13 @@ export function crewRoster(data, run) {
 /** 五個即時指標裡，「員工壓力」與「品牌信任」的讀法。 */
 export function quickMetrics(data, run) {
   const v = run.venture || {};
-  const parts = run.last?.parts || {};
   const ops = run.last?.ops || run.lastOps;
-  const profit = num(run.last?.revenue, 0) - num(parts.operating, 0);
+  const previousCash = (run.series || []).slice(-2)[0]?.cash;
+  const flow = run.last?.parts ? cashflowLedger(run.last, run.work || {}, previousCash) : null;
+  const cashChange = flow?.net ?? 0;
   return [
     { id: "cash", label: "現金", value: money(data, run, run.finance?.cash), level: num(run.finance?.cash, 0) < 0.4 ? "bad" : num(run.finance?.cash, 0) < 1.2 ? "warn" : "good", note: `跑道 ${run.finance?.runway != null ? Math.max(0, num(run.finance.runway, 0)).toFixed(1) + " 季" : "—"}` },
-    { id: "profit", label: "本季盈虧", value: (profit >= 0 ? "+" : "") + money(data, run, profit), level: profit >= 0 ? "good" : "bad", note: `收入 ${money(data, run, num(run.last?.revenue, 0))}` },
+    { id: "profit", label: "本季現金淨變動", value: flow ? `${cashChange > 0 ? "+" : ""}${money(data, run, cashChange)}` : "—", level: !flow || cashChange >= 0 ? "good" : "bad", note: flow ? `入帳 ${money(data, run, flow.totalIn)} · 流出 ${money(data, run, -flow.totalOut)}` : "第一季結算後會列出收支" },
     { id: "flow", label: "客流", value: ops ? `${r0(ops.entered)} 人` : "—", level: ops && ops.lost > ops.orders * 0.15 ? "warn" : "good", note: ops ? `${r0(ops.served)} 單做完${ops.lost > 0 ? ` · ${r0(ops.lost)} 單沒接住` : ""}` : "結算後才有數字" },
     { id: "stress", label: "員工壓力", value: `${Math.round(num(run.crewStress, 0) * 100)}%`, level: num(run.crewStress, 0) > 0.78 ? "bad" : num(run.crewStress, 0) > 0.6 ? "warn" : "good", note: `${(run.crew || []).filter((c) => !c.gone).length} 個人在場` },
     { id: "trust", label: "品牌信任", value: `${Math.round(num(v.trust, 0) * 100)}%`, level: num(v.trust, 0) < 0.35 ? "bad" : num(v.trust, 0) < 0.5 ? "warn" : "good", note: `品質 ${Math.round(num(v.quality, 0) * 100)}% · 牌子 ${Math.round(num(v.brand, 0) * 100)}%` },
