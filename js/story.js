@@ -458,8 +458,8 @@ export function fillCrewLine(data, run, raw, member, vars) {
 
 const FX = [
   ["cash", (v, f) => `現金${v > 0 ? "立刻多" : "立刻少"}約 ${f.money(Math.abs(v))}`],
-  ["revenue_mult", (v) => `接下來幾季收入${v > 1 ? "多" : "少"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
-  ["cost_mod", (v, f) => `成本${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
+  ["revenue_mult", (v) => `需求係數${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%（實收仍受產能限制）`],
+  ["cost_mod", (v) => `變動成本率${v > 0 ? "增加" : "減少"} ${Math.round(Math.abs(v) * 100)} 個百分點`],
   ["fixed_mult", (v) => `固定帳${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
   ["fixed_add", (v, f) => `每季固定帳${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
   ["trust", (v) => `客人信任${v > 0 ? "上升" : "下降"}約 ${Math.round(Math.abs(v) * 100)} 個百分點`],
@@ -477,9 +477,10 @@ const FX = [
   ["health", (v) => `你的健康${v > 0 ? "回升" : "往下"}`],
   ["will", (v) => `你的意志${v > 0 ? "回升" : "往下"}`],
   ["hours", (v) => `你的工時${v > 0 ? "變長" : "變短"}`],
-  ["hours_set", (v) => `工時固定在每週約 ${v} 小時`],
+  ["hours_set", (v) => `投入公司的時間約為 ${Math.round(v * 100)}%`],
+  ["outside_share", (v) => `保留正職月薪的 ${Math.round(v * 100)}%，按季入帳`],
   ["platform_fee", (v) => `平台抽成${v > 0 ? "上升" : "下降"}`],
-  ["ar_days", (v) => `收款天數${v > 0 ? "拉長" : "縮短"}`],
+  ["ar_days", (v) => `收款期設為約 ${v} 天`],
   ["churn", (v) => `客人流失${v > 0 ? "變快" : "變慢"}`],
   ["complexity", (v) => `公司變${v > 0 ? "複雜" : "簡單"}`],
   ["price_mod", (v) => `價格${v > 0 ? "上升" : "下降"}`],
@@ -499,7 +500,7 @@ const FX = [
   ["concentration_set", (v) => `最大客戶佔比變成約 ${Math.round(v * 100)}%`],
   ["control_set", (v) => `控制權變成約 ${Math.round(v * 100)}%`],
   ["control_to", (v) => `控制權變成約 ${Math.round(v * 100)}%`],
-  ["draw_zero", () => "你不再從公司拿錢"],
+  ["draw_zero", (v) => `你暫停從公司領錢 ${v} 季`],
   ["draw_mult", (v) => `你拿的錢${v > 1 ? "變多" : "變少"}`],
   ["fire_to", (v) => `人手降到 ${v} 個`],
   ["try_ipo", () => "啟動上市程序"],
@@ -510,6 +511,7 @@ const FX = [
   ["force_ending", () => "這一項會直接決定這間店的結局"],
   ["inventory", (v) => `庫存${v > 0 ? "增加" : "減少"}`],
   ["capacity_add", () => "產能上限打開"],
+  ["capacity_mult", (v) => `產能上限${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
   ["transformed", () => "記為一次轉型"],
 ];
 

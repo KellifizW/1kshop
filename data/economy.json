@@ -1,8 +1,8 @@
 {
   "meta": {
     "game_version": "1.0.0",
-    "simulation_version": "1.0.0",
-    "content_version": "1.3.0",
+    "simulation_version": "1.1.0",
+    "content_version": "1.4.0",
     "data_version": "1.0.0",
     "internal_unit": "所在城市中位月薪",
     "layer": "C 遊戲參數",
@@ -57,7 +57,7 @@
     }
   },
   "formula": {
-    "base_revenue": 6.45,
+    "base_revenue": 9.5,
     "fit_floor": 0.42,
     "fit_span": 0.7,
     "fit_start": 0.3,
@@ -73,9 +73,12 @@
     "forecast_band_hardcore": 0.28,
     "forecast_band_early": 0.18,
     "peer_pressure_cap": 0.42,
-    "employee_output": 1.05,
-    "founder_output": 2.56,
+    "employee_output": 3.8,
+    "founder_output": 5.6,
     "labor_per_head": 1.5,
+    "skill_base": 0.5,
+    "skill_experience_span": 0.5,
+    "skill_unmatched_factor": 0.85,
     "tenure_per_month": 0.042,
     "tenure_cap": 1.4,
     "living_cost": 1.8,
@@ -88,6 +91,20 @@
     "initiative_cooldown_late": 2,
     "competition_per_fit": 0.08,
     "maturity_overhead_per_complexity": 0.105
+  },
+  "opportunities": {
+    "chance": 0.22,
+    "cooldown_quarters": 4,
+    "bold_min_chance": 0.64,
+    "bold_max_chance": 0.9,
+    "fit_weight": 0.12,
+    "trust_weight": 0.08,
+    "low_cash_penalty": 0.04,
+    "product_chance": 0.75,
+    "channel_chance": 0.76,
+    "partner_chance": 0.8,
+    "expand_chance": 0.73,
+    "rescue_chance": 0.76
   },
   "family_mult": {
     "single": 0.85,
@@ -302,9 +319,9 @@
       "sideRisk": 0.2,
       "notice": "先談一季彈性，一季後再決定。",
       "risk": "一季後必須正式選擇。那時候你會有數字，也會有慣性。",
-      "certain": "先用一季試。固定成本減半，規模也減半。",
-      "trivia": "台灣 GEM：25-44 歲 TEA 約 8.4%，四個月驗證期符合精益創業的最小可行週期。",
-      "stat": "4 個月≈1 季驗證期：超 50% 新創以 <5,000 美元起步，先小規模測試再投入。"
+      "certain": "先用一季試。開業場地投入及基本場地費減半，投入公司的時間為 48%。",
+      "trivia": "先小範圍測試，再用客人的意見調整產品。",
+      "stat": "遊戲內測試期為一季（三個月）；結束時選擇如何繼續。"
     },
     "handover": {
       "label": "合夥人先全職",
@@ -709,7 +726,7 @@
       "label": "低價",
       "volume": 1.48,
       "price": 0.78,
-      "variable": 0.62,
+      "variable": 0.46,
       "trust_gain": 0.008,
       "close": 1.2
     },
@@ -717,7 +734,7 @@
       "label": "便利",
       "volume": 1.28,
       "price": 0.96,
-      "variable": 0.52,
+      "variable": 0.46,
       "trust_gain": 0.012,
       "close": 1.15
     },
@@ -890,10 +907,13 @@
     "price_step": 0.08,
     "market_cost": 1.35,
     "market_fit": 0.045,
-    "second_city_fixed": 1.02,
-    "second_city_revenue": 3.54,
-    "angel_cash": 12,
-    "angel_control": 0.16
+    "second_city_fixed": 0.6,
+    "second_city_revenue": 1.5,
+    "product_cost": 0.8,
+    "channel_cost": 0.4,
+    "expansion_cost": 0.75,
+    "angel_cash": 3,
+    "angel_control": 0.12
   },
   "caps": {
     "revenue_mult": [

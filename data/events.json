@@ -1,5 +1,5 @@
 {
-  "note": "卡牌效果是平衡參數。人物是否答應、市場是否買單，正文只寫區間與未知，不寫假精確機率。",
+  "note": "卡牌與成功機率是遊戲平衡參數，不代表現實成功率；需支付的成本、成功及受挫結果在選項中列明。",
   "events": [
     {
       "id": "asset_growth",
@@ -25,7 +25,8 @@
             "cash": -1.2,
             "fixed_add": 0.12,
             "capacity_add": true,
-            "revenue_mult": 1.15
+            "revenue_mult": 1.15,
+            "capex_add": 1.5
           },
           "drivers": {
             "capital": -1,
@@ -47,7 +48,8 @@
             "cash": -0.3,
             "fixed_add": 0.18,
             "revenue_mult": 1.08,
-            "for_months": 4
+            "for_months": 4,
+            "capacity_add": 0.2
           },
           "drivers": {
             "flexibility": 2
@@ -94,15 +96,16 @@
         {
           "id": "scale",
           "label": "擴大規模：開第二據點或第二通路",
-          "detail": "確定：固定成本 +0.35，收入上限 +40%，複雜度 +0.6。需要多請一個人。",
-          "likely": "規模變大，資產變多，但管理難度上升。",
-          "downside": "現金與人力會被拉緊。",
+          "detail": "先請一人、每季固定成本 +0.2；需求及產能各增 12%，複雜度 +0.4。成敗會影響後續成長。",
+          "likely": "若站穩，追加訂單、需求及交付能力會提升。",
+          "downside": "若遇阻力，新增的薪金和固定成本仍須支付。",
           "affects": "規模、現金、人手",
           "risk": "第二個點可能拖垮第一個。",
           "effects": {
-            "fixed_add": 0.35,
-            "revenue_mult": 1.4,
-            "complexity": 0.6,
+            "fixed_add": 0.2,
+            "revenue_mult": 1.12,
+            "capacity_add": 0.12,
+            "complexity": 0.4,
             "headcount": 1
           },
           "drivers": {
@@ -111,6 +114,24 @@
           },
           "marks": {
             "expansionist": 1.2
+          },
+          "outcome": {
+            "base_chance": 0.75,
+            "success": {
+              "text": "新客支付首批追加訂單淨款，現金 +0.6；需求 ×1.16、產能 ×1.12，配合度 +0.05。",
+              "effects": {
+                "cash": 0.6,
+                "revenue_mult": 1.16,
+                "capacity_mult": 1.12,
+                "market_fit": 0.05
+              }
+            },
+            "setback": {
+              "text": "新據點起步較慢，信任 -0.03；已增加的人手及固定成本仍要支付。",
+              "effects": {
+                "trust": -0.03
+              }
+            }
           }
         },
         {
@@ -627,13 +648,14 @@
         {
           "id": "take60",
           "label": "接下六成與九十天",
-          "detail": "確定：集中度六成，帳期九十天。帳面變大，現金先慢一拍。",
+          "detail": "先投入 0.7 單位，最大客戶佔六成、帳期 90 天；需求 ×1.42，產能 +15%。",
           "risk": "這一家若不續約，洞會很大。",
           "effects": {
             "revenue_mult": 1.42,
             "concentration_set": 0.6,
             "ar_days": 90,
-            "cash": -0.7
+            "cash": -0.7,
+            "capacity_add": 0.15
           },
           "drivers": {
             "revenue": 3,
@@ -644,6 +666,22 @@
             "name": "主客戶供貨",
             "months": 6,
             "kind": "customer"
+          },
+          "outcome": {
+            "base_chance": 0.74,
+            "success": {
+              "text": "首批追加交付收到淨款，現金 +0.6，配合度 +0.04。",
+              "effects": {
+                "cash": 0.6,
+                "market_fit": 0.04
+              }
+            },
+            "setback": {
+              "text": "交付磨合比預期慢，信任 -0.03；集中度與帳期風險仍在。",
+              "effects": {
+                "trust": -0.03
+              }
+            }
           }
         },
         {
@@ -1408,24 +1446,42 @@
         {
           "id": "buy",
           "label": "用現金與一點股份買下",
-          "detail": "確定：現金 −2.5，控制權 −6%，收入 ×1.25，多兩名員工，複雜度上升。",
-          "risk": "文化與反壟斷的問題不會在簽約日出現。",
+          "detail": "先支付 1.5 單位，多一名員工；需求 ×1.25、產能 +20%，控制權 -6%，複雜度 +0.6。",
+          "risk": "客人與員工未必都會留下；薪金和收購支出仍要支付。",
           "effects": {
-            "cash": -2.5,
+            "cash": -1.5,
             "control": -0.06,
             "revenue_mult": 1.25,
-            "complexity": 0.8,
-            "headcount": 2,
+            "complexity": 0.6,
+            "headcount": 1,
             "flags": {
               "acquired": true
-            }
+            },
+            "capacity_add": 0.2
           },
           "drivers": {
             "scale": 3,
             "culture": -2,
             "cash": -2
           },
-          "memory": "loi"
+          "memory": "loi",
+          "outcome": {
+            "base_chance": 0.72,
+            "success": {
+              "text": "原有客戶留下並支付過渡訂單淨款，現金 +0.5；需求 ×1.1、產能 ×1.08。",
+              "effects": {
+                "cash": 0.5,
+                "revenue_mult": 1.1,
+                "capacity_mult": 1.08
+              }
+            },
+            "setback": {
+              "text": "部分客戶沒有留下，信任 -0.04；收購成本不會退回。",
+              "effects": {
+                "trust": -0.04
+              }
+            }
+          }
         },
         {
           "id": "hire",
@@ -1870,13 +1926,14 @@
         {
           "id": "city",
           "label": "去第二個城市",
-          "detail": "確定：多兩名員工，固定成本 +0.35 單位，收入 ×1.22，複雜度 +1。",
-          "risk": "你會有一段時間兩邊都不在場。現金若不夠付兩份薪，這一步會先把公司推向最後階段。",
+          "detail": "先請一人、每季固定成本 +0.3；需求 ×1.22、產能 +15%，複雜度 +0.6。",
+          "risk": "新據點不一定站穩；薪金與固定成本會先發生。",
           "effects": {
-            "fixed_add": 0.35,
+            "fixed_add": 0.3,
             "revenue_mult": 1.22,
-            "complexity": 1,
-            "headcount": 2,
+            "capacity_add": 0.15,
+            "complexity": 0.6,
+            "headcount": 1,
             "flags": {
               "second_city": true
             }
@@ -1890,17 +1947,35 @@
             "name": "第二據點",
             "months": 8,
             "kind": "expansion"
+          },
+          "outcome": {
+            "base_chance": 0.74,
+            "success": {
+              "text": "當地客戶支付首批訂單淨款，現金 +0.8；配合度 +0.05、產能 ×1.12。",
+              "effects": {
+                "cash": 0.8,
+                "market_fit": 0.05,
+                "capacity_mult": 1.12
+              }
+            },
+            "setback": {
+              "text": "新客人比預期少，配合度 -0.02、信任 -0.03；幾季後可能需要處理據點壓力。",
+              "effects": {
+                "market_fit": -0.02,
+                "trust": -0.03
+              }
+            }
           }
         },
         {
           "id": "product",
           "label": "做相鄰的產品",
-          "detail": "確定：收入 ×1.12，品牌延伸，複雜度 +0.6。",
-          "risk": "新的不一定帶得動舊的信任。",
+          "detail": "先增加 8% 需求與產能、複雜度 +0.4，並開始轉型。",
+          "risk": "新產品未必會被市場接受。",
           "effects": {
-            "revenue_mult": 1.12,
-            "complexity": 0.6,
-            "market_fit": -0.03,
+            "revenue_mult": 1.08,
+            "capacity_add": 0.08,
+            "complexity": 0.4,
             "flags": {
               "new_line": true,
               "transformed": true
@@ -1909,6 +1984,25 @@
           "drivers": {
             "scale": 2,
             "focus": -1
+          },
+          "outcome": {
+            "base_chance": 0.77,
+            "success": {
+              "text": "新產品收到首批訂單淨款，現金 +0.4；配合度 +0.06、需求 ×1.1、產能 ×1.07。",
+              "effects": {
+                "cash": 0.4,
+                "market_fit": 0.06,
+                "revenue_mult": 1.1,
+                "capacity_mult": 1.07
+              }
+            },
+            "setback": {
+              "text": "客人仍需時間認識產品，配合度及品質各 -0.02。",
+              "effects": {
+                "market_fit": -0.02,
+                "quality": -0.02
+              }
+            }
           }
         },
         {
@@ -2405,7 +2499,8 @@
             "hours_set": 1,
             "will": -0.04,
             "flags": {
-              "quit_later": true
+              "quit_later": true,
+              "progress_style": "quit"
             }
           },
           "drivers": {
@@ -2519,8 +2614,8 @@
       "layer": "generic",
       "grammar": "TEST_END",
       "spine": "test_end",
-      "title": "測試的四個月到了",
-      "body": "你說過這只是試。帳簿還在。人也不好意思再問你是不是認真的。",
+      "title": "一季測試結束了",
+      "body": "你說過先試一季。帳簿留下了第一季的數字，也到了決定怎樣繼續的時候。",
       "requires": {
         "style": [
           "test"
@@ -2528,8 +2623,7 @@
       },
       "weight": 30,
       "cooldown": 33,
-      "min_month": 2,
-      "max_month": 2,
+      "min_month": 1,
       "once": true,
       "major": true,
       "choices": [
@@ -2541,9 +2635,9 @@
           "effects": {
             "outside_set": 0,
             "hours_set": 1,
-            "fixed_mult": 1.25,
             "flags": {
-              "tested": true
+              "tested": true,
+              "progress_style": "quit"
             }
           },
           "drivers": {
@@ -2554,12 +2648,15 @@
         {
           "id": "part",
           "label": "改為兼職繼續",
-          "detail": "確定：時間 0.58，外界收入 0.42，成本恢復正常。",
+          "detail": "確定：公司時間 58%，保留正職月薪的 45%（按季入帳）；測試期場地優惠結束。",
           "risk": "速度維持慢。",
           "effects": {
-            "outside_set": 0.42,
+            "outside_share": 0.45,
             "hours_set": 0.58,
-            "fixed_mult": 1.15
+            "flags": {
+              "tested": true,
+              "progress_style": "part"
+            }
           },
           "drivers": {
             "personal": 1,
@@ -6015,6 +6112,150 @@
           "chain": {
             "after": 2,
             "event": "chain_quality_backlash"
+          }
+        }
+      ]
+    },
+    {
+      "id": "surprise_referral",
+      "layer": "generic",
+      "grammar": "CUSTOMER",
+      "surprise": true,
+      "title": "老客替你介紹了一位新客",
+      "body": "{customer}主動把你的服務介紹給另一位客人。這是一筆額外機會，不需要付廣告費。",
+      "omen": "最近有人在詢問你的聯絡方式。",
+      "weight": 20,
+      "cooldown": 30,
+      "min_month": 2,
+      "once": true,
+      "major": false,
+      "choices": [
+        {
+          "id": "order",
+          "label": "接下轉介紹的訂單",
+          "detail": "完成一筆額外訂單，扣除履約費後即時增加現金 0.75 單位，配合度 +0.03。",
+          "risk": "這是一筆一次性的訂單，不保證以後每季都有。",
+          "effects": {
+            "cash": 0.75,
+            "market_fit": 0.03
+          },
+          "drivers": {
+            "cash": 2,
+            "customer": 1
+          }
+        },
+        {
+          "id": "relationship",
+          "label": "先建立長期關係",
+          "detail": "不收這筆訂單款；信任 +0.07，配合度 +0.04。",
+          "risk": "短期沒有額外現金。",
+          "effects": {
+            "trust": 0.07,
+            "market_fit": 0.04
+          },
+          "drivers": {
+            "trust": 2,
+            "customer": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "surprise_grant",
+      "layer": "generic",
+      "grammar": "OPPORTUNITY",
+      "surprise": true,
+      "title": "一筆意料之外的創業支援",
+      "body": "{mentor}介紹了一項一次性孵化器支援。資金不用償還，也不換股權，但只會獲批一次。",
+      "weight": 16,
+      "cooldown": 50,
+      "min_month": 3,
+      "once": true,
+      "major": false,
+      "choices": [
+        {
+          "id": "cash",
+          "label": "把補助留作營運資金",
+          "detail": "一次性補助現金 +1.1 單位，不增加債務或稀釋股權。",
+          "risk": "補助不是每季收入，成本結構仍需自己處理。",
+          "effects": {
+            "cash": 1.1
+          },
+          "drivers": {
+            "cash": 2
+          }
+        },
+        {
+          "id": "training",
+          "label": "換成產品及團隊培訓",
+          "detail": "現金 +0.35、配合度 +0.06、團隊士氣 +0.04。",
+          "risk": "留作週轉的現金較少。",
+          "effects": {
+            "cash": 0.35,
+            "market_fit": 0.06,
+            "morale": 0.04
+          },
+          "drivers": {
+            "product": 2,
+            "team": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "surprise_pilot",
+      "layer": "generic",
+      "grammar": "CUSTOMER",
+      "surprise": true,
+      "title": "新客戶願意試一批",
+      "body": "一位新客人想試你的產品，願意在試驗成功後支付第一批訂單。你可以先小規模試做。",
+      "weight": 18,
+      "cooldown": 40,
+      "min_month": 4,
+      "once": true,
+      "major": false,
+      "choices": [
+        {
+          "id": "pilot",
+          "label": "投入試做，爭取新客",
+          "detail": "先支付 0.25 單位試做成本；成功可能帶來追加訂單，失利只損失試做投入和少量信任。",
+          "risk": "試做不一定成功；資金緊張時要考慮眼前現金。",
+          "effects": {
+            "cash": -0.25
+          },
+          "drivers": {
+            "growth": 2,
+            "cash": -1
+          },
+          "outcome": {
+            "base_chance": 0.78,
+            "success": {
+              "text": "試做成功，新客支付首批訂單淨款，現金 +1、配合度 +0.05，需求 ×1.1、產能 ×1.08。",
+              "effects": {
+                "cash": 1,
+                "market_fit": 0.05,
+                "revenue_mult": 1.1,
+                "capacity_mult": 1.08
+              }
+            },
+            "setback": {
+              "text": "客人暫時沒有追加訂單，信任 -0.02；試做成本不退回。",
+              "effects": {
+                "trust": -0.02
+              }
+            }
+          }
+        },
+        {
+          "id": "pass",
+          "label": "先婉拒，守住現金",
+          "detail": "不投入試做費；專注現有客戶，信任 +0.01。",
+          "risk": "這張新訂單不會進來。",
+          "effects": {
+            "trust": 0.01
+          },
+          "drivers": {
+            "cash": 1
           }
         }
       ]

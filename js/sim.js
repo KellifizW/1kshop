@@ -3,6 +3,22 @@ import { hashSeed, makeRng, pickWeighted } from "./rng.js";
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
 
+/** 機會是遊戲平衡數字：讓產品與信任提高勝算，但保留失敗可能。 */
+export function boldChance(data, state, base = 0.75) {
+  const cfg = econ(data).opportunities || {};
+  const fit = num(state.venture?.marketFit, 0.4);
+  const trust = num(state.venture?.trust, 0.4);
+  const lowCash = num(state.finance?.cash, 0) < 1 ? num(cfg.low_cash_penalty, 0.04) : 0;
+  const chance = base + (fit - 0.5) * num(cfg.fit_weight, 0.12)
+    + (trust - 0.5) * num(cfg.trust_weight, 0.08) - lowCash;
+  return Math.round(clamp(chance, num(cfg.bold_min_chance, 0.64), num(cfg.bold_max_chance, 0.9)) * 100) / 100;
+}
+
+function rollBold(data, state, base) {
+  const chance = boldChance(data, state, base);
+  return { chance, success: rngOf(state).next() < chance };
+}
+
 function rngOf(state) {
   const r = makeRng(1);
   r.state = state.rngState || 1;
@@ -27,6 +43,9 @@ export function gapById(data, id) {
 export function industry(data, id) {
   return data.content.industries.find((i) => i.id === id);
 }
+export function companyType(data, id) {
+  return (data.content.company_types || []).find((type) => type.id === id) || null;
+}
 function econ(data) {
   return data.economy;
 }
@@ -50,10 +69,11 @@ export function livingCost(data, state) {
   return f.living_cost * mult * city.living_index;
 }
 
-function skillOf(founder, gap) {
+function skillOf(data, founder, gap) {
+  const f = econ(data).formula;
   const years = clamp(founder.experience / 18, 0, 1);
-  const match = founder.field === gap.field ? 1 : 0.72;
-  return (0.38 + years * 0.62) * match;
+  const match = founder.field === gap.field ? 1 : num(f.skill_unmatched_factor, 0.85);
+  return (num(f.skill_base, 0.5) + years * num(f.skill_experience_span, 0.5)) * match;
 }
 
 export function redlineType(shape, gap, data, isPublic) {
@@ -125,17 +145,20 @@ function lifeCfg(data) {
 }
 
 function blankMods() {
-  return { revenue: 1, fixed: 1, price: 0, cost: 0, platform: 0, fixedAdd: 0, royalty: 0 };
+  return { revenue: 1, fixed: 1, capacity: 1, price: 0, cost: 0, platform: 0, fixedAdd: 0, royalty: 0 };
 }
 
 function effectiveMods(v) {
-  const m = { ...v.perm };
+  // 舊存檔沒有 capacity 欄位；其原有產能應保持不變。
+  const m = { ...blankMods(), ...v.perm };
   for (const t of v.timed || []) {
     if (t.price) m.price += t.price;
     if (t.cost) m.cost += t.cost;
     if (t.platform) m.platform += t.platform;
     if (t.revenue) m.revenue *= t.revenue;
     if (t.fixed) m.fixed *= t.fixed;
+    if (t.capacity) m.capacity *= t.capacity;
+    if (t.fixedAdd) m.fixedAdd += t.fixedAdd;
   }
   const caps = {
     revenue_mult: [0.35, 3.2],
@@ -146,6 +169,7 @@ function effectiveMods(v) {
   };
   m.revenue = clamp(m.revenue, caps.revenue_mult[0], caps.revenue_mult[1]);
   m.fixed = clamp(m.fixed, caps.fixed_mult[0], caps.fixed_mult[1]);
+  m.capacity = clamp(num(m.capacity, 1), 0.4, 4);
   m.price = clamp(m.price, caps.price[0], caps.price[1]);
   m.cost = clamp(m.cost, caps.cost[0], caps.cost[1]);
   m.platform = clamp(m.platform, caps.platform[0], caps.platform[1]);
@@ -249,6 +273,7 @@ export function ensureWork(data, state) {
   const gap = gapById(data, state.gapId);
   const work = gap?.work;
   if (!work) return state.work || null;
+  const type = companyType(data, gap.company_type);
   state.work = {
     id: gap.id,
     name: work.name,
@@ -260,9 +285,15 @@ export function ensureWork(data, state) {
     scale: work.scale || "",
     hire: work.hire || "",
     family: gap.family,
+    companyTypeId: type?.id || null,
+    companyTypeName: type?.name || "",
     core: gap.core,
   };
-  if (state.venture) state.venture.work = state.work;
+  if (state.venture) {
+    state.venture.work = state.work;
+    // 舊存檔只記行業與市場缺口；新企業類型可由缺口補回，不改變營運帳目。
+    if (type && !state.venture.companyTypeId) state.venture.companyTypeId = type.id;
+  }
   return state.work;
 }
 
@@ -271,7 +302,7 @@ export function jobOf(data, state) {
   return (data.content.jobs || []).find((j) => j.id === state?.founder?.job) || null;
 }
 
-/** 這份投入方式下，正職每個月還留給你的錢（單位＝城市中位月薪）。 */
+/** 這份投入方式下，正職每季還留給你的錢（單位＝城市中位月薪）。 */
 export function salaryKept(data, state, styleId) {
   const style = econ(data).commitment_styles[styleId ?? state?.shape?.style];
   if (!style) return 0;
@@ -796,6 +827,7 @@ export function createRun(data, opts = {}) {
     rejected: [],
     cityId: city.id,
     gapId: gap.id,
+    chosenCompanyType: !!(sandbox?.gap && gapById(data, sandbox.gap)),
     perThousand,
     lifeWeight,
     founder: {
@@ -943,6 +975,8 @@ export function rejectOpportunity(data, state) {
   if (!gaps.length) gaps = data.content.gaps.filter((g) => g.id !== state.gapId);
   const gap = pickWeighted(rng, gaps, (g) => g.weight);
   state.gapId = gap.id;
+  state.chosenCompanyType = false;
+  delete state.chosenRoute; // 相容開發中的舊存檔
   state.openingSupport = null;
   ensureOpeningSupport(data, state);
   state.founder.matched = state.founder.field === gap.field;
@@ -991,6 +1025,29 @@ export function acceptOpportunity(state) {
   logEvent(state, "setup_choice", { step: "accept" });
 }
 
+export function companyTypes(data) {
+  return data.content.company_types || [];
+}
+
+/** 企業類型對應一間可營運的公司；沿用所屬行業規則，不新增遊戲模式。 */
+export function selectCompanyType(data, state, id) {
+  const type = companyType(data, id);
+  const gap = type && gapById(data, type.gap_id);
+  if (!gap || gap.company_type !== type.id || gap.family !== type.industry || state.mode === "daily" || state.venture || !["reveal", "opportunity"].includes(state.phase)) {
+    return { ok: false, reason: "現在不能自選這類企業。" };
+  }
+  state.gapId = gap.id;
+  state.chosenCompanyType = true;
+  delete state.chosenRoute; // 相容開發中的舊存檔
+  state.official = false;
+  state.founder.matched = state.founder.field === gap.field;
+  state.openingSupport = null;
+  ensureOpeningSupport(data, state);
+  ensureWork(data, state);
+  logEvent(state, "setup_choice", { step: "company_type", value: id });
+  return { ok: true };
+}
+
 export function setShape(state, key, value) {
   state.shape[key] = value;
   logEvent(state, "setup_choice", { step: key, value });
@@ -1025,8 +1082,9 @@ export function previewVenture(data, state, shape = state.shape) {
     cash = 0;
   }
   cash += state.openingSupport?.cash || 0;
-  const fixed = venue.fixed * city.rent_index * (1 - (state.openingSupport?.relief || 0));
-  const probe = buildProbe(data, state, shape, cash);
+  const testFactor = shape.style === "test" && !state.flags.tested ? 0.5 : 1;
+  const fixed = venue.fixed * city.rent_index * testFactor * (1 - (state.openingSupport?.relief || 0));
+  const probe = buildProbe(data, state, shape, cash, debt);
   const rev = probe.revenue;
   const costs = probe.costs;
   const personalGap = founderShortfall(data, state, shape, rev);
@@ -1052,7 +1110,7 @@ export function previewVenture(data, state, shape = state.shape) {
   };
 }
 
-function buildProbe(data, state, shape, cashIgnored) {
+function buildProbe(data, state, shape, cash, debt) {
   const styleNow = econ(data).commitment_styles[shape.style];
   const livingNow = livingCost(data, state);
   const kept = salaryKept(data, state, shape.style);
@@ -1068,11 +1126,15 @@ function buildProbe(data, state, shape, cashIgnored) {
     },
     venture: ventureSkeleton(data, state, shape),
     team: { headcount: 0, morale: 0.62, keyDependency: 0.85, wageMult: 1 },
-    peersPressure: 0.06,
+    finance: { cash, debt },
+    commitments: debt > 0 ? [{ kind: "debt", monthsLeft: 12, payment: debt / 12 }] : [],
+    peersPressure: 0.08,
     month: 1,
     flags: {},
   };
   fake.venture.marketFit = openingFit(fake, gapById(data, state.gapId));
+  // 預算使用與正式開業相同的經驗、合夥人及學習優勢，而非固定的 0.5。
+  initializeVentureSkill(data, fake);
   const rev = potentialRevenue(data, fake, 0);
   const parts = costParts(data, fake, rev, 0);
   return { revenue: rev, collected: parts.collectedNow, costs: parts.operating };
@@ -1105,6 +1167,7 @@ function ventureSkeleton(data, state, shape) {
     name: state.venture?.name || "",
     gapId: gap.id,
     family: gap.family,
+    companyTypeId: companyType(data, gap.company_type)?.id || null,
     ...shape,
     redlineType: redlineType(shape, gap, data, false),
     tags: [...(venue?.tags || []), ...(gap.tags || [])],
@@ -1137,6 +1200,15 @@ function ventureSkeleton(data, state, shape) {
   };
 }
 
+function initializeVentureSkill(data, state) {
+  const v = state.venture;
+  const own = econ(data).ownership[state.shape.ownership] || {};
+  v.skill = skillOf(data, state.founder, gapById(data, state.gapId));
+  if (own.skill) v.skill = clamp(v.skill + own.skill, 0, 1.2);
+  if (own.growth) v.perm.revenue *= 1 + own.growth;
+  if (state.founder.advantage === "learn") v.skill = clamp(v.skill + 0.05, 0, 1.25);
+}
+
 export function confirmShape(data, state) {
   for (const k of SHAPE_KEYS) {
     if (!state.shape[k]) return { ok: false, reason: "結構還沒有選完。" };
@@ -1165,11 +1237,10 @@ export function confirmShape(data, state) {
   state.personal.cash -= inject;
   const v = ventureSkeleton(data, state, state.shape);
   v.marketFit = openingFit(state, gapById(data, state.gapId));
-  v.skill = skillOf(state.founder, gapById(data, state.gapId));
-  if (own.skill) v.skill = clamp(v.skill + own.skill, 0, 1.2);
-  if (own.growth) v.perm.revenue *= 1 + own.growth;
-  if (state.founder.advantage === "learn") v.skill = clamp(v.skill + 0.05, 0, 1.25);
+  // 測試期或生態系折扣下，設備帳面值應等於實際投入，而非原價。
+  v.capexBook = preview.capex;
   state.venture = v;
+  initializeVentureSkill(data, state);
   state.finance = {
     cash: preview.cash,
     debt: preview.debt + (own ? 0 : 0),
@@ -1184,10 +1255,11 @@ export function confirmShape(data, state) {
     state.finance.debt = preview.debt;
     state.commitments.push({
       name: "開業借款或設備款",
-      monthsLeft: 12,
+      // 承諾會在每次結算前遞減；多一格才會足額支付 12 季。
+      monthsLeft: 13,
       total: 12,
       kind: "debt",
-      payment: preview.debt / 36,
+      payment: preview.debt / 12,
     });
   }
   state.team = {
@@ -1285,7 +1357,8 @@ function scheduleSpine(data, state) {
   add("ipo_window", 33, 47);
   add("century_question", 180, 227);
   add("year_review", 4, 6);
-  state.spine.sort((a, b) => a.month - b.month);
+  // 一季測試要先於同季的其他事件結束，不讓事件佇列把它錯過。
+  state.spine.sort((a, b) => a.month - b.month || (a.id === "test_end" ? -1 : b.id === "test_end" ? 1 : 0));
 }
 
 export function undoShape(state) {
@@ -1354,12 +1427,17 @@ export function lifeLabel(months) {
 
 export function forecast(data, state) {
   if (!state.venture) return null;
-  const rev = potentialRevenue(data, state, 0);
   const nextMonth = state.month + 1;
   const releasing = (state.finance?.arQueue || [])
     .filter((item) => item.due <= nextMonth)
     .reduce((total, item) => total + num(item.amount, 0), 0);
-  const parts = costParts(data, { ...state, month: nextMonth, flags: { ...state.flags } }, rev, releasing);
+  const commitments = (state.commitments || [])
+    .map((c) => ({ ...c, monthsLeft: c.monthsLeft > 0 ? c.monthsLeft - 1 : c.monthsLeft }))
+    .filter((c) => c.monthsLeft > 0);
+  // 下一季的季節與趨勢要用下一季；預測不應改變真實產能、旗標或隨機序列。
+  const probeState = { ...state, month: nextMonth, commitments, venture: { ...state.venture }, flags: { ...state.flags }, weather: null };
+  const rev = potentialRevenue(data, probeState, 0);
+  const parts = costParts(data, probeState, rev, releasing);
   const band = state.month < 2 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
   return {
     revenue: [rev * (1 - band), rev * (1 + band)],
@@ -1367,6 +1445,7 @@ export function forecast(data, state) {
     costs: [parts.operating * (1 - band * 0.5), parts.operating * (1 + band * 0.5)],
     // 主畫面預估沿用實際帳簿的成本分項；這是區間估算，不另造一套總額。
     parts,
+    probe: probeState._probe,
   };
 }
 
@@ -1424,7 +1503,8 @@ function potentialRevenue(data, state, noise) {
   const operator = state.founder.exited ? (state.operator?.type === "pro" ? 0.9 : 0.74) : 1;
   const founderUnits = timeFactor * (v.skill || 0.55) * E.formula.founder_output * fitCap * operator;
   const empUnits = heads * E.formula.employee_output * (0.68 + 0.32 * morale) * (1 - 0.28 * dep * (state.founder.exited ? 1 : 0.35)) * num(state.crewOutput, 1);
-  const unitCap = Math.max(0.2, (founderUnits + empUnits) * (ven.capacity || 1));
+  const venueCapacity = (ven.capacity || 1) * mods.capacity;
+  const unitCap = Math.max(0.2, (founderUnits + empUnits) * venueCapacity);
   const units = Math.min(Math.max(0, unitDemand), unitCap);
   v.utilization = clamp(units / unitCap, 0.05, 1.25);
   const qualityFactor = E.formula.quality_floor_factor + E.formula.quality_span * (v.quality || 0.5);
@@ -1432,7 +1512,7 @@ function potentialRevenue(data, state, noise) {
   // 探針：把「需求有多少、人做得完多少、場地接得住多少」留下來，給漏斗與瓶頸圖用。
   state._probe = {
     unitDemand, unitCap, units, founderUnits, empUnits,
-    venueCapacity: ven.capacity || 1, price, qualityFactor,
+    venueCapacity, price, qualityFactor,
   };
   return Math.max(0, units * price * qualityFactor);
 }
@@ -1452,8 +1532,10 @@ function costParts(data, state, revenue, released) {
   // 契機的場地支援只補貼基本場地費，不豁免其他固定開支。
   const support = state.openingSupport;
   const relief = support && state.month >= 1 && state.month <= support.quarters ? support.relief : 0;
-  const premisesBase = ven.fixed * city.rent_index * mods.fixed;
-  const premises = premisesBase * (1 - relief) + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity;
+  const testFactor = state.shape.style === "test" && !state.flags.tested ? 0.5 : 1;
+  const premisesBase = ven.fixed * city.rent_index * mods.fixed * testFactor;
+  // 重整或舊事件的固定費減免不能把場地費變成負數收入。
+  const premises = Math.max(0, premisesBase * (1 - relief) + mods.fixedAdd + v.complexity * E.formula.maturity_overhead_per_complexity);
   const platformRate = ven.platform + rev.platform + mods.platform + city.platform_pressure * ven.platform * 0.45;
   const platform = revenue * platformRate;
   const royalty = revenue * ((v.royalty || 0) + mods.royalty);
@@ -1520,6 +1602,15 @@ export function previewMonth(data, state) {
   };
 }
 
+function enterCashCrisis(data, state) {
+  state.phase = "laststand";
+  // 每次新的危機都有一輪救援機會，不沿用上一次剩下的次數。
+  state.rescueLeft = modeOf(data, state.mode).rescue_actions;
+  state.rescueDays = modeOf(data, state.mode).rescue_days;
+  pushTimeline(state, "現金不夠", "公司付不出這一輪。");
+  if (!state._cf) addCrisis(state, { m: state.month, kind: "cash", title: "現金不夠付這一輪", weight: 5 });
+}
+
 function settleOne(data, state) {
   ensureWork(data, state);
   const cashStart = num(state.finance?.cash, 0);
@@ -1528,13 +1619,11 @@ function settleOne(data, state) {
   if (state.month % 4 === 0) {
     if (!state.founder.exited) state.founder.age += 1;
     if (state.operator) state.operator.age += 1;
-    if (state.yearProfit > 0) state.profitYears += 1;
-    state.yearProfit = 0;
   }
   for (const c of state.commitments) if (c.monthsLeft > 0) c.monthsLeft -= 1;
   state.commitments = state.commitments.filter((c) => c.monthsLeft > 0);
-  if (state.founder.drawPause > 0) state.founder.drawPause -= 1;
-  state.venture.timed = (state.venture.timed || []).map((t) => ({ ...t, months: t.months - 1 })).filter((t) => t.months > 0);
+  // 限期效果在這一季結算後才遞減；「一季」不應在生效前就消失。
+  state.venture.timed = (state.venture.timed || []).filter((t) => t.months > 0);
 
   ensureCrew(data, state);
   state.weather = state._cf ? null : rollWeather(data, state, rng);
@@ -1576,13 +1665,20 @@ function settleOne(data, state) {
   } else {
     state.flags.personal_strain = false;
   }
+  // 生活費支付後保留一季生活費，再以一半個人盈餘還債；不是公司支出。
+  const personalSurplus = state.founder.exited ? 0 : Math.max(0, state.personal.cash - livingCost(data, state));
+  const personalRepayment = Math.min(state.personal.debt, personalSurplus * 0.5);
+  state.personal.cash -= personalRepayment;
+  state.personal.debt -= personalRepayment;
+  state.personal.lastDebtPayment = personalRepayment;
 
   const gap = gapById(data, state.gapId);
   const f = econ(data).formula;
   let gain = f.fit_monthly_gain * (gap.declining && !state.flags.transformed ? f.fit_decline_mult : 1) * (0.65 + state.venture.quality * 0.5);
   if (state.flags.discount) gain *= 0.7;
   if (state.founder.advantage === "learn") gain *= 1.15;
-  gain *= econ(data).commitment_styles[state.shape.style].speed;
+  const progressStyle = state.flags.progress_style || state.shape.style;
+  gain *= (econ(data).commitment_styles[progressStyle] || econ(data).commitment_styles[state.shape.style]).speed;
   state.venture.marketFit = clamp(state.venture.marketFit + gain, 0.05, f.fit_cap);
   state.venture.trust = clamp(state.venture.trust + econ(data).positioning[state.venture.positioning].trust_gain * city.loyalty - (state.flags.discount ? 0.004 : 0), 0.05, 0.97);
   state.peersPressure = clamp((state.peersPressure || 0) + Math.max(0, state.venture.marketFit - 0.55) * city.competition_elasticity * f.competition_per_fit / 4, 0, f.peer_pressure_cap);
@@ -1594,6 +1690,11 @@ function settleOne(data, state) {
   state.negStreakMax = Math.max(state.negStreakMax, state.negStreak);
   if (state.venture.licenseLeft > 0) state.venture.licenseLeft -= 1;
   state.yearProfit += revenue - parts.operating;
+  // 第四季也要算進當年，才判斷這一年是否盈利。
+  if (state.month % 4 === 0) {
+    if (state.yearProfit > 0) state.profitYears += 1;
+    state.yearProfit = 0;
+  }
   state.maxConcentration = Math.max(state.maxConcentration, state.venture.concentration);
   if (state.founder.age > 70 && !state.founder.exited) state.founder.health = clamp(state.founder.health - 0.012, 0, 1);
   if (state.founder.hours > 0.92 && state.venture.utilization > 0.9) state.founder.health = clamp(state.founder.health - 0.008, 0, 1);
@@ -1626,6 +1727,8 @@ function settleOne(data, state) {
     cash: state.finance.cash,
   });
   state.factors = explainFactors(data, state, revenue, parts);
+  if (state.founder.drawPause > 0) state.founder.drawPause -= 1;
+  state.venture.timed = state.venture.timed.map((t) => ({ ...t, months: t.months - 1 })).filter((t) => t.months > 0);
   state.finance.runway = runwayOf(data, state);
   const cashOut = parts.operating + personalTransfer;
   state.series.push({
@@ -1659,10 +1762,7 @@ function settleOne(data, state) {
   }
 
   if (state.finance.cash < 0) {
-    state.phase = "laststand";
-    state.rescueLeft = state.rescueLeft || modeOf(data, state.mode).rescue_actions;
-    pushTimeline(state, "現金不夠", "公司付不出這一輪。");
-    if (!state._cf) addCrisis(state, { m: state.month, kind: "cash", title: "現金不夠付這一輪", weight: 5 });
+    enterCashCrisis(data, state);
     return state;
   }
   if (state.founder.health < 0.2 && !state.founder.exited && !state.flags.crisis_scheduled) {
@@ -1704,8 +1804,12 @@ function outsideNow(data, state) {
   const style = econ(data).commitment_styles[state.shape.style];
   if (!style || state.founder.exited) return 0;
   if (state.flags.outside_off) return 0;
-  if (state.flags.outside_value != null) return state.flags.outside_value;
-  return salaryKept(data, state) * (state.flags.outside_mult || 1);
+  const income = state.flags.outside_value != null
+    ? state.flags.outside_value // 舊存檔的絕對季度收入
+    : state.flags.outside_share != null
+      ? num(jobOf(data, state)?.income, 1) * state.flags.outside_share * 3
+      : salaryKept(data, state);
+  return income * num(state.flags.outside_mult, 1);
 }
 
 function round2(n) {
@@ -1874,12 +1978,20 @@ function takeEvent(data, state, rng) {
     if (due.tries < 4) due.month += 6;
     else due.done = true;
   }
+  // 必經事件和決策後果優先；空檔中有機會遇到真正有利的訂單或支援。
+  const opportunity = econ(data).opportunities || {};
+  const surprises = data.events.filter((e) => e.surprise && eligible(data, state, e));
+  if (surprises.length && state.month - num(state.lastSurpriseMonth, -99) >= num(opportunity.cooldown_quarters, 4)
+      && rng.next() < num(opportunity.chance, 0.22)) {
+    state.lastSurpriseMonth = state.month;
+    return decorate(data, state, pickWeighted(rng, surprises, (e) => weightOf(data, state, e)));
+  }
   const stage = stageOf(data, state.month);
   const since = state.month - (state.lastMajorMonth || 0);
   if (since < stage.decision_gap * 0.6) return null;
   const p = clamp((since - stage.decision_gap * 0.6) / stage.decision_gap, 0, 0.8);
   if (rng.next() > p && since < stage.decision_gap * 1.45) return null;
-  let pool = data.events.filter((e) => !e.spine && !e.chain_only && eligible(data, state, e));
+  let pool = data.events.filter((e) => !e.spine && !e.chain_only && !e.surprise && eligible(data, state, e));
   if (!pool.length) return null;
   // 選項足夠時不重播本局同一事件；事件鏈和必經節點仍可按因果正常回來。
   const fresh = pool.filter((e) => !state.seen?.[e.id]);
@@ -1960,7 +2072,7 @@ function decorate(data, state, e) {
     omen: fill(e.omen),
     subject,
     object,
-    choices: e.choices.map((c) => ({ ...c, label: fill(c.label), detail: fill(c.detail), risk: fill(c.risk) })),
+    choices: e.choices.map((c) => ({ ...c, label: fill(c.label), detail: fill(c.detail), risk: fill(c.risk), disabled: eventChoiceDisabled(data, state, c) })),
   };
 }
 
@@ -2024,26 +2136,47 @@ function rollBeats(data, state, rng) {
   }
 }
 
+// 自願試驗及收購需先付得起共同成本；其他必要抉擇仍可導致現金危機。
+export function eventChoiceDisabled(data, state, choice) {
+  if (!choice?.outcome) return false;
+  const upfront = Math.max(0, -num(choice.effects?.cash, 0)) * (modeOf(data, state.mode).tail_risk || 1);
+  return upfront > num(state.finance?.cash, 0);
+}
+
 export function chooseEvent(data, state, choiceId) {
   const ev = state.pendingEvent;
   if (!ev || state.phase !== "event") return { ok: false };
   const choice = ev.choices.find((c) => c.id === choiceId);
-  if (!choice) return { ok: false };
+  if (!choice || eventChoiceDisabled(data, state, choice)) return { ok: false };
+  // 反事實應從選擇之前出發，不能先套用本次效果再疊上另一個選項。
+  const beforeChoice = !state._cf && !state.firstMajor && ev.major !== false ? structuredClone(state) : null;
   applyChoice(data, state, ev, choice);
   state.seen[ev.id] = true;
   state.cooldown[ev.id] = state.month + (ev.cooldown || 12);
   state.pendingEvent = null;
   state.lastMajorMonth = state.month;
-  if (!state._cf && !state.firstMajor && ev.major !== false) {
+  if (beforeChoice) {
     state.firstMajor = { event: ev.id, choice: choice.id, title: ev.title };
-    state.counterfactual = runCounterfactual(data, state, ev, choice.id);
+    state.counterfactual = runCounterfactual(data, beforeChoice, ev, choice.id);
   }
-  if (state.phase === "event") state.phase = "play";
-  return { ok: true };
+  if (state.phase === "event") {
+    if (state.finance.cash < 0) enterCashCrisis(data, state);
+    else state.phase = "play";
+  }
+  return { ok: true, message: state.lastOutcome?.month === state.month ? state.lastOutcome.text : "" };
 }
 
 function applyChoice(data, state, ev, choice) {
+  // 機率在執行任何效果之前計算，與玩家按鈕上看到的數字一致。
+  const roll = choice.outcome ? rollBold(data, state, num(choice.outcome.base_chance, 0.75)) : null;
+  const branch = roll ? (roll.success ? choice.outcome.success : choice.outcome.setback) : null;
+  state.lastOutcome = null;
   applyEffects(data, state, choice.effects || {}, ev);
+  if (branch) {
+    applyEffects(data, state, branch.effects || {}, ev);
+    const text = `${roll.success ? "好消息" : "遇到阻力"}：${branch.text}`;
+    state.lastOutcome = { month: state.month, text, chance: roll.chance, success: roll.success };
+  }
   if (choice.drivers) {
     for (const [k, v] of Object.entries(choice.drivers)) state.drivers[k] = (state.drivers[k] || 0) + v;
   }
@@ -2051,21 +2184,23 @@ function applyChoice(data, state, ev, choice) {
   const cons = lifeCfg(data).consequences?.[`${ev.id}:${choice.id}`] || null;
   if (choice.marks) addMarks(data, state, choice.marks);
   if (cons?.marks) addMarks(data, state, cons.marks);
-  const chain = choice.chain || cons?.chain;
+  // 擴張失利的後果不能在成功時必然觸發；成功也可指定自己的後續。
+  const chain = roll ? (branch?.chain || (!roll.success ? choice.chain || cons?.chain : null)) : (choice.chain || cons?.chain);
   if (chain) scheduleChain(state, chain, ev, choice);
   if (choice.memory) award(data, state, choice.memory, 2);
   if (choice.commitment) {
     state.commitments.push({
       name: choice.commitment.name,
-      monthsLeft: choice.commitment.months,
+      monthsLeft: choice.commitment.months + (choice.commitment.kind === "debt" ? 1 : 0),
       total: choice.commitment.months,
       kind: choice.commitment.kind,
       payment: choice.commitment.kind === "debt" ? Math.abs(choice.effects?.debt || 1) / choice.commitment.months : 0,
     });
   }
-  state.choices.push({ month: state.month, event: ev.id, choice: choice.id, grammar: ev.grammar, label: choice.label });
-  pushTimeline(state, ev.title, ev.body, { kind: "decision", choice: choice.label, when: calendarLabel(state) });
-  logEvent(state, "event_choice", { id: ev.id, choice: choice.id });
+  state.choices.push({ month: state.month, event: ev.id, choice: choice.id, grammar: ev.grammar, label: choice.label,
+    ...(roll ? { chance: roll.chance, outcome: roll.success ? "success" : "setback" } : {}) });
+  pushTimeline(state, ev.title, ev.body, { kind: "decision", choice: choice.label, note: state.lastOutcome?.text, when: calendarLabel(state) });
+  logEvent(state, "event_choice", { id: ev.id, choice: choice.id, ...(roll ? { chance: roll.chance, success: roll.success } : {}) });
   if (choice.effects?.flags?.price_hold) state.counts.priceHold += 1;
   if (["hold", "keep"].includes(choice.id) && ["OPENING_DEMAND", "CUT_VARIABLE_COST", "COMPETITION"].includes(ev.grammar)) state.counts.priceHold += 1;
 }
@@ -2077,29 +2212,30 @@ function applyEffects(data, state, effects, ev) {
   const timed = {};
   const permanent = { ...effects };
   if (effects.for_months) {
-    for (const key of ["price_mod", "revenue_mult", "cost_mod", "churn"]) {
+    for (const key of ["price_mod", "revenue_mult", "cost_mod", "churn", "fixed_add", "capacity_add", "capacity_mult"]) {
       if (effects[key] != null) {
         timed[key] = effects[key];
         delete permanent[key];
       }
     }
     if (Object.keys(timed).length) {
+      v.timed = v.timed || [];
+      const addedCapacity = timed.capacity_add === true ? 0.35 : num(timed.capacity_add, 0);
       v.timed.push({
         months: effects.for_months,
         price: timed.price_mod || 0,
         cost: timed.cost_mod || 0,
         revenue: timed.revenue_mult || 1,
+        fixedAdd: num(timed.fixed_add, 0),
+        capacity: num(timed.capacity_mult, 1) * (1 + addedCapacity),
         churn: timed.churn || 0,
       });
     }
   }
   const cash = permanent.cash || 0;
   if (cash) {
-    const scaled = cash < 0 ? cash * tail : cash;
-    const healthy = state.finance.runway == null || state.finance.cash > 1.5;
-    if (scaled < 0 && state.finance.cash + scaled < 0 && healthy && state.level !== "crit") {
-      state.finance.cash = Math.max(0.3, state.last?.parts?.premises || 0.4);
-    } else state.finance.cash += scaled;
+    // 合約的確定支出如實入帳；資金不足時進入救援，不憑空補出餘額。
+    state.finance.cash += cash < 0 ? cash * tail : cash;
   }
   if (permanent.debt) state.finance.debt = Math.max(0, state.finance.debt + permanent.debt);
   if (permanent.control) state.founder.control = clamp(state.founder.control + permanent.control, 0.05, 1);
@@ -2110,8 +2246,14 @@ function applyEffects(data, state, effects, ev) {
       : clamp(state.founder.control - 0.2, 0.2, 1);
   }
   if (permanent.revenue_mult) v.perm.revenue *= permanent.revenue_mult;
+  // 需求和實際交付能力是兩件事；擴張必須真的打開產能瓶頸。
+  const addedCapacity = permanent.capacity_add === true ? 0.35 : num(permanent.capacity_add, 0);
+  if (addedCapacity || permanent.capacity_mult) {
+    v.perm.capacity = clamp(num(v.perm.capacity, 1) * (1 + addedCapacity) * num(permanent.capacity_mult, 1), 0.4, 4);
+  }
+  if (permanent.capex_add) v.capexBook = Math.max(0, num(v.capexBook, 0) + permanent.capex_add);
   if (permanent.fixed_mult) v.perm.fixed *= permanent.fixed_mult;
-  if (permanent.fixed_add) v.perm.fixedAdd += permanent.fixed_add;
+  if (permanent.fixed_add) v.perm.fixedAdd = num(v.perm.fixedAdd, 0) + permanent.fixed_add;
   if (permanent.price_mod) v.perm.price += permanent.price_mod;
   if (permanent.cost_mod) v.perm.cost += permanent.cost_mod;
   if (permanent.platform_fee) v.perm.platform += permanent.platform_fee;
@@ -2161,6 +2303,11 @@ function applyEffects(data, state, effects, ev) {
     state.flags.outside_value = permanent.outside_set;
   }
   if (permanent.outside_mult) state.flags.outside_mult = permanent.outside_mult;
+  if (permanent.outside_share != null) {
+    state.flags.outside_share = permanent.outside_share;
+    state.flags.outside_off = false;
+    delete state.flags.outside_value;
+  }
   if (permanent.returns) v.returnsRate = clamp(v.returnsRate + permanent.returns, 0, 0.4);
   if (permanent.inventory) v.inventory = clamp((v.inventory || 0) + permanent.inventory, 0, 2);
   if (permanent.trend_add) v.timedTrend = (v.timedTrend || 0) + permanent.trend_add;
@@ -2303,7 +2450,7 @@ function cityByIdSafe(state) {
 
 export function runCounterfactual(data, state, ev, chosenId) {
   try {
-    const other = ev.choices.find((c) => c.id !== chosenId);
+    const other = ev.choices.find((c) => c.id !== chosenId && !eventChoiceDisabled(data, state, c));
     if (!other) return null;
     const ghost = structuredClone(state);
     ghost._cf = true;
@@ -2311,14 +2458,13 @@ export function runCounterfactual(data, state, ev, chosenId) {
     ghost.phase = "event";
     ghost.firstMajor = { skip: true };
     ghost.counterfactual = null;
-    applyChoice(data, ghost, ev, other);
-    if (ghost.phase === "event") ghost.phase = "play";
+    if (!chooseEvent(data, ghost, other.id).ok) return null;
     let guard = 0;
     while (ghost.phase !== "ending" && ghost.month < state.month + 180 && guard < 200) {
       guard += 1;
       if (ghost.phase === "play") settleOne(data, ghost);
       else if (ghost.phase === "event") {
-        const pick = heuristicChoice(ghost.pendingEvent, ghost);
+        const pick = heuristicChoice(ghost.pendingEvent, ghost, data);
         chooseEvent(data, ghost, pick);
       } else if (ghost.phase === "chapter" || ghost.phase === "summary") ghost.phase = "play";
       else if (ghost.phase === "laststand") {
@@ -2340,15 +2486,18 @@ export function runCounterfactual(data, state, ev, chosenId) {
   }
 }
 
-export function suggestEventChoice(ev, state) {
-  return heuristicChoice(ev, state);
+export function suggestEventChoice(ev, state, data) {
+  return heuristicChoice(ev, state, data);
 }
 
-function heuristicChoice(ev, state) {
+function heuristicChoice(ev, state, data) {
   if (!ev?.choices?.length) return null;
-  let best = ev.choices[0];
+  const disabled = (c) => data ? eventChoiceDisabled(data, state, c) : !!c.disabled;
+  let best = ev.choices.find((c) => !disabled(c));
+  if (!best) return null;
   let score = -999;
   for (const c of ev.choices) {
+    if (disabled(c)) continue;
     let s = 0;
     const e = c.effects || {};
     s += (e.cash || 0) * 2;
@@ -2412,6 +2561,11 @@ export function initiatives(data, state) {
   if (state.phase !== "play" || !state.venture) return [];
   const ready = state.month >= (state.initiativeReady || 0);
   const list = [];
+  const I = econ(data).initiatives;
+  const O = econ(data).opportunities || {};
+  const addBold = (id, label, detail, base, success, setback, disabled = false) => {
+    list.push({ id, label, detail, baseChance: base, chance: boldChance(data, state, base), success, setback, disabled });
+  };
   if (ready) {
     const pending = (state.finance.arQueue || []).reduce((sum, q) => sum + q.amount, 0);
     if (pending > 0.05) list.push({ id: "collect_early", label: "短期：提早收回應收款", detail: "把現有應收款以 95% 提前收回；餘下 5% 是費用，原定到期時不會再收一次。只改善現金時間，折讓會減少收益。" });
@@ -2419,37 +2573,53 @@ export function initiatives(data, state) {
     if (!state.flags.turnaround_offer && state.finance.cash >= 0.35) list.push({ id: "turnaround_offer", label: "長期：調整產品與定價", detail: "投入 0.35 單位改善產品與客群；價格係數加 0.12，配合度提高，變動成本率增 2 個百分點。需求未必能填滿產能。" });
     list.push({ id: "price_up", label: "加價約 8%", detail: "確定：價格係數上升。量可能下降。" });
     list.push({ id: "price_down", label: "降價約 8%", detail: "確定：價格下降，較容易成交。" });
-    if (state.team.headcount < 12) list.push({ id: "hire", label: "聘一個人", detail: "確定：每季多一份薪。產能上升。" });
+    if (state.team.headcount < 12) {
+      const wage = econ(data).formula.labor_per_head * cityById(data, state.cityId).wage_index
+        * num(state.team.wageMult, 1) * num(state.venture.wagePressure, 1);
+      list.push({ id: "hire", label: "聘一個人", detail: `每季薪酬約增加 ${round2(wage)} 單位，產能上升；需求不足時新增產能未必轉成收入。` });
+    }
     if (state.team.headcount > 0 && state.finance.cash > 0.35 && state.month - num(state.flags.raised_at, -99) > 2) {
       list.push({ id: "raise", label: "給團隊加薪", detail: "確定：人事成本上升約 6%。壓力下降，忠誠上升。有些人會因此留下來。" });
     }
     if (state.team.headcount > 0) list.push({ id: "fire", label: "減少一個人", detail: "確定：支付這個城市的離職代價，收入能力下降。被請走的是最忠誠度低的那一個。" });
-    if (state.flags.equipment_damage && state.finance.cash > 0.25) list.push({ id: "repair", label: "修好壞掉的設備", detail: "確定：花一筆錢。每季的固定帳回到原來的樣子，場景裡那台機器也會好。" });
-    if (state.finance.cash > 0.6) list.push({ id: "market", label: "花一筆讓更多人知道", detail: "確定：現金減少，配合度上升一點。" });
+    if (state.flags.equipment_damage && state.finance.cash >= 0.3) list.push({ id: "repair", label: "修好壞掉的設備", detail: "確定：花 0.3 單位。每季的固定帳回到原來的樣子。" });
+    if (state.finance.cash >= I.market_cost) list.push({ id: "market", label: "花一筆讓更多人知道", detail: `確定：現金減少 ${I.market_cost} 單位，配合度上升一點。` });
     list.push({ id: "rest", label: "把時間收回一點", detail: "確定：收入略降，健康與意志回升。" });
     // 一年後（4季後）分支決策：不再只有繼續/放棄，會出現不同戰略路線
     if (state.month >= 4) {
       if (!state.flags.angel_taken) {
         list.push({ id: "angel", label: "引入天使投資", detail: "確定：現金 +3，控制權 -12%，董事會關注。適合需要放大規模的時刻。" });
       }
-      list.push({ id: "new_product", label: "推出第二產品線", detail: "確定：現金 -0.8，配合度 +0.06，品質 -0.02。擴大客群，短期壓力上升。" });
-      list.push({ id: "partner", label: "簽戰略合作", detail: "確定：收入係數 +12%，信任 +0.03，之後 2 季內固定成本略增。把餅做大。" });
-      if (!state.flags.second_channel) {
-        list.push({ id: "second_channel", label: "開第二銷售通路", detail: "確定：固定成本 +0.25，收入上限 +35%。規模變大，複雜度上升。" });
+      if (!state.flags.product_line_initiative && state.month - num(state.flags.product_attempt, -99) >= 4) {
+        addBold("new_product", "推出第二產品線", `先投入 ${I.product_cost} 單位；失利後四季可再試。`, num(O.product_chance, 0.75),
+          "需求 +15%、產能 +12%、價格係數 +0.06，配合度 +0.08。", "投入不退回；品質 -0.02，配合度 +0.01。", state.finance.cash < I.product_cost);
       }
-      list.push({ id: "optimize", label: "流程優化", detail: "確定：現金 -0.5，變動成本 -5%，品質 +0.02。做小而好的改進。" });
+      if (!state.flags.strategic_partner && state.month - num(state.flags.partner_attempt, -99) >= 4) {
+        addBold("partner", "簽戰略合作", "不需預付現金；未談成後四季可再試。", num(O.partner_chance, 0.8),
+          "需求 +12%、產能 +8%、信任 +0.03；兩季變動成本率 +2 個百分點。", "沒有成交，信任 -0.02。 ");
+      }
+      if (!state.flags.second_channel && state.month - num(state.flags.channel_attempt, -99) >= 4) {
+        addBold("second_channel", "開第二銷售通路", `先投入 ${I.channel_cost} 單位試營運；失利後四季可再試。`, num(O.channel_chance, 0.76),
+          "需求 +35%、產能 +18%，每季固定成本 +0.2，複雜度 +0.3。", "試營運費用不退回，配合度 +0.01；不增加固定成本。", state.finance.cash < I.channel_cost);
+      }
+      if (state.finance.cash >= 0.5) list.push({ id: "optimize", label: "流程優化", detail: "確定：現金 -0.5，變動成本率 -5 個百分點，品質 +0.02。" });
     }
     if (state.month > 6 && !state.flags.transformed) list.push({ id: "transform", label: "調整做法", detail: "確定：記為一次轉型。短期配合度下降。" });
-    if (state.venture.marketFit > 0.5 && state.finance.cash > 2.5 && !state.flags.second_city) list.push({ id: "expand", label: "開第二個據點", detail: "確定：固定成本與複雜度上升，收入上限打開。" });
+    if (state.venture.marketFit > 0.5 && !state.flags.second_city && state.month - num(state.flags.expand_attempt, -99) >= 4) {
+      addBold("expand", "開第二個據點", `需要至少 2.5 單位現金，先投入 ${I.expansion_cost} 單位；失利後四季可再試。`, num(O.expand_chance, 0.73),
+        `需求 ×${I.second_city_revenue}、產能 +20%，每季固定成本 +${I.second_city_fixed}，並增聘一人。`,
+        "試址投入不退回，配合度 +0.01；不增聘人手或固定成本。", state.finance.cash < Math.max(2.5, I.expansion_cost));
+    }
   }
   // 保底決策：任何時期皆需有可影響營運的決策（重大或小決策），避免真空期
-  if (!list.length) {
-    list.push({ id: "review_books", label: "整理帳簿", detail: "確定：梳理現金流，信任 +0.01，下一季收入小幅上升 2%。" });
+  const minorReady = state.flags.minor_action_at !== state.month;
+  if (!list.length && minorReady) {
+    list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +0.01，下一季需求增加 2%。" });
     list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -0.05，士氣 +0.03。下季離職風險下降。" });
     list.push({ id: "market_scan", label: "掃描市場", detail: "確定：花一點時間，配合度 +0.02，發現下季可能的機會。" });
-  } else if (list.length < 3) {
+  } else if (list.length > 0 && list.length < 3 && minorReady) {
     // 補齊至至少 3 個選項，確保選擇感
-    if (!list.some(x=>x.id==="review_books")) list.push({ id: "review_books", label: "整理帳簿", detail: "確定：梳理現金流，信任 +0.01，下一季收入小幅上升 2%。" });
+    if (!list.some(x=>x.id==="review_books")) list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +0.01，下一季需求增加 2%。" });
     if (list.length < 3 && !list.some(x=>x.id==="team_check")) list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -0.05，士氣 +0.03。" });
   }
   const close = { id: "close", label: "考慮結業", detail: "把結束當成一個決定，而不是一場意外。" };
@@ -2462,10 +2632,17 @@ export function initiatives(data, state) {
 export function actInitiative(data, state, id) {
   if (state.phase !== "play") return { ok: false };
   const option = initiatives(data, state).find((item) => item.id === id);
-  if (!option) return { ok: false };
+  if (!option || option.disabled) return { ok: false };
   const I = econ(data).initiatives;
+  const roll = option.chance != null ? rollBold(data, state, option.baseChance) : null;
+  const finishBold = (successText, setbackText) => {
+    const text = `${roll.success ? "好消息" : "遇到阻力"}：${roll.success ? successText : setbackText}`;
+    state.lastOutcome = { month: state.month, text, chance: roll.chance, success: roll.success };
+  };
+  state.lastOutcome = null;
   const gapMonths = state.month < 60 ? econ(data).formula.initiative_cooldown_early : econ(data).formula.initiative_cooldown_late;
   if (id !== "close") state.initiativeReady = state.month + gapMonths;
+  if (["review_books", "team_check", "market_scan"].includes(id)) state.flags.minor_action_at = state.month;
   if (id === "collect_early") {
     const pending = state.finance.arQueue.reduce((sum, q) => sum + q.amount, 0);
     state.finance.cash += pending * 0.95;
@@ -2541,40 +2718,69 @@ export function actInitiative(data, state, id) {
     state.venture.marketFit = clamp(state.venture.marketFit - 0.06, 0, 1);
     state.venture.timedTrend = (state.venture.timedTrend || 0) + 0.035;
   } else if (id === "expand") {
-    state.flags.second_city = true;
-    state.venture.perm.fixedAdd += I.second_city_fixed;
-    state.venture.perm.revenue *= I.second_city_revenue;
-    state.venture.complexity += 0.8;
-    hire(data, state, 1);
-    award(data, state, "second_city_key", 2);
+    state.flags.expand_attempt = state.month;
+    state.finance.cash -= I.expansion_cost;
+    if (roll.success) {
+      state.flags.second_city = true;
+      state.venture.perm.fixedAdd = num(state.venture.perm.fixedAdd, 0) + I.second_city_fixed;
+      state.venture.perm.revenue *= I.second_city_revenue;
+      state.venture.perm.capacity = clamp(num(state.venture.perm.capacity, 1) * 1.2, 0.4, 4);
+      state.venture.complexity += 0.6;
+      state.venture.capexBook += I.expansion_cost;
+      hire(data, state, 1);
+      award(data, state, "second_city_key", 2);
+    } else state.venture.marketFit = clamp(state.venture.marketFit + 0.01, 0, 1);
+    finishBold("新據點順利展開，需求與產能都增加；新增租金與薪酬從此季後開始。", "試址未獲足夠客戶；投入不退回，四季後可再試。");
   } else if (id === "angel") {
     state.flags.angel_taken = true;
-    state.finance.cash += 3;
-    state.founder.control = clamp(state.founder.control - 0.12, 0.12, 1);
+    state.finance.cash += I.angel_cash;
+    state.founder.control = clamp(state.founder.control - I.angel_control, 0.12, 1);
     state.venture.board = true;
     state.finance.debt += 0; // equity, not debt
     state.venture.marketFit = clamp(state.venture.marketFit + 0.04, 0, 1);
     award(data, state, "angel_in", 2);
     addMarks(data, state, { expansionist: 0.8, risk_taker: 0.4 });
   } else if (id === "new_product") {
-    state.finance.cash -= 0.8;
-    state.venture.marketFit = clamp(state.venture.marketFit + 0.06, 0, 1);
-    state.venture.quality = clamp(state.venture.quality - 0.02, 0.1, 1);
-    state.venture.complexity += 0.3;
-    award(data, state, "second_product", 2);
+    state.flags.product_attempt = state.month;
+    state.finance.cash -= I.product_cost;
+    if (roll.success) {
+      state.flags.product_line_initiative = true;
+      state.venture.perm.revenue *= 1.15;
+      state.venture.perm.capacity = clamp(num(state.venture.perm.capacity, 1) * 1.12, 0.4, 4);
+      state.venture.perm.price += 0.06;
+      state.venture.marketFit = clamp(state.venture.marketFit + 0.08, 0, 1);
+      state.venture.complexity += 0.2;
+      award(data, state, "second_product", 2);
+    } else {
+      state.venture.marketFit = clamp(state.venture.marketFit + 0.01, 0, 1);
+      state.venture.quality = clamp(state.venture.quality - 0.02, 0.1, 1);
+    }
+    finishBold("新產品找到客群，需求、產能和價格改善。", "試賣未達目標，投入不退回；四季後可再試。");
     addMarks(data, state, { expansionist: 0.6 });
   } else if (id === "partner") {
-    state.venture.perm.revenue *= 1.12;
-    state.venture.trust = clamp(state.venture.trust + 0.03, 0, 1);
-    state.venture.timed.push({ months: 2, revenue: 0.95, price: 0, cost: 0.02 });
-    award(data, state, "strategic_partner", 2);
+    state.flags.partner_attempt = state.month;
+    if (roll.success) {
+      state.flags.strategic_partner = true;
+      state.venture.perm.revenue *= 1.12;
+      state.venture.perm.capacity = clamp(num(state.venture.perm.capacity, 1) * 1.08, 0.4, 4);
+      state.venture.trust = clamp(state.venture.trust + 0.03, 0, 1);
+      state.venture.timed.push({ months: 2, cost: 0.02 });
+      award(data, state, "strategic_partner", 2);
+    } else state.venture.trust = clamp(state.venture.trust - 0.02, 0, 1);
+    finishBold("合作談成，需求與產能提升；兩季內履約成本稍增。", "合作未談成，沒有預付損失；四季後可再試。");
     addMarks(data, state, { expansionist: 0.5, customer_first: 0.3 });
   } else if (id === "second_channel") {
-    state.flags.second_channel = true;
-    state.venture.perm.fixedAdd += 0.25;
-    state.venture.perm.revenue *= 1.35;
-    state.venture.complexity += 0.4;
-    award(data, state, "second_channel", 2);
+    state.flags.channel_attempt = state.month;
+    state.finance.cash -= I.channel_cost;
+    if (roll.success) {
+      state.flags.second_channel = true;
+      state.venture.perm.fixedAdd = num(state.venture.perm.fixedAdd, 0) + 0.2;
+      state.venture.perm.revenue *= 1.35;
+      state.venture.perm.capacity = clamp(num(state.venture.perm.capacity, 1) * 1.18, 0.4, 4);
+      state.venture.complexity += 0.3;
+      award(data, state, "second_channel", 2);
+    } else state.venture.marketFit = clamp(state.venture.marketFit + 0.01, 0, 1);
+    finishBold("第二通路打開，需求和交付能力增加，也會多付固定成本。", "通路試營運未達目標，費用不退回；四季後可再試。");
     addMarks(data, state, { expansionist: 0.7 });
   } else if (id === "optimize") {
     state.finance.cash -= 0.5;
@@ -2585,7 +2791,6 @@ export function actInitiative(data, state, id) {
     addMarks(data, state, { quality_obsessed: 0.5 });
   } else if (id === "review_books") {
     state.venture.trust = clamp(state.venture.trust + 0.01, 0, 1);
-    state.venture.perm.revenue *= 1.02;
     state.venture.timed.push({ months: 1, revenue: 1.02, price: 0, cost: 0 });
   } else if (id === "team_check") {
     for (const m of state.crew || []) if (!m.gone) m.stress = clamp(m.stress - 0.05, 0.02, 1);
@@ -2596,10 +2801,10 @@ export function actInitiative(data, state, id) {
     state.phase = "closing";
     return { ok: true };
   }
-  pushTimeline(state, option.label, option.detail, { kind: "decision", choice: option.label, when: calendarLabel(state) });
-  logEvent(state, "event_choice", { id: "initiative", choice: id });
-  if (state.finance.cash < 0) state.phase = "laststand";
-  return { ok: true };
+  pushTimeline(state, option.label, option.detail, { kind: "decision", choice: option.label, note: state.lastOutcome?.text, when: calendarLabel(state) });
+  logEvent(state, "event_choice", { id: "initiative", choice: id, ...(roll ? { chance: roll.chance, success: roll.success } : {}) });
+  if (state.finance.cash < 0) enterCashCrisis(data, state);
+  return { ok: true, message: state.lastOutcome?.text || "" };
 }
 
 export function confirmClose(data, state, how) {
@@ -2658,7 +2863,18 @@ export function chooseRescue(data, state, id) {
   if (!option) return { ok: false };
   const v = state.venture;
   let worked = false;
-  if (id === "turnaround_lean" && !state.flags.turnaround_lean) {
+  let rescueRoll = null;
+  state.lastOutcome = null;
+  if (id === "bridge_support") {
+    rescueRoll = rollBold(data, state, num(econ(data).opportunities?.rescue_chance, 0.76));
+    state.flags.rescue_bridge = true;
+    if (rescueRoll.success) {
+      state.finance.cash += 2.4;
+      worked = true;
+    }
+    state.lastOutcome = { month: state.month, chance: rescueRoll.chance, success: rescueRoll.success,
+      text: rescueRoll.success ? "好消息：紓困補助獲批，現金 +2.4 單位，無需償還。" : "遇到阻力：補助沒有獲批，這次沒有額外資金。" };
+  } else if (id === "turnaround_lean" && !state.flags.turnaround_lean) {
     applyLeanTurnaround(state);
     worked = true;
   } else if (id === "collect_early" && (state.finance.arQueue || []).length) {
@@ -2670,6 +2886,7 @@ export function chooseRescue(data, state, id) {
   } else if (id === "shrink") {
     v.perm.fixed *= 0.75;
     v.perm.revenue *= 0.82;
+    v.perm.capacity = clamp(num(v.perm.capacity, 1) * 0.9, 0.4, 4);
     if (state.team.headcount > 0) fire(data, state, 1);
     state.flags.shrunk = true;
     worked = true;
@@ -2691,7 +2908,7 @@ export function chooseRescue(data, state, id) {
     if (v.capexBook > 0.3) {
       state.finance.cash += v.capexBook * 0.45;
       v.capexBook *= 0.45;
-      v.perm.revenue *= 0.88;
+      v.perm.capacity = clamp(num(v.perm.capacity, 1) * 0.88, 0.4, 4);
       worked = true;
     }
   } else if (id === "borrow") {
@@ -2700,7 +2917,7 @@ export function chooseRescue(data, state, id) {
       state.finance.cash += 2;
       state.finance.debt += 2;
       state.founder.guarantee += 1.4;
-      state.commitments.push({ name: "救援借款", monthsLeft: 8, total: 8, kind: "debt", payment: 2 / 8 });
+      state.commitments.push({ name: "救援借款", monthsLeft: 9, total: 8, kind: "debt", payment: 2 / 8 });
       award(data, state, "guarantee_chop", 2);
       worked = true;
     }
@@ -2709,6 +2926,7 @@ export function chooseRescue(data, state, id) {
     if (v.marketFit > 0.34 && (gap.trend > -0.045 || state.flags.transformed)) {
       state.finance.cash += 3.4;
       state.founder.control = clamp(state.founder.control - 0.16, 0.12, 1);
+      state.flags.last_rescue_equity = state.month;
       v.board = true;
       worked = true;
     }
@@ -2726,7 +2944,8 @@ export function chooseRescue(data, state, id) {
     confirmClose(data, state, "voluntary");
     return { ok: true, closed: true };
   }
-  pushTimeline(state, "現金危機的應對", option.detail, { kind: "decision", choice: option.label, when: calendarLabel(state) });
+  pushTimeline(state, "現金危機的應對", option.detail, { kind: "decision", choice: option.label, note: state.lastOutcome?.text, when: calendarLabel(state) });
+  if (rescueRoll) logEvent(state, "rescue_outcome", { id, chance: rescueRoll.chance, success: rescueRoll.success });
   state.kpis = state.kpis || blankKpis();
   state.kpis.rescues += 1;
   addCrisis(state, { m: state.month, kind: "cash", title: `嘗試以「${id}」應對現金危機`, weight: 4 });
@@ -2934,8 +3153,15 @@ export function rescueOptions(data, state) {
     ...(!state.flags.turnaround_lean ? [{ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重談場地及供應，基本固定成本減 25%，變動成本率減 5 個百分點，需求係數減 8%。不能立即填補欠款。", likely: "改善往後每季的成本，但不保證盈利。", downside: "規模變小，仍要先解決眼前欠款。" }] : []),
     ...((state.finance.arQueue || []).length ? [{ id: "collect_early", label: "短期：提早收回應收款", detail: "按現有應收款的 95% 提前收回，餘下是費用；到期時不會重複收款。", likely: "改善眼前現金，不改變生意根本。", downside: "少收 5%，以後沒有這筆款項。" }] : []),
     {
+      id: "bridge_support", label: "申請一次性紓困補助",
+      detail: `成功機率 ${Math.round(boldChance(data, state, num(econ(data).opportunities?.rescue_chance, 0.76)) * 100)}%。整局只能申請一次；不抵銷未來訂單。`,
+      likely: "獲批時現金 +2.4 單位，無需償還或讓出股權。",
+      downside: "未獲批時沒有資金，仍會用掉一次救援行動。",
+      affects: "眼前現金與剩餘的救援機會",
+    },
+    {
       id: "shrink", label: "縮規模", detail: "砍固定成本與人手。收入會一起變小。",
-      likely: "固定成本降約四分之一，收入降約兩成，跑道拉長兩到三季。",
+      likely: "基本固定成本降約四分之一，需求降約兩成、產能降一成；若有人手會裁減一人。跑道未必因此改善。",
       downside: "被縮掉的那個人可能是唯一做得完那件事的人。",
       affects: `${crewName}、客人能買到的量、之後重新長大的速度`,
     },
@@ -2989,12 +3215,15 @@ export function rescueOptions(data, state) {
     },
   ];
   return options.filter((o) => {
+    if (o.id === "bridge_support") return !state.flags.rescue_bridge && state.venture.trust >= 0.35 && state.venture.marketFit >= 0.35;
     if (o.id === "presell") return state.venture.trust >= 0.38 && !state.flags.rescue_presell;
     if (o.id === "delay") return !state.flags.rescue_delay;
     if (o.id === "process") return !state.flags.rescue_process;
     if (o.id === "asset") return state.venture.capexBook > 0.3;
     if (o.id === "borrow") return state.finance.debt < 6 && !(cityById(data, state.cityId).credit_tight > 0.5 && state.founder.guarantee > 2);
-    if (o.id === "equity") return state.venture.marketFit > 0.34 && (gapById(data, state.gapId).trend > -0.045 || state.flags.transformed);
+    if (o.id === "equity") return state.venture.marketFit > 0.34 && state.founder.control > 0.28
+      && state.month - num(state.flags.last_rescue_equity, -99) >= 4
+      && (gapById(data, state.gapId).trend > -0.045 || state.flags.transformed);
     return true;
   });
 }
