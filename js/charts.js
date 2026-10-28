@@ -1,13 +1,14 @@
 /**
  * 五張圖，解決同一個問題：玩家破產之後，仍然不知道自己為什麼輸。
  *
- * 1. 現金跑道　　2. 收入到利潤瀑布　　3. 顧客漏斗
+ * 1. 現金跑道　　2. 現金流瀑布　　3. 顧客漏斗
  * 4. 產能瓶頸　　5. 決策回顧線
  *
  * 全部回傳 HTML/SVG 字串，不做任何 DOM 操作，所以在結算頁、帳簿、
  * 結局卡與紀念卡上都能重複使用。
  */
 import { money } from "./present.js";
+import { cashflowLedger } from "./cashflow.js";
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
@@ -19,10 +20,17 @@ const r0 = (n) => Math.round(num(n, 0)).toLocaleString("zh-Hant");
 export function runwayView(data, run, opts = {}) {
   const cash = num(run.finance?.cash, 0);
   const last = run.last?.parts || {};
+  const estimatedCosts = opts.forecast?.costs || [0, 0];
+  const estimatedCollections = opts.forecast?.collected || [0, 0];
+  const forecastBurn = (num(estimatedCosts[0]) + num(estimatedCosts[1])) / 2
+    - (num(estimatedCollections[0]) + num(estimatedCollections[1])) / 2;
   const collected = num(run.last?.collected, 0);
-  const burn = Math.max(0, num(last.operating, 0) - collected);
+  const burn = Math.max(0, run.last?.parts
+    ? num(last.operating, 0) + num(last.personalTransfer, 0) - collected
+    : forecastBurn);
   const months = burn > 0.01 ? cash / burn : 24;
-  const worstBurn = burn + num(run.last?.revenue, 0) * 0.2 * 0.35;
+  const revenue = num(run.last?.revenue, (num(opts.forecast?.revenue?.[0]) + num(opts.forecast?.revenue?.[1])) / 2);
+  const worstBurn = burn + revenue * 0.2 * 0.35;
   const worst = worstBurn > 0.01 ? cash / worstBurn : months;
   const w = 320;
   const span = Math.max(6, Math.min(36, Math.ceil(months * 1.25)));
@@ -47,34 +55,25 @@ export function runwayView(data, run, opts = {}) {
   </figure>`;
 }
 
-/* ── 2. 收入到利潤瀑布 ─────────────────────────────────── */
-
-const WF_LABEL = {
-  revenue: "帳面收入", collected: "實際進帳", variable: "原料與變動成本", platform: "平台抽成",
-  labor: "工資", premises: "場地與租金", royalty: "權利金", interest: "利息",
-  weather: "天氣與電費", tax: "稅", draw: "你取走", principal: "還本金", ar: "還沒收到的錢",
-};
+/* ── 2. 現金流瀑布 ─────────────────────────────────────── */
 
 export function waterfallSteps(data, run) {
   const last = run.last;
   if (!last?.parts) return [];
-  const p = last.parts;
-  const steps = [{ k: "revenue", label: "營業額", v: num(last.revenue, 0), kind: "total" }];
-  if (num(p.collectedNow, 0) + 0.001 < num(last.revenue, 0)) {
-    steps.push({ k: "ar", label: "還沒收到", v: -(num(last.revenue, 0) - num(p.collectedNow, 0) - num(p.releasing, 0)), kind: "gap" });
+  const biz = run.work || {};
+  const previous = (run.series || []).slice(-2)[0]?.cash;
+  const flow = cashflowLedger(last, { sells: biz.sells }, previous);
+  const steps = [{ k: "inflow", label: "現金入帳", v: flow.totalIn, kind: "total" }];
+  for (const item of flow.expenses) {
+    if (item.amount > 1e-9) steps.push({ k: item.key, label: item.label, v: -item.amount, kind: "cost" });
   }
-  for (const k of ["variable", "platform", "labor", "premises", "royalty", "interest", "weather", "tax", "draw", "principal"]) {
-    const v = num(p[k], 0);
-    if (v > 0.005) steps.push({ k, label: WF_LABEL[k] || k, v: -v, kind: "cost" });
-  }
-  const net = num(last.revenue, 0) - num(p.operating, 0);
-  steps.push({ k: "net", label: "淨利", v: net, kind: "net" });
+  steps.push({ k: "net", label: "現金淨變動", v: flow.net, kind: "net" });
   return steps;
 }
 
 export function waterfall(data, run) {
   const steps = waterfallSteps(data, run);
-  if (!steps.length) return `<figure class="chart chart-waterfall"><figcaption>收入到利潤</figcaption><p class="muted">結算第一季之後，這裡會有一張瀑布圖。</p></figure>`;
+  if (!steps.length) return `<figure class="chart chart-waterfall"><figcaption>現金入帳與支出</figcaption><p class="muted">結算第一季之後，這裡會顯示實際收款、每項支出與現金變化。</p></figure>`;
   const w = 340, h = 150, pad = 18;
   const bw = Math.min(30, (w - 8) / steps.length - 3);
   let run0 = 0;
@@ -101,12 +100,125 @@ export function waterfall(data, run) {
   });
   bars.push(`<line x1="0" y1="${zero}" x2="${w}" y2="${zero}" stroke="#7a6e62" stroke-width="1"/>`);
   const rows = steps.map((s) => `<li class="${s.v < 0 ? "down" : "up"}"><span>${esc(s.label)}</span><b>${esc(money(data, run, s.v))}</b></li>`).join("");
-  const killer = steps.filter((s) => s.v < 0).sort((a, b) => a.v - b.v)[0];
+  const killer = steps.filter((s) => s.kind === "cost").sort((a, b) => a.v - b.v)[0];
   return `<figure class="chart chart-waterfall">
-    <figcaption>收入到利潤</figcaption>
-    <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="收入瀑布圖，${esc(killer ? `最大的一項支出是${killer.label}` : "沒有支出")}">${bars.join("")}</svg>
+    <figcaption>現金入帳與支出</figcaption>
+    <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="現金流瀑布圖，${esc(killer ? `最大的一項現金流出是${killer.label}` : "沒有支出")}">${bars.join("")}</svg>
     <ul class="chart-rows">${rows}</ul>
-    ${killer ? `<p class="chart-verdict">這季吃掉最多的是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
+    ${killer ? `<p class="chart-verdict">這季最大的現金流出是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
+  </figure>`;
+}
+
+/** 主遊戲畫面上常駐的精簡現金帳。 */
+export function cashflowPanel(data, run, forecast = null) {
+  const biz = run.work || {};
+  const last = run.last?.parts ? run.last : null;
+  const estimated = !last;
+  if (estimated && !forecast?.parts) {
+    return `<figure class="chart chart-cashflow"><figcaption>公司現金流</figcaption><p class="muted">開業後，這裡會逐項列出客戶收款、租金、薪酬、材料與其他支出。</p></figure>`;
+  }
+
+  const previousCash = (run.series || []).slice(-2)[0]?.cash;
+  const forecastRevenue = forecast?.revenue || [0, 0];
+  const revenueMid = (num(forecastRevenue[0]) + num(forecastRevenue[1])) / 2;
+  const source = last || {
+    revenue: revenueMid,
+    collected: num(forecast?.parts?.collectedNow) + num(forecast?.parts?.releasing),
+    parts: forecast.parts,
+  };
+  const flow = cashflowLedger(source, biz, previousCash);
+  const cashChange = estimated ? flow.totalIn - flow.totalOut : flow.net;
+  const minRange = (range) => `${esc(money(data, run, num(range?.[0])))} – ${esc(money(data, run, num(range?.[1])))}`;
+  const signed = (value) => `${value > 0 ? "+" : ""}${esc(money(data, run, value))}`;
+  const revenueText = estimated ? minRange(forecastRevenue) : esc(money(data, run, flow.revenue));
+  const inflowText = estimated ? minRange(forecast.collected) : esc(money(data, run, flow.totalIn));
+  const outflowText = estimated
+    ? `${esc(money(data, run, -num(forecast.costs?.[0])))} – ${esc(money(data, run, -num(forecast.costs?.[1])))}`
+    : esc(money(data, run, -flow.totalOut));
+  const changeText = estimated
+    ? minRange([
+      num(forecast.collected?.[0]) - num(forecast.costs?.[1]),
+      num(forecast.collected?.[1]) - num(forecast.costs?.[0]),
+    ])
+    : signed(cashChange);
+  const stateClass = cashChange < -0.005 ? "down" : "up";
+  const scale = Math.max(flow.totalIn, flow.totalOut, 0.01);
+  const biggestIn = flow.inflows.slice().sort((a, b) => b.amount - a.amount)[0];
+  const biggestOut = flow.expenses.slice().sort((a, b) => b.amount - a.amount)[0];
+  const incomeRows = flow.inflows.map((item) => `<li class="cashflow-line in">
+    <span class="cashflow-line-label">${esc(item.label)}</span><b>${esc(money(data, run, item.amount))}</b>
+  </li>`).join("") || `<li class="muted">目前沒有現金入帳。</li>`;
+  const expenseRows = flow.expenses.slice().sort((a, b) => b.amount - a.amount).map((item) => {
+    const share = clamp((item.amount / Math.max(flow.totalOut, 0.01)) * 100, 0, 100);
+    return `<li class="cashflow-line out">
+      <div class="cashflow-line-main"><span class="cashflow-line-label">${esc(item.label)}</span>
+        <span class="cashflow-share"><i style="width:${share.toFixed(1)}%"></i></span></div>
+      <b>${esc(money(data, run, -item.amount))}</b>
+    </li>`;
+  }).join("") || `<li class="muted">目前沒有現金支出。</li>`;
+
+  const points = (run.series || []).slice(-8).map((item) => {
+    const recordedIn = item.collected ?? (run.last?.month === item.m ? run.last.collected : undefined);
+    const hasCashIn = recordedIn !== undefined && recordedIn !== null && recordedIn !== "" && Number.isFinite(Number(recordedIn));
+    return {
+      m: item.m,
+      cashIn: hasCashIn ? num(recordedIn) : 0,
+      hasCashIn,
+      cashOut: Number.isFinite(Number(item.cashOut)) ? num(item.cashOut) : num(item.cost),
+      hasCashOut: Number.isFinite(Number(item.cashOut)),
+    };
+  });
+  if (estimated && !points.length) points.push({ m: "預估", cashIn: flow.totalIn, cashOut: flow.totalOut, hasCashIn: true, hasCashOut: true });
+  const hasLegacyHistory = points.some((point) => !point.hasCashIn || !point.hasCashOut);
+  const chartW = 320, chartH = 92, baseY = 68;
+  const chartMax = Math.max(0.01, ...points.flatMap((point) => [point.cashIn, point.cashOut]));
+  const slot = points.length ? (chartW - 20) / points.length : chartW - 20;
+  const barW = Math.max(3, Math.min(13, (slot - 5) / 2));
+  const chartBars = points.map((point, index) => {
+    const center = 10 + slot * index + slot / 2;
+    const inH = point.hasCashIn ? Math.max(point.cashIn > 0 ? 1 : 0, (point.cashIn / chartMax) * 48) : 0;
+    const outH = Math.max(point.cashOut > 0 ? 1 : 0, (point.cashOut / chartMax) * 48);
+    const xIn = center - barW - 1;
+    const xOut = center + 1;
+    const label = typeof point.m === "number" ? `第 ${point.m} 季` : point.m;
+    const inTitle = point.hasCashIn ? `${label}現金入帳 ${money(data, run, point.cashIn)}` : `${label}的舊存檔未分開記錄現金入帳`;
+    const outTitle = point.hasCashOut ? `${label}現金流出 ${money(data, run, point.cashOut)}` : `${label}記錄的營運開支 ${money(data, run, point.cashOut)}`;
+    return `<g>
+      ${point.hasCashIn ? `<rect x="${xIn.toFixed(1)}" y="${(baseY - inH).toFixed(1)}" width="${barW.toFixed(1)}" height="${inH.toFixed(1)}" rx="2" fill="#2a6a4a"><title>${esc(inTitle)}</title></rect>` : `<title>${esc(inTitle)}</title>`}
+      <rect x="${xOut.toFixed(1)}" y="${(baseY - outH).toFixed(1)}" width="${barW.toFixed(1)}" height="${outH.toFixed(1)}" rx="2" fill="#8f2d2d"><title>${esc(outTitle)}</title></rect>
+      <text x="${center.toFixed(1)}" y="84" text-anchor="middle" font-size="8" fill="#7a6e62">${typeof point.m === "number" ? point.m : "估"}</text>
+    </g>`;
+  }).join("");
+  const liveStart = estimated ? "估算期間進行中" : "本季進行中";
+  const note = estimated
+    ? "開業預測按目前設定估算，實際收款與開支會隨客流、帳期和事件改變。流出亦會分開列出創辦人提款、還本金與生活費補貼。"
+    : `營業額是帳面收入，不等於現金入帳；逾期合約款會在之後的季度才收回。流出亦包含提款、還本金等非營運項目。${hasLegacyHistory ? "舊存檔較早季度未分開記錄實際入帳，圖上會留空而不拿營業額冒充收款。" : ""}`;
+
+  return `<figure class="chart chart-cashflow" aria-label="公司現金流總覽">
+    <figcaption><span>${estimated ? "開業預估現金流" : "公司現金流 · 最近一季"}</span><span class="cashflow-period">${estimated ? "估算" : `第 ${last.month} 季`}</span></figcaption>
+    <div class="cashflow-metrics">
+      <div><span>帳面營業額</span><b>${revenueText}</b></div>
+      <div><span>現金入帳</span><b class="positive">${inflowText}</b></div>
+      <div><span>現金流出</span><b class="negative">${outflowText}</b></div>
+      <div><span>現金淨變動</span><b class="${stateClass}">${changeText}</b></div>
+    </div>
+    <div class="cashflow-total-bars" aria-label="現金入帳與流出比較">
+      <div class="cashflow-total-row"><span>入帳</span><i><em class="positive-bar" style="width:${clamp((flow.totalIn / scale) * 100, 0, 100).toFixed(1)}%"></em></i><b class="positive">${esc(money(data, run, flow.totalIn))}</b></div>
+      <div class="cashflow-total-row"><span>流出</span><i><em class="negative-bar" style="width:${clamp((flow.totalOut / scale) * 100, 0, 100).toFixed(1)}%"></em></i><b class="negative">${esc(money(data, run, -flow.totalOut))}</b></div>
+    </div>
+    <p class="cashflow-insight">最大收款：<b>${biggestIn ? esc(biggestIn.label) : "—"}</b> <strong class="positive">${biggestIn ? esc(money(data, run, biggestIn.amount)) : ""}</strong> · 最大流出：<b>${biggestOut ? esc(biggestOut.label) : "—"}</b> <strong class="negative">${biggestOut ? esc(money(data, run, -biggestOut.amount)) : ""}</strong></p>
+    <div class="cashflow-breakdown">
+      <section><h4>收入來源</h4><ul>${incomeRows}</ul></section>
+      <section><h4>流出項目</h4><ul>${expenseRows}</ul></section>
+    </div>
+    <p class="cashflow-live" id="cashflow-live" aria-live="polite"><span>${liveStart}</span> · 已入帳 <b class="positive" id="cashflow-live-in">${esc(money(data, run, 0))}</b> · 已支出 <b class="negative" id="cashflow-live-out">${esc(money(data, run, 0))}</b></p>
+    <p class="cashflow-note">${note}</p>
+    <div class="cashflow-history">
+      <div class="cashflow-history-head"><span>近 8 季收款／支出</span><span class="cashflow-legend"><i class="in"></i>入帳 <i class="out"></i>支出</span></div>
+      <svg viewBox="0 0 ${chartW} ${chartH}" role="img" aria-label="${esc(`近 ${points.length} 季的每季現金入帳與支出，綠色為入帳，紅色為支出`)}">
+        <line x1="8" y1="${baseY}" x2="${chartW - 8}" y2="${baseY}" stroke="#d9cbb8" stroke-width="1"/>${chartBars}
+      </svg>
+    </div>
   </figure>`;
 }
 
@@ -264,7 +376,7 @@ export function forecastPanel(data, run, fc) {
   if (!fc || !run.venture) return "";
   const ops = run.last?.ops || run.lastOps;
   const parts = run.last?.parts || {};
-  const burn = Math.max(0, num(parts.operating, 0) - num(run.last?.collected, 0));
+  const burn = Math.max(0, num(parts.operating, 0) + num(parts.personalTransfer, 0) - num(run.last?.collected, 0));
   const worstCash = num(run.finance?.cash, 0) + num(fc.collected?.[0], 0) - num(fc.costs?.[1], 0);
   const orders = Math.max(1, num(ops?.orders, 1));
   const revenue = Math.max(0.05, num(run.last?.revenue, 0.05));
@@ -297,7 +409,7 @@ function biggestRisk(data, run, fc) {
   const rl = run.redlineSnap;
   const list = [];
   const cash = num(run.finance?.cash, 0);
-  const burn = Math.max(0.01, num(parts.operating, 0) - num(run.last?.collected, 0));
+  const burn = Math.max(0.01, num(parts.operating, 0) + num(parts.personalTransfer, 0) - num(run.last?.collected, 0));
   list.push([cash / burn < 4 ? 5 : 1, `現金只夠 ${Math.max(0, cash / burn).toFixed(1)} 季`]);
   if (num(parts.platformRate, 0) > 0.12) list.push([4, `平台抽走 ${Math.round(parts.platformRate * 100)}% 的收入`]);
   if (num(parts.premises, 0) > num(run.last?.revenue, 0) * 0.3) list.push([4, `場地吃掉 ${Math.round((parts.premises / Math.max(0.01, run.last.revenue)) * 100)}% 的營業額`]);

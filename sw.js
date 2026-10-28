@@ -1,4 +1,4 @@
-const CACHE = "qianfen-v9";
+const CACHE = "qianfen-v10";
 const FILES = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const FILES = [
   "./js/share.js",
   "./js/stage.js",
   "./js/charts.js",
+  "./js/cashflow.js",
   "./js/story.js",
   "./js/rng.js",
   "./data/world.json",

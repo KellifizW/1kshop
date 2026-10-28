@@ -250,7 +250,7 @@ button.ghost { background: transparent; border-color: transparent; color: var(--
 }
 
 .worldbar { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-@media (max-width: 640px) {
+@media (max-width: 840px) {
   .worldbar { flex-wrap: wrap; }
   .pace { width: 100%; justify-content: flex-start; }
 }
@@ -544,12 +544,16 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .name-suggest .choice { min-height: 46px; }
 
 /* ══════════════════════════════════════════════════════════
-   v0.2　活的店舖舞台、季結故事、五張圖、紀念卡
-   版面比例：場景 60% ／ 快速狀態 25% ／ 操作 15%
+   v0.2　活的店舖舞台、現金流儀表板、五張圖、紀念卡
+   桌面使用左右雙欄；窄螢幕才回到單欄閱讀。
    ══════════════════════════════════════════════════════════ */
 
-.play-shell { max-width: 1400px; }
-.play-sheet { padding-bottom: 18px; }
+.play-shell {
+  width: 100%;
+  max-width: none;
+  padding: clamp(10px, 1.4vw, 24px) clamp(10px, 1.8vw, 36px) 28px;
+}
+.play-sheet { width: 100%; min-width: 0; padding: clamp(16px, 1.5vw, 28px); }
 
 .play-grid {
   display: grid;
@@ -557,8 +561,14 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
   gap: 16px;
   align-items: start;
 }
-@media (min-width: 1080px) {
-  .play-grid { grid-template-columns: minmax(0, 1fr) 336px; gap: 20px; }
+@media (min-width: 960px) {
+  .play-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, min(31vw, 500px));
+    gap: clamp(16px, 1.6vw, 28px);
+  }
+}
+@media (min-width: 1600px) {
+  .play-grid { grid-template-columns: minmax(0, 1fr) minmax(400px, min(28vw, 520px)); }
 }
 .stage-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
@@ -989,8 +999,10 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 
 .stage-alerts { position: absolute; left: 0; right: 0; top: 34%; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .float-chip {
-  font-size: 14px; font-weight: 600; padding: 2px 10px; border-radius: 999px;
-  background: rgba(244, 239, 228, 0.94); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  max-width: min(90%, 520px);
+  font-size: 13px; line-height: 1.4; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: rgba(244, 239, 228, 0.96); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  text-align: center; overflow-wrap: anywhere;
   animation: float-up 1.6s ease-out forwards; font-variant-numeric: tabular-nums;
 }
 .float-chip.out { color: var(--seal); }
@@ -1021,8 +1033,15 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 /* ── 側欄：快速狀態 25% ＋ 操作 15% ────────────────────── */
 
 .rail { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-@media (min-width: 1080px) {
-  .rail { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; padding-right: 2px; }
+@media (min-width: 960px) {
+  .rail {
+    position: sticky;
+    top: 14px;
+    max-height: calc(100vh - 28px);
+    overflow-y: auto;
+    padding: 0 4px 12px 0;
+    scrollbar-gutter: stable;
+  }
 }
 .rail-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .kpi {
@@ -1103,6 +1122,57 @@ button.go[disabled] { opacity: 0.45; cursor: not-allowed; }
 .chart-rows .up b { color: var(--accent-green); }
 .chart-verdict { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
 .chart-verdict b { color: var(--seal); }
+
+/* 主畫面的現金流不是要翻到圖表才看得到的資料。 */
+.chart-cashflow { padding: 12px; }
+.chart-cashflow figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cashflow-period { flex: none; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; font-size: 10px; font-weight: 500; letter-spacing: 0; }
+.cashflow-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.cashflow-metrics > div { min-width: 0; padding: 6px 8px; background: var(--paper); border: 1px solid var(--card-border); border-radius: 9px; }
+.cashflow-metrics span { display: block; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.cashflow-metrics b { display: block; margin-top: 2px; font-size: 14px; line-height: 1.35; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cashflow-metrics .positive, .cashflow-line.in b { color: var(--accent-green); }
+.cashflow-metrics .negative { color: var(--seal); }
+.cashflow-metrics b.down { color: var(--seal); }
+.cashflow-metrics b.up { color: var(--accent-green); }
+.cashflow-total-bars { display: grid; gap: 5px; margin: 8px 0; }
+.cashflow-total-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 7px; font-size: 11px; }
+.cashflow-total-row > span { color: var(--muted); }
+.cashflow-total-row > i { display: block; height: 8px; overflow: hidden; background: var(--paper-2); border-radius: 99px; }
+.cashflow-total-row em { display: block; height: 100%; border-radius: inherit; }
+.cashflow-total-row .positive-bar { background: var(--accent-green); }
+.cashflow-total-row .negative-bar { background: var(--seal); }
+.cashflow-total-row b { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+.cashflow-total-row .positive, .cashflow-insight .positive { color: var(--accent-green); }
+.cashflow-total-row .negative, .cashflow-insight .negative { color: var(--seal); }
+.cashflow-insight { margin: 6px 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.cashflow-insight b { color: var(--ink-soft); }
+.cashflow-breakdown { display: grid; gap: 8px; }
+.cashflow-breakdown h4 { margin: 5px 0 2px; font-size: 11px; color: var(--muted); font-weight: 600; }
+.cashflow-breakdown ul { list-style: none; margin: 0; padding: 0; }
+.cashflow-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 2px 0; font-size: 11px; line-height: 1.4; }
+.cashflow-line-label { overflow-wrap: anywhere; }
+.cashflow-line.in b { font-variant-numeric: tabular-nums; }
+.cashflow-line.out b { color: var(--seal); font-variant-numeric: tabular-nums; }
+.cashflow-line-main { display: grid; gap: 3px; min-width: 0; }
+.cashflow-share { display: block; height: 4px; overflow: hidden; background: var(--paper-2); border-radius: 99px; }
+.cashflow-share i { display: block; height: 100%; background: var(--seal); border-radius: inherit; }
+.cashflow-live { margin: 8px 0 0; padding: 6px 8px; border-radius: 8px; background: #edf4ef; color: var(--ink-soft); font-size: 11px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.cashflow-live .positive { color: var(--accent-green); }
+.cashflow-live .negative { color: var(--seal); }
+.cashflow-note { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.cashflow-history { margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--line); }
+.cashflow-history-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
+.cashflow-history svg { width: 100%; height: auto; display: block; margin-top: 2px; }
+.cashflow-legend { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.cashflow-legend i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; }
+.cashflow-legend .in { margin-left: 3px; background: var(--accent-green); }
+.cashflow-legend .out { margin-left: 3px; background: var(--seal); }
+.decision-count { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.rail-decisions .choice { padding: 8px 10px; }
+.rail-decisions .choice b { font-size: 14px; }
+.rail-decisions .choice span { margin-top: 2px; font-size: 12px; line-height: 1.45; }
+.rail-decisions .stack { gap: 6px; }
 
 .funnel { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .funnel li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
@@ -1204,9 +1274,17 @@ html.still .ly-people .queue .agent, html.still .stage-wrap.closing .stage {
 html.still .float-chip { opacity: 1; }
 html.still .stage, html.still .ly-light, html.still .funnel-bar i, html.still .cap-bar i { transition: none; }
 
+@media (max-width: 959px) {
+  .rail { position: static; max-height: none; overflow: visible; }
+}
+
 @media (max-width: 640px) {
+  .play-shell { padding: 10px 8px 20px; }
+  .play-sheet { padding: 16px 12px; border-radius: 18px; }
   .stage { aspect-ratio: 4 / 3; }
   .stage-caption { font-size: 12px; }
   .rail-kpis { grid-template-columns: 1fr 1fr; }
   .chart-notes, .forecast-grid { grid-template-columns: 1fr; }
+  .cashflow-history-head { align-items: flex-start; flex-direction: column; gap: 2px; }
+  .cashflow-legend { margin-left: auto; }
 }
