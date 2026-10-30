@@ -57,6 +57,9 @@ node --experimental-default-type=module tests/balance-sample.mjs
 node --experimental-default-type=module tests/operating.mjs
 node --experimental-default-type=module tests/historical.mjs
 node --experimental-default-type=module tests/long-balance.mjs
+node --experimental-default-type=module tests/experience-probe.mjs
 ```
+
+`tests/experience-probe.mjs` 不改遊戲，只用固定種子量「錢的曲線、事件重量、紅線、塑形選項差距、重玩重疊、決定密度」六組體驗指標，約十秒完成；加 `--check` 會用建議門檻判斷並在偏離時以非零狀態結束，`PROBE_SEEDS=120` 可加大樣本。判讀方式見 [玩法與呈現評審](gameplay-review-2026-10.md)。
 
 最後一項以固定種子模擬 2、4、10 年；可用 `SAMPLE_SIZE` 調整樣本數，`ALL_GAPS=1` 納入十個新企業缺口。另有可選的瀏覽器冒煙測試：啟動 `python -m http.server 8000`，安裝 `playwright-core` 並備妥 Chromium，然後執行 `CHROMIUM_PATH=/path/to/chromium node tests/browser-smoke.cjs`（也可用 `GAME_URL` 指向其他測試網址）。瀏覽器測試涵蓋桌面、手機、沙盒、每日模式、自動選擇、舊存檔、決策及離線畫面。歷史模式另有 `CHROMIUM_PATH=/path/to/chromium node tests/historical-browser.cjs`，涵蓋搜尋、開局、兩個事件、分支、讀檔、手機及離線。
