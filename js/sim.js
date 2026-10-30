@@ -1309,7 +1309,7 @@ function buildPeers(data, state) {
       cityId: farCity.id,
       alive: true,
       months: 0,
-      note: "同一種做法，不同的租金、帳期與人。",
+      note: "同一種做法，不同的租金、付款期與人。",
       cash: 3,
     },
     {
@@ -1900,7 +1900,7 @@ function updateKpis(data, state, revenue, parts, ops) {
   }
   if (!k.bestMonth || profit > k.bestMonth.profit) k.bestMonth = { m: state.month, profit: round2(profit) };
   if (!k.worstMonth || profit < k.worstMonth.profit) k.worstMonth = { m: state.month, profit: round2(profit) };
-  if (state.level === "crit") addCrisis(state, { m: state.month, kind: "redline", title: state.redlineSnap?.name || "紅線", weight: 3 });
+  if (state.level === "crit") addCrisis(state, { m: state.month, kind: "redline", title: state.redlineSnap?.name || "警戒線", weight: 3 });
   if (ops.lost > ops.served * 0.35 && ops.lost > 20) addCrisis(state, { m: state.month, kind: "capacity", title: "做不完的那一季", weight: 2 });
   if ((state.last?.parts?.platformRate || 0) > 0.18) addCrisis(state, { m: state.month, kind: "platform", title: "抽成吃掉毛利", weight: 3 });
 }
@@ -1928,22 +1928,24 @@ function explainFactors(data, state, revenue, parts) {
   const city = cityById(data, state.cityId);
   const gap = gapById(data, state.gapId);
   const v = state.venture;
+  const pct = (x) => `${Math.round((Number(x) || 0) * 100)}%`;
+  const wage = (x, label = "") => `${round2(x)} 個月薪${label}`;
   return [
     ["生意", state.work?.name || gap.title],
     ["賣的是", state.work?.sells || gap.core],
     ["付錢的人", state.work?.buyer || "客人"],
-    ["城市需求", city.demand_index],
-    ["缺口強度", gap.demand],
-    ["配合度", round2(v.marketFit)],
-    ["趨勢係數", round2(trendFactor(data, state))],
-    ["產能利用", round2(v.utilization)],
-    ["價格係數", round2(1 + effectiveMods(v).price)],
-    ["帳面收入", round2(revenue)],
-    ["本季實收", round2(parts.collectedNow)],
-    ["稍後才到的應收", round2(state.finance.arQueue.reduce((s, q) => s + q.amount, 0))],
-    ["場地與平台", round2(parts.premises + parts.platform)],
-    ["人力", round2(parts.labor)],
-    ["你取走", round2(parts.draw)],
+    ["這座城市的需求", `×${round2(city.demand_index)}`],
+    ["這個缺口的強度", `×${round2(gap.demand)}`],
+    ["市場接受度（客人多想要）", pct(v.marketFit)],
+    ["市場趨勢（這季的順風或逆風）", `×${round2(trendFactor(data, state))}`],
+    ["產能利用（你最多用掉多少）", pct(v.utilization)],
+    ["價格（相對原本的定價）", `×${round2(1 + effectiveMods(v).price)}`],
+    ["帳面收入", wage(revenue)],
+    ["這一季真的收到", wage(parts.collectedNow)],
+    ["客人還欠你的（稍後才到）", wage(state.finance.arQueue.reduce((s, q) => s + q.amount, 0))],
+    ["場地與平台抽成", wage(parts.premises + parts.platform)],
+    ["人力", wage(parts.labor)],
+    ["你從公司取走", wage(parts.draw)],
   ];
 }
 
@@ -2574,58 +2576,58 @@ export function initiatives(data, state) {
   if (ready) {
     const pending = (state.finance.arQueue || []).reduce((sum, q) => sum + q.amount, 0);
     if (pending > 0.05) list.push({ id: "collect_early", label: "短期：提早收回應收款", detail: "把現有應收款以 95% 提前收回；餘下 5% 是費用，原定到期時不會再收一次。只改善現金時間，折讓會減少收益。" });
-    if (!state.flags.turnaround_lean) list.push({ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重新談場地與供應：基本固定成本減 25%，變動成本率減 5 個百分點；需求係數減 8%。不保證盈利。" });
-    if (!state.flags.turnaround_offer && state.finance.cash >= 0.35) list.push({ id: "turnaround_offer", label: "長期：調整產品與定價", detail: "投入 0.35 單位改善產品與客群；價格係數加 0.12，配合度提高，變動成本率增 2 個百分點。需求未必能填滿產能。" });
-    list.push({ id: "price_up", label: "加價約 8%", detail: "確定：價格係數上升。量可能下降。" });
+    if (!state.flags.turnaround_lean) list.push({ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重新談場地與供應：基本固定成本減 25%，變動成本率減 5 個百分點；需求量減 8%。不保證盈利。" });
+    if (!state.flags.turnaround_offer && state.finance.cash >= 0.35) list.push({ id: "turnaround_offer", label: "長期：調整產品與定價", detail: "投入 0.35 個月薪改善產品與客群；價格加 12%，市場接受度提高，變動成本率增 2 個百分點。需求未必能填滿產能。" });
+    list.push({ id: "price_up", label: "加價約 8%", detail: "確定：價格上升。量可能下降。" });
     list.push({ id: "price_down", label: "降價約 8%", detail: "確定：價格下降，較容易成交。" });
     if (state.team.headcount < 12) {
       const wage = econ(data).formula.labor_per_head * cityById(data, state.cityId).wage_index
         * num(state.team.wageMult, 1) * num(state.venture.wagePressure, 1);
-      list.push({ id: "hire", label: "聘一個人", detail: `每季薪酬約增加 ${round2(wage)} 單位，產能上升；需求不足時新增產能未必轉成收入。` });
+      list.push({ id: "hire", label: "聘一個人", detail: `每季薪酬約增加 ${round2(wage)} 個月薪，產能上升；需求不足時新增產能未必轉成收入。` });
     }
     if (state.team.headcount > 0 && state.finance.cash > 0.35 && state.month - num(state.flags.raised_at, -99) > 2) {
       list.push({ id: "raise", label: "給團隊加薪", detail: "確定：人事成本上升約 6%。壓力下降，忠誠上升。有些人會因此留下來。" });
     }
     if (state.team.headcount > 0) list.push({ id: "fire", label: "減少一個人", detail: "確定：支付這個城市的離職代價，收入能力下降。被請走的是最忠誠度低的那一個。" });
-    if (state.flags.equipment_damage && state.finance.cash >= 0.3) list.push({ id: "repair", label: "修好壞掉的設備", detail: "確定：花 0.3 單位。每季的固定帳回到原來的樣子。" });
-    if (state.finance.cash >= I.market_cost) list.push({ id: "market", label: "花一筆讓更多人知道", detail: `確定：現金減少 ${I.market_cost} 單位，配合度上升一點。` });
+    if (state.flags.equipment_damage && state.finance.cash >= 0.3) list.push({ id: "repair", label: "修好壞掉的設備", detail: "確定：花 0.3 個月薪。每季的固定帳回到原來的樣子。" });
+    if (state.finance.cash >= I.market_cost) list.push({ id: "market", label: "花一筆讓更多人知道", detail: `確定：現金減少 ${I.market_cost} 個月薪，市場接受度上升一點。` });
     list.push({ id: "rest", label: "把時間收回一點", detail: "確定：收入略降，健康與意志回升。" });
     // 一年後（4季後）分支決策：不再只有繼續/放棄，會出現不同戰略路線
     if (state.month >= 4) {
       if (!state.flags.angel_taken) {
-        list.push({ id: "angel", label: "引入天使投資", detail: "確定：現金 +3，控制權 -12%，董事會關注。適合需要放大規模的時刻。" });
+        list.push({ id: "angel", label: "引入天使投資", detail: "確定：現金 +3 個月薪，控制權 -12%，董事會關注。適合需要放大規模的時刻。" });
       }
       if (!state.flags.product_line_initiative && state.month - num(state.flags.product_attempt, -99) >= 4) {
-        addBold("new_product", "推出第二產品線", `先投入 ${I.product_cost} 單位；失利後四季可再試。`, num(O.product_chance, 0.75),
-          "需求 +15%、產能 +12%、價格係數 +0.06，配合度 +0.08。", "投入不退回；品質 -0.02，配合度 +0.01。", state.finance.cash < I.product_cost);
+        addBold("new_product", "推出第二產品線", `先投入 ${I.product_cost} 個月薪；失利後四季可再試。`, num(O.product_chance, 0.75),
+          "需求 +15%、產能 +12%、價格 +6%，市場接受度 +8 個百分點。", "投入不退回；品質 -2 個百分點，市場接受度 +1 個百分點。", state.finance.cash < I.product_cost);
       }
       if (!state.flags.strategic_partner && state.month - num(state.flags.partner_attempt, -99) >= 4) {
         addBold("partner", "簽戰略合作", "不需預付現金；未談成後四季可再試。", num(O.partner_chance, 0.8),
-          "需求 +12%、產能 +8%、信任 +0.03；兩季變動成本率 +2 個百分點。", "沒有成交，信任 -0.02。 ");
+          "需求 +12%、產能 +8%、信任 +3 個百分點；兩季變動成本率 +2 個百分點。", "沒有成交，信任 -2 個百分點。 ");
       }
       if (!state.flags.second_channel && state.month - num(state.flags.channel_attempt, -99) >= 4) {
-        addBold("second_channel", "開第二銷售通路", `先投入 ${I.channel_cost} 單位試營運；失利後四季可再試。`, num(O.channel_chance, 0.76),
-          "需求 +35%、產能 +18%，每季固定成本 +0.2，複雜度 +0.3。", "試營運費用不退回，配合度 +0.01；不增加固定成本。", state.finance.cash < I.channel_cost);
+        addBold("second_channel", "開第二銷售通路", `先投入 ${I.channel_cost} 個月薪試營運；失利後四季可再試。`, num(O.channel_chance, 0.76),
+          "需求 +35%、產能 +18%，每季固定成本 +0.2 個月薪，複雜度 +30 個百分點。", "試營運費用不退回，市場接受度 +1 個百分點；不增加固定成本。", state.finance.cash < I.channel_cost);
       }
-      if (state.finance.cash >= 0.5) list.push({ id: "optimize", label: "流程優化", detail: "確定：現金 -0.5，變動成本率 -5 個百分點，品質 +0.02。" });
+      if (state.finance.cash >= 0.5) list.push({ id: "optimize", label: "流程優化", detail: "確定：現金 -0.5 個月薪，變動成本率 -5 個百分點，品質 +2 個百分點。" });
     }
-    if (state.month > 6 && !state.flags.transformed) list.push({ id: "transform", label: "調整做法", detail: "確定：記為一次轉型。短期配合度下降。" });
+    if (state.month > 6 && !state.flags.transformed) list.push({ id: "transform", label: "調整做法", detail: "確定：記為一次轉型。短期市場接受度下降。" });
     if (state.venture.marketFit > 0.5 && !state.flags.second_city && state.month - num(state.flags.expand_attempt, -99) >= 4) {
-      addBold("expand", "開第二個據點", `需要至少 2.5 單位現金，先投入 ${I.expansion_cost} 單位；失利後四季可再試。`, num(O.expand_chance, 0.73),
+      addBold("expand", "開第二個據點", `需要至少 2.5 個月薪的現金，先投入 ${I.expansion_cost} 個月薪；失利後四季可再試。`, num(O.expand_chance, 0.73),
         `需求 ×${I.second_city_revenue}、產能 +20%，每季固定成本 +${I.second_city_fixed}，並增聘一人。`,
-        "試址投入不退回，配合度 +0.01；不增聘人手或固定成本。", state.finance.cash < Math.max(2.5, I.expansion_cost));
+        "試址投入不退回，市場接受度 +1 個百分點；不增聘人手或固定成本。", state.finance.cash < Math.max(2.5, I.expansion_cost));
     }
   }
   // 保底決策：任何時期皆需有可影響營運的決策（重大或小決策），避免真空期
   const minorReady = state.flags.minor_action_at !== state.month;
   if (!list.length && minorReady) {
-    list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +0.01，下一季需求增加 2%。" });
-    list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -0.05，士氣 +0.03。下季離職風險下降。" });
-    list.push({ id: "market_scan", label: "掃描市場", detail: "確定：花一點時間，配合度 +0.02，發現下季可能的機會。" });
+    list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +1 個百分點，下一季需求增加 2%。" });
+    list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -5 個百分點，士氣 +3 個百分點。下季離職風險下降。" });
+    list.push({ id: "market_scan", label: "掃描市場", detail: "確定：花一點時間，市場接受度 +2 個百分點，發現下季可能的機會。" });
   } else if (list.length > 0 && list.length < 3 && minorReady) {
     // 補齊至至少 3 個選項，確保選擇感
-    if (!list.some(x=>x.id==="review_books")) list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +0.01，下一季需求增加 2%。" });
-    if (list.length < 3 && !list.some(x=>x.id==="team_check")) list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -0.05，士氣 +0.03。" });
+    if (!list.some(x=>x.id==="review_books")) list.push({ id: "review_books", label: "整理帳簿", detail: "確定：信任 +1 個百分點，下一季需求增加 2%。" });
+    if (list.length < 3 && !list.some(x=>x.id==="team_check")) list.push({ id: "team_check", label: "關心團隊", detail: "確定：團隊壓力 -5 個百分點，士氣 +3 個百分點。" });
   }
   const close = { id: "close", label: "考慮結業", detail: "把結束當成一個決定，而不是一場意外。" };
   // Do not truncate this list: later-stage companies unlock more strategic
@@ -2653,7 +2655,7 @@ export function actInitiative(data, state, id) {
     state.finance.cash += pending * 0.95;
     state.finance.arQueue = [];
     state.finance.arPending = 0;
-    pushTimeline(state, "提早收款", `收回 ${round2(pending * 0.95)} 單位；費用 ${round2(pending * 0.05)} 單位。`);
+    pushTimeline(state, "提早收款", `收回 ${round2(pending * 0.95)} 個月薪；費用 ${round2(pending * 0.05)} 個月薪。`);
   } else if (id === "turnaround_lean") {
     applyLeanTurnaround(state);
   } else if (id === "turnaround_offer") {
@@ -2772,7 +2774,7 @@ export function actInitiative(data, state, id) {
       state.venture.timed.push({ months: 2, cost: 0.02 });
       award(data, state, "strategic_partner", 2);
     } else state.venture.trust = clamp(state.venture.trust - 0.02, 0, 1);
-    finishBold("合作談成，需求與產能提升；兩季內履約成本稍增。", "合作未談成，沒有預付損失；四季後可再試。");
+    finishBold("合作談成，需求與產能提升；兩季內交付成本稍增。", "合作未談成，沒有預付損失；四季後可再試。");
     addMarks(data, state, { expansionist: 0.5, customer_first: 0.3 });
   } else if (id === "second_channel") {
     state.flags.channel_attempt = state.month;
@@ -2878,7 +2880,7 @@ export function chooseRescue(data, state, id) {
       worked = true;
     }
     state.lastOutcome = { month: state.month, chance: rescueRoll.chance, success: rescueRoll.success,
-      text: rescueRoll.success ? "好消息：紓困補助獲批，現金 +2.4 單位，無需償還。" : "遇到阻力：補助沒有獲批，這次沒有額外資金。" };
+      text: rescueRoll.success ? "好消息：紓困補助獲批，現金 +2.4 個月薪，無需償還。" : "遇到阻力：補助沒有獲批，這次沒有額外資金。" };
   } else if (id === "turnaround_lean" && !state.flags.turnaround_lean) {
     applyLeanTurnaround(state);
     worked = true;
@@ -3087,15 +3089,15 @@ export function computeRedline(data, state) {
     level = value >= th.crit ? "crit" : value >= th.warn ? "warn" : "ok";
   } else if (type === "platform") {
     value = v.unit;
-    text = value >= 0 ? "單位交易仍有貢獻" : "每一筆交易還在補貼";
+    text = value >= 0 ? "單位交易仍有貢獻" : "每一筆交易還在蝕錢";
     level = value <= th.crit ? "crit" : value <= th.warn ? "warn" : "ok";
   } else if (type === "b2b") {
     value = v.concentration;
-    text = `最大客戶約 ${Math.round(value * 100)}%，帳期約 ${Math.round(v.arDays)} 天`;
+    text = `最大客戶約 ${Math.round(value * 100)}%，客戶約 ${Math.round(v.arDays)} 天`;
     level = value >= th.crit || v.arDays >= 90 ? "crit" : value >= th.warn || v.arDays >= 60 ? "warn" : "ok";
   } else if (type === "manufacturing") {
     value = v.utilization;
-    text = `產能利用率約 ${Math.round(value * 100)}%`;
+    text = `產能用了約 ${Math.round(value * 100)}%`;
     level = value < th.crit_low || value > th.crit_high ? "crit" : value < th.warn_low || value > th.warn_high ? "warn" : "ok";
   } else if (type === "personal") {
     value = state.founder.exited ? v.keyDependency : clamp(state.founder.hours * (0.7 + v.utilization * 0.4), 0, 1.1);
@@ -3155,30 +3157,30 @@ export function symptomIds(data, state) {
 export function rescueOptions(data, state) {
   const crewName = (state.crew || []).find((c) => !c.gone)?.name || state.team?.names?.[0] || "你的人";
   const options = [
-    ...(!state.flags.turnaround_lean ? [{ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重談場地及供應，基本固定成本減 25%，變動成本率減 5 個百分點，需求係數減 8%。不能立即填補欠款。", likely: "改善往後每季的成本，但不保證盈利。", downside: "規模變小，仍要先解決眼前欠款。" }] : []),
+    ...(!state.flags.turnaround_lean ? [{ id: "turnaround_lean", label: "長期：重整成本結構", detail: "重談場地及供應，基本固定成本減 25%，變動成本率減 5 個百分點，需求量減 8%。不能立即填補欠款。", likely: "改善往後每季的成本，但不保證盈利。", downside: "規模變小，仍要先解決眼前欠款。" }] : []),
     ...((state.finance.arQueue || []).length ? [{ id: "collect_early", label: "短期：提早收回應收款", detail: "按現有應收款的 95% 提前收回，餘下是費用；到期時不會重複收款。", likely: "改善眼前現金，不改變生意根本。", downside: "少收 5%，以後沒有這筆款項。" }] : []),
     {
       id: "bridge_support", label: "申請一次性紓困補助",
       detail: `成功機率 ${Math.round(boldChance(data, state, num(econ(data).opportunities?.rescue_chance, 0.76)) * 100)}%。整局只能申請一次；不抵銷未來訂單。`,
-      likely: "獲批時現金 +2.4 單位，無需償還或讓出股權。",
+      likely: "獲批時現金 +2.4 個月薪，無需償還或讓出股權。",
       downside: "未獲批時沒有資金，仍會用掉一次救援行動。",
       affects: "眼前現金與剩餘的救援機會",
     },
     {
       id: "shrink", label: "縮規模", detail: "砍固定成本與人手。收入會一起變小。",
-      likely: "基本固定成本降約四分之一，需求降約兩成、產能降一成；若有人手會裁減一人。跑道未必因此改善。",
+      likely: "基本固定成本降約四分之一，需求降約兩成、產能降一成；若有人手會裁減一人。現金未必因此撐得更久。",
       downside: "被縮掉的那個人可能是唯一做得完那件事的人。",
       affects: `${crewName}、客人能買到的量、之後重新長大的速度`,
     },
     {
       id: "presell", label: "預售", detail: state.venture.trust >= 0.38 ? "信任還夠，可以先收一筆。" : "信任不夠，這一項做不到。",
-      likely: "現金立刻增加 1.15 單位；之後四季各抵扣 1.15 的四分之一。",
+      likely: "現金立刻增加 1.15 個月薪；之後四季各抵扣 1.15 的四分之一。",
       downside: "未來四季要交付預售訂單，收款會被抵扣。",
       affects: "先付錢的客人、未來四季的現金",
     },
     {
-      id: "delay", label: "談延期", detail: "把最近的承諾往後推，關係會損。",
-      likely: "現金暫時增加 0.85 單位，同額延期帳款分四季償還並計入債務，另付利息；信任下降。",
+      id: "delay", label: "談延期", detail: "把最近那筆要付的錢往後推，關係會受損。",
+      likely: "現金暫時增加 0.85 個月薪，同額延期帳款分四季償還並計入債務，另付利息；信任下降。",
       downside: "對方會記住這件事，下一次的條件會更硬。",
       affects: "供應商、業主、你和他們之間的關係",
     },
@@ -3195,7 +3197,7 @@ export function rescueOptions(data, state) {
       affects: "你個人、你的家庭、之後每一次融資",
     },
     {
-      id: "equity", label: "引資", detail: "用控制權換跑道。衰退又沒有轉型時，對方不一定要。",
+      id: "equity", label: "引資", detail: "用控制權換取時間。衰退又沒有轉型時，對方不一定要。",
       likely: "現金多三季的量，控制權下降約一成半，董事會進來。",
       downside: "從現在開始，方向不是你一個人決定。",
       affects: "控制權、治理、你能不能保住原本的做法",

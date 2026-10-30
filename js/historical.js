@@ -54,7 +54,7 @@ const FOLLOWUP_QUESTIONS = {
   product: '接下來要怎樣安排產品測試、交付和客戶的期望？',
   technology: '研發、維護與原有營運都要資源；下一步要投入多少？',
   network: '客戶與合作夥伴的承諾需要管理；如何控制發展節奏？',
-  capital: '資金、現金流與決策權都要兼顧；接下來如何部署？',
+  capital: '資金、現金流與決策權都要兼顧；接下來要怎麼安排？',
   acquisition: '合作或獨立發展都需要協調資源；怎樣安排整合與交付？',
   restructure: '新的工作安排需要時間磨合；怎樣處理流程與人手？',
   expansion: '新的發展方向會佔用資源；如何平衡規模與現金？',
@@ -62,32 +62,32 @@ const FOLLOWUP_QUESTIONS = {
 
 const IMPACTS = {
   product: {
-    historical: [{ cash: -0.4, revenue_mult: 1.12, market_fit: 0.05 }, '現金 −0.4；需求係數 +12%，市場配合度 +5 個百分點。'],
-    alternate: [{ cash: -0.15, revenue_mult: 1.04, trust: 0.02 }, '現金 −0.15；需求係數 +4%，信任 +2 個百分點。'],
+    historical: [{ cash: -0.4, revenue_mult: 1.12, market_fit: 0.05 }, '現金 −0.4 個月薪；需求量 +12%，市場接受度 +5 個百分點。'],
+    alternate: [{ cash: -0.15, revenue_mult: 1.04, trust: 0.02 }, '現金 −0.15 個月薪；需求量 +4%，信任 +2 個百分點。'],
   },
   technology: {
-    historical: [{ cash: -0.6, revenue_mult: 1.08, market_fit: 0.06, quality: 0.04 }, '現金 −0.6；需求係數 +8%，市場配合度 +6、品質 +4 個百分點。'],
-    alternate: [{ cash: -0.1, cost_mod: -0.02, trust: 0.01 }, '現金 −0.1；變動成本率 −2 個百分點，信任 +1 個百分點。'],
+    historical: [{ cash: -0.6, revenue_mult: 1.08, market_fit: 0.06, quality: 0.04 }, '現金 −0.6 個月薪；需求量 +8%，市場接受度 +6、品質 +4 個百分點。'],
+    alternate: [{ cash: -0.1, cost_mod: -0.02, trust: 0.01 }, '現金 −0.1 個月薪；變動成本率 −2 個百分點，信任 +1 個百分點。'],
   },
   network: {
-    historical: [{ cash: -0.3, revenue_mult: 1.1, capacity_add: 0.08, trust: 0.02 }, '現金 −0.3；需求係數 +10%、產能 +8%，信任 +2 個百分點。'],
-    alternate: [{ cash: -0.1, revenue_mult: 1.03, trust: 0.04 }, '現金 −0.1；需求係數 +3%，信任 +4 個百分點。'],
+    historical: [{ cash: -0.3, revenue_mult: 1.1, capacity_add: 0.08, trust: 0.02 }, '現金 −0.3 個月薪；需求量 +10%、產能 +8%，信任 +2 個百分點。'],
+    alternate: [{ cash: -0.1, revenue_mult: 1.03, trust: 0.04 }, '現金 −0.1 個月薪；需求量 +3%，信任 +4 個百分點。'],
   },
   acquisition: {
-    historical: [{ cash: -1, revenue_mult: 1.15, capacity_add: 0.15, complexity: 0.35 }, '現金 −1；需求係數 +15%、產能 +15%，複雜度增加。'],
-    alternate: [{ cash: -0.15, revenue_mult: 1.04, trust: 0.02 }, '現金 −0.15；需求係數 +4%，信任 +2 個百分點。'],
+    historical: [{ cash: -1, revenue_mult: 1.15, capacity_add: 0.15, complexity: 0.35 }, '現金 −1 個月薪；需求量 +15%、產能 +15%，複雜度增加。'],
+    alternate: [{ cash: -0.15, revenue_mult: 1.04, trust: 0.02 }, '現金 −0.15 個月薪；需求量 +4%，信任 +2 個百分點。'],
   },
   capital: {
-    historical: [{ cash: 2, control: -0.12, board: true }, '現金 +2；控制權 −12 個百分點，董事會進來。這不等同完成遊戲中的上市程序。'],
-    alternate: [{ market_fit: 0.02, trust: 0.02 }, '不引入外部資金；市場配合度及信任各 +2 個百分點。'],
+    historical: [{ cash: 2, control: -0.12, board: true }, '現金 +2 個月薪；控制權 −12 個百分點，董事會進來。這不等同完成遊戲中的上市程序。'],
+    alternate: [{ market_fit: 0.02, trust: 0.02 }, '不引入外部資金；市場接受度及信任各 +2 個百分點。'],
   },
   restructure: {
-    historical: [{ cash: -0.4, fixed_mult: 0.92, trust: 0.02, complexity: 0.1 }, '現金 −0.4；基本固定成本 ×0.92，信任 +2 個百分點，複雜度略增。'],
-    alternate: [{ revenue_mult: 1.03, trust: 0.02 }, '不支付重組費；需求係數 +3%，信任 +2 個百分點。'],
+    historical: [{ cash: -0.4, fixed_mult: 0.92, trust: 0.02, complexity: 0.1 }, '現金 −0.4 個月薪；基本固定成本 ×0.92，信任 +2 個百分點，複雜度略增。'],
+    alternate: [{ revenue_mult: 1.03, trust: 0.02 }, '不支付重組費；需求量 +3%，信任 +2 個百分點。'],
   },
   expansion: {
-    historical: [{ cash: -0.7, revenue_mult: 1.16, capacity_add: 0.15, fixed_add: 0.12, complexity: 0.25 }, '現金 −0.7；需求係數 +16%、產能 +15%，每季固定成本 +0.12。'],
-    alternate: [{ cash: -0.1, revenue_mult: 1.03, trust: 0.02 }, '現金 −0.1；需求係數 +3%，信任 +2 個百分點。'],
+    historical: [{ cash: -0.7, revenue_mult: 1.16, capacity_add: 0.15, fixed_add: 0.12, complexity: 0.25 }, '現金 −0.7 個月薪；需求量 +16%、產能 +15%，每季固定成本 +0.12。'],
+    alternate: [{ cash: -0.1, revenue_mult: 1.03, trust: 0.02 }, '現金 −0.1 個月薪；需求量 +3%，信任 +2 個百分點。'],
   },
 };
 
@@ -100,9 +100,9 @@ function followupEvent(company, followup) {
     body: `這是因你的選擇產生的虛構後續，不是現實中發生過的事件。${FOLLOWUP_QUESTIONS[followup.type] || '你要如何繼續經營？'}`,
     chainCause: { causeMonth: followup.quarter, event: '歷史參照的決定', choice: followup.direction },
     choices: [
-      { id: 'invest', label: '投入資源，深化這個方向', detail: '現金 −0.3；需求係數 +6%，市場配合度 +3 個百分點。', risk: '投入會壓縮眼前現金。', effects: { cash: -0.3, revenue_mult: 1.06, market_fit: 0.03 }, drivers: { growth: 1, cash: -1 } },
-      { id: 'test', label: '小規模驗證，逐季調整', detail: '現金 −0.1；信任 +2、市場配合度 +1 個百分點。', risk: '進度較慢，對手可能先行。', effects: { cash: -0.1, trust: 0.02, market_fit: 0.01 }, drivers: { learning: 1, flexibility: 1 } },
-      { id: 'slow', label: '放慢速度，減少開支', detail: '基本固定成本 ×0.95，需求係數 ×0.96。', risk: '需求可能隨規模收縮。', effects: { fixed_mult: 0.95, revenue_mult: 0.96 }, drivers: { cash: 1, growth: -1 } },
+      { id: 'invest', label: '投入資源，深化這個方向', detail: '現金 −0.3 個月薪；需求量 +6%，市場接受度 +3 個百分點。', risk: '投入會壓縮眼前現金。', effects: { cash: -0.3, revenue_mult: 1.06, market_fit: 0.03 }, drivers: { growth: 1, cash: -1 } },
+      { id: 'test', label: '小規模驗證，逐季調整', detail: '現金 −0.1 個月薪；信任 +2、市場接受度 +1 個百分點。', risk: '進度較慢，對手可能先行。', effects: { cash: -0.1, trust: 0.02, market_fit: 0.01 }, drivers: { learning: 1, flexibility: 1 } },
+      { id: 'slow', label: '放慢速度，減少開支', detail: '基本固定成本 ×0.95，需求量 ×0.96。', risk: '需求可能隨規模收縮。', effects: { fixed_mult: 0.95, revenue_mult: 0.96 }, drivers: { cash: 1, growth: -1 } },
     ],
   };
 }
@@ -145,7 +145,7 @@ export function dueHistoricalEvent(data, state) {
       },
       {
         id: 'hold', route: 'hold', label: '先守住現有業務',
-        detail: '不投入現金；信任 +1 個百分點，需求係數 −2%。',
+        detail: '不投入現金；信任 +1 個百分點，需求量 −2%。',
         risk: '保留現金，但市場可能向其他方向前進。',
         effects: { trust: 0.01, revenue_mult: 0.98 }, drivers: { cash: 1, growth: -1 },
       },

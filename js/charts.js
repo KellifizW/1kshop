@@ -1,8 +1,8 @@
 /**
  * 五張圖，解決同一個問題：玩家破產之後，仍然不知道自己為什麼輸。
  *
- * 1. 現金跑道　　2. 現金流瀑布　　3. 顧客漏斗
- * 4. 產能瓶頸　　5. 決策回顧線
+ * 1. 現金可以撐幾季　2. 現金流入與支出　3. 從進門到成交
+ * 4. 卡在哪裡　　5. 現金與決定的回顧
  *
  * 全部回傳 HTML/SVG 字串，不做任何 DOM 操作，所以在結算頁、帳簿、
  * 結局卡與紀念卡上都能重複使用。
@@ -15,7 +15,7 @@ const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const r0 = (n) => Math.round(num(n, 0)).toLocaleString("zh-Hant");
 
-/* ── 1. 現金跑道 ───────────────────────────────────────── */
+/* ── 1. 現金可以撐幾季 ─────────────────────────────────── */
 
 export function runwayView(data, run, opts = {}) {
   const cash = num(run.finance?.cash, 0);
@@ -37,8 +37,8 @@ export function runwayView(data, run, opts = {}) {
   const x = (m) => clamp((m / span) * w, 0, w);
   const label = months >= 24 ? "很長" : `${months.toFixed(1)} 季`;
   return `<figure class="chart chart-runway" data-level="${months < 3 ? "crit" : months < 6 ? "warn" : "ok"}">
-    <figcaption>現金跑道</figcaption>
-    <svg viewBox="0 0 ${w} 46" role="img" aria-label="現金 ${esc(money(data, run, cash))}，目前速度可生存 ${esc(label)}，最壞情況 ${worst.toFixed(1)} 季">
+    <figcaption>現金可以撐幾季</figcaption>
+    <svg viewBox="0 0 ${w} 46" role="img" aria-label="現金 ${esc(money(data, run, cash))}，以目前速度可撐 ${esc(label)}，最壞情況 ${worst.toFixed(1)} 季">
       <rect x="0" y="16" width="${w}" height="14" rx="7" fill="#e7dccb"/>
       <rect x="0" y="16" width="${x(months)}" height="14" rx="7" fill="${months < 3 ? "#8f2d2d" : months < 6 ? "#8a5a12" : "#2a6a4a"}"/>
       <rect x="0" y="16" width="${x(worst)}" height="14" rx="7" fill="#1c1612" opacity="0.18"/>
@@ -47,9 +47,9 @@ export function runwayView(data, run, opts = {}) {
     </svg>
     <ul class="chart-notes">
       <li>現金 <b>${esc(money(data, run, cash))}</b></li>
-      <li>每季淨燃燒 <b>${esc(money(data, run, burn))}</b></li>
-      <li>目前速度可生存 <b>${months >= 24 ? "很長" : months.toFixed(1) + " 季"}</b></li>
-      <li class="worst">若客流再跌 20%：<b>${worst >= 24 ? "仍很長" : worst.toFixed(1) + " 季"}</b></li>
+      <li>每季淨支出 <b>${esc(money(data, run, burn))}</b></li>
+      <li>以目前速度可撐 <b>${months >= 24 ? "很長" : months.toFixed(1) + " 季"}</b></li>
+      <li class="worst">若生意再少兩成：<b>${worst >= 24 ? "仍很長" : worst.toFixed(1) + " 季"}</b></li>
       ${opts.debt ? `<li>債務 <b>${esc(money(data, run, num(run.finance?.debt, 0)))}</b></li>` : ""}
     </ul>
   </figure>`;
@@ -103,9 +103,9 @@ export function waterfall(data, run) {
   const killer = steps.filter((s) => s.kind === "cost").sort((a, b) => a.v - b.v)[0];
   return `<figure class="chart chart-waterfall">
     <figcaption>現金入帳與支出</figcaption>
-    <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="現金流瀑布圖，${esc(killer ? `最大的一項現金流出是${killer.label}` : "沒有支出")}">${bars.join("")}</svg>
+    <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="現金流入與支出圖，${esc(killer ? `最大的一項支出是${killer.label}` : "沒有支出")}">${bars.join("")}</svg>
     <ul class="chart-rows">${rows}</ul>
-    ${killer ? `<p class="chart-verdict">這季最大的現金流出是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
+    ${killer ? `<p class="chart-verdict">這季最大的一筆支出是<b>${esc(killer.label)}</b>（${esc(money(data, run, killer.v))}）。</p>` : ""}
   </figure>`;
 }
 
@@ -191,7 +191,7 @@ export function cashflowPanel(data, run, forecast = null) {
   }).join("");
   const liveStart = estimated ? "估算期間進行中" : "本季進行中";
   const note = estimated
-    ? "開業預測按目前設定估算，實際收款與開支會隨客流、帳期和事件改變。流出亦會分開列出創辦人提款、還本金與生活費補貼。"
+    ? "開業預測按目前設定估算，實際收款與開支會隨客流、客戶付款期和事件改變。流出亦會分開列出創辦人提款、還本金與生活費補貼。"
     : `營業額是帳面收入，不等於現金入帳；逾期合約款會在之後的季度才收回。流出亦包含提款、還本金等非營運項目。${hasLegacyHistory ? "舊存檔較早季度未分開記錄實際入帳，圖上會留空而不拿營業額冒充收款。" : ""}`;
 
   return `<figure class="chart chart-cashflow" aria-label="公司現金流總覽">
@@ -222,21 +222,21 @@ export function cashflowPanel(data, run, forecast = null) {
   </figure>`;
 }
 
-/* ── 3. 顧客漏斗 ───────────────────────────────────────── */
+/* ── 3. 從進門到成交 ───────────────────────────────────────── */
 
 const FUNNEL_FIX = {
   passersby: ["位置、招牌、外觀", "有多少人經過你的門口"],
   entered: ["招牌、陳列、門口的隊", "願意走進來的比例"],
   orders: ["價格、菜單、品質、評價", "走進來之後決定要買"],
   served: ["人手、設備、流程", "你做得完的量"],
-  paid: ["帳期、退貨、付款摩擦", "真的收到錢"],
+  paid: ["收款慢、退貨、付款摩擦", "真的收到錢"],
   repeat: ["品質穩定、信任", "願意再來一次"],
   loyal: ["會員制、關係、熟客", "會帶別人來的那些人"],
 };
 
 export function funnel(data, run) {
   const ops = run.last?.ops || run.lastOps;
-  if (!ops) return `<figure class="chart chart-funnel"><figcaption>顧客漏斗</figcaption><p class="muted">結算一次之後，這裡會顯示客人怎麼一層一層少掉。</p></figure>`;
+  if (!ops) return `<figure class="chart chart-funnel"><figcaption>從進門到成交</figcaption><p class="muted">結算一次之後，這裡會顯示客人怎麼一層一層少掉。</p></figure>`;
   const rows = [
     ["passersby", "路過", ops.passersby],
     ["entered", "走進店裡", ops.entered],
@@ -260,17 +260,17 @@ export function funnel(data, run) {
   }).join("");
   const worstIdx = rows.slice(1).map((r, i) => ({ i: i + 1, conv: rows[i][2] > 0 ? r[2] / rows[i][2] : 1 })).sort((a, b) => a.conv - b.conv)[0];
   return `<figure class="chart chart-funnel">
-    <figcaption>顧客漏斗</figcaption>
+    <figcaption>從進門到成交</figcaption>
     <ul class="funnel">${body}</ul>
-    ${worstIdx ? `<p class="chart-verdict">最大的漏點在「${esc(rows[worstIdx.i][1])}」這一層：${esc(FUNNEL_FIX[rows[worstIdx.i][0]][1])}。</p>` : ""}
+    ${worstIdx ? `<p class="chart-verdict">客人流失最多的一層是「${esc(rows[worstIdx.i][1])}」這一層：${esc(FUNNEL_FIX[rows[worstIdx.i][0]][1])}。</p>` : ""}
   </figure>`;
 }
 
-/* ── 4. 產能瓶頸 ───────────────────────────────────────── */
+/* ── 4. 這一季卡在哪裡 ─────────────────────────────────── */
 
 export function bottleneck(data, run) {
   const ops = run.last?.ops || run.lastOps;
-  if (!ops) return `<figure class="chart chart-cap"><figcaption>產能瓶頸</figcaption><p class="muted">結算一次之後，這裡會指出卡在人、設備還是場地。</p></figure>`;
+  if (!ops) return `<figure class="chart chart-cap"><figcaption>這一季卡在哪裡</figcaption><p class="muted">結算一次之後，這裡會指出卡在人、設備還是場地。</p></figure>`;
   const rows = [
     ["需求", ops.orders, "#3c342c"],
     ["人手與設備做得完", ops.handsCap, "#2a5a6a"],
@@ -287,18 +287,18 @@ export function bottleneck(data, run) {
   const gapFront = ops.handsCap - ops.frontCap;
   let verdict;
   if (gapHands > Math.max(4, ops.orders * 0.08)) verdict = `卡在<b>人與設備</b>：有 ${r0(gapHands)} 單沒有人做得完。要嘛加人、要嘛買設備、要嘛把流程改短。`;
-  else if (gapFront > Math.max(4, ops.orders * 0.08)) verdict = `卡在<b>場地與收銀</b>：做得出來，但接不住。櫃檯、動線或店面大小是瓶頸。`;
+  else if (gapFront > Math.max(4, ops.orders * 0.08)) verdict = `卡在<b>場地與收銀</b>：做得出來，但接不住。櫃檯、動線或店面大小就是卡住的地方。`;
   else if (ops.served < ops.orders * 0.98) verdict = `差一點點：${r0(ops.orders - ops.served)} 單在最後一步流失。`;
   else verdict = `產能不是這季的問題。<b>需求</b>才是：你做得完，但沒有那麼多人要。`;
   return `<figure class="chart chart-cap">
-    <figcaption>產能瓶頸</figcaption>
+    <figcaption>這一季卡在哪裡</figcaption>
     <ul class="cap">${bars}</ul>
     <p class="chart-verdict">${verdict}</p>
-    <p class="muted">利用率 ${Math.round(num(ops.utilization, 0) * 100)}%。利用率長期高於九成，人的壓力會跟著上來。</p>
+    <p class="muted">產能用了 ${Math.round(num(ops.utilization, 0) * 100)}%。長期高過九成，人的壓力會跟著上來。</p>
   </figure>`;
 }
 
-/* ── 5. 決策回顧線 ─────────────────────────────────────── */
+/* ── 5. 現金與決定的回顧 ───────────────────────────────── */
 
 const MARK_ICON = {
   price: "價", hire: "聘", fire: "裁", raise: "薪", market: "推", expand: "擴", transform: "轉",
@@ -337,7 +337,7 @@ export function decisionMarks(run) {
 
 export function decisionLine(data, run, opts = {}) {
   const pts = (run.series || []).slice(-(opts.months || 120));
-  if (pts.length < 2) return `<figure class="chart chart-line"><figcaption>決策回顧線</figcaption><p class="muted">兩季之後，這裡會有一條線，上面標著你當時做的決定。</p></figure>`;
+  if (pts.length < 2) return `<figure class="chart chart-line"><figcaption>現金與決定的回顧</figcaption><p class="muted">兩季之後，這裡會有一條線，上面標著你當時做的決定。</p></figure>`;
   const w = 640, h = 170, padL = 8, padB = 20, padT = 14;
   const marks = decisionMarks(run).filter((m) => m.m >= pts[0].m && m.m <= pts[pts.length - 1].m);
   const max = Math.max(...pts.map((p) => p.cash), 0.05);
@@ -358,7 +358,7 @@ export function decisionLine(data, run, opts = {}) {
       <title>${esc(`第 ${mk.m} 季 · ${mk.label}`)}</title></g>`;
   }).join("");
   return `<figure class="chart chart-line">
-    <figcaption>決策回顧線</figcaption>
+    <figcaption>現金與決定的回顧</figcaption>
     <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="現金曲線，上面標著 ${marks.length} 個當時的決定">
       <line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${w - padL}" y2="${zeroY.toFixed(1)}" stroke="#7a6e62" stroke-width="1"/>
       <path d="${path}" fill="none" stroke="#8f2d2d" stroke-width="2"/>
@@ -370,7 +370,7 @@ export function decisionLine(data, run, opts = {}) {
   </figure>`;
 }
 
-/* ── 季初：預測與部署。重點是區間，不是準確答案。 ─────────── */
+/* ── 季初：這一季的預測。重點是範圍，不是準確答案。 ───────── */
 
 export function forecastPanel(data, run, fc) {
   if (!fc || !run.venture) return "";
@@ -388,18 +388,18 @@ export function forecastPanel(data, run, fc) {
   const orderBand = [num(fc.revenue?.[0], 0) / aov, num(fc.revenue?.[1], 0) / aov];
   const capOrders = ops ? Math.max(ops.handsCap, ops.frontCap) : 0;
   const risk = biggestRisk(data, run, fc);
-  return `<section class="forecast" aria-label="這季的預測與部署">
-    <p class="fold-k">季初 · 預測與部署</p>
+  return `<section class="forecast" aria-label="這一季的預測">
+    <p class="fold-k">季初 · 這一季的預測</p>
     <ul class="forecast-grid">
-      <li><span>客流區間</span><b>${r0(orderBand[0])} – ${r0(orderBand[1])} 單</b></li>
-      <li><span>帳面收入區間</span><b>${esc(money(data, run, fc.revenue?.[0]))} – ${esc(money(data, run, fc.revenue?.[1]))}</b></li>
+      <li><span>預計接單</span><b>${r0(orderBand[0])} – ${r0(orderBand[1])} 單</b></li>
+      <li><span>預計收入</span><b>${esc(money(data, run, fc.revenue?.[0]))} – ${esc(money(data, run, fc.revenue?.[1]))}</b></li>
       <li class="${worstCash < 0 ? "bad" : ""}"><span>最壞情況現金</span><b>${esc(money(data, run, worstCash))}</b></li>
-      <li class="${Number.isFinite(breakevenOrders) && breakevenOrders > capOrders ? "bad" : ""}"><span>盈虧平衡所需</span><b>${Number.isFinite(breakevenOrders) ? r0(breakevenOrders) + " 單" : "毛利是負的"}</b></li>
+      <li class="${Number.isFinite(breakevenOrders) && breakevenOrders > capOrders ? "bad" : ""}"><span>打平至少要接</span><b>${Number.isFinite(breakevenOrders) ? r0(breakevenOrders) + " 單" : "接一單賠一單"}</b></li>
       <li><span>最大產能</span><b>${r0(capOrders)} 單</b></li>
-      <li><span>每季淨燃燒</span><b>${esc(money(data, run, burn))}</b></li>
+      <li><span>每季淨支出</span><b>${esc(money(data, run, burn))}</b></li>
     </ul>
     <p class="forecast-risk">最大風險來源：<b>${esc(risk)}</b></p>
-    <p class="muted">這是區間，不是答案。同一個決定，不同的季度會給不同的結果。</p>
+    <p class="muted">這是可能的範圍，不是保證。同一個決定，不同的季度會給不同的結果。</p>
   </section>`;
 }
 
@@ -418,7 +418,7 @@ function biggestRisk(data, run, fc) {
   if (num(run.finance?.debt, 0) > 3) list.push([3, `債務 ${money(data, run, run.finance.debt)}`]);
   if (num(v?.concentration, 0) > 0.5) list.push([3, `最大客戶佔 ${Math.round(v.concentration * 100)}%`]);
   if (run.weather && num(run.weather.demand, 0) < -0.1) list.push([2, `${run.weather.label}會把客流壓下來`]);
-  if (rl?.level === "crit") list.push([5, `${rl.name}已經越過紅線`]);
+  if (rl?.level === "crit") list.push([5, `${rl.name}，已經越過警戒線`]);
   if (!list.length) list.push([1, "這季沒有明顯的單一風險"]);
   list.sort((a, b) => b[0] - a[0]);
   return list[0][1];
