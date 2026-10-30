@@ -48,7 +48,7 @@ function open(company, seed = 'history-test') {
   assert.equal(S.ensureWork(data, r).name, company.name);
   assert.equal(P.business(data, r).sells, company.startingBusiness);
   assert.equal(P.worldLine(data, r).city.name, company.origin);
-  assert.match(P.money(data, r, 1.2), /遊戲單位/);
+  assert.match(P.money(data, r, 1.2), /個月薪/);
   assert.match(S.calendarLabel(r), /^模擬/);
   assert.deepEqual(S.nameOptions(r, data), [company.name]);
   S.acknowledgeReveal(r); S.acceptOpportunity(r);

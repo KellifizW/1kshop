@@ -794,7 +794,7 @@ const POSE_NOTES = {
 
 /** 沒有櫃檯的生意，同一種動作要換句話說，不然看起來像走錯店。 */
 const POSE_NOTES_KIND = {
-  digital: { serve: "坐在螢幕前處理線上服務", busy: "在幾塊螢幕之間切換", tidy: "整理部署與這一季的帳單" },
+  digital: { serve: "坐在螢幕前處理線上服務", busy: "在幾塊螢幕之間切換", tidy: "整理這一季的帳單與伺服器" },
   online: { serve: "在出貨桌前包貨、貼單", busy: "一邊包貨一邊回訊息", tidy: "整理貨架與包材" },
   onsite: { serve: "在客戶那邊把工具放下", busy: "兩個案場之間跑", tidy: "趁空檔整理工具箱" },
   mobile: { serve: "在攤車後面招呼", busy: "一邊做一邊收錢", tidy: "整理攤車上的貨" },
@@ -885,8 +885,8 @@ export function paintStage(run, live) {
       el.className = `float-chip ${live.pulse.amount >= 0 ? "in" : "out"}`;
       el.textContent = live.pulse.text;
       box.appendChild(el);
-      setTimeout(() => el.remove(), 1600);
-      while (box.children.length > 4) box.firstChild.remove();
+      setTimeout(() => el.remove(), 2800);
+      while (box.children.length > 2) box.firstChild.remove();
     }
   }
   if (live?.weatherText != null) set("#stage-wx", live.weatherText);

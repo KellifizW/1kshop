@@ -196,7 +196,7 @@
     "LEASE": {"subject": "業主{landlord}", "object": "{company}在{city}的租約"},
     "RETENTION": {"subject": "正在離開的訂戶", "object": "{company}的續約"},
     "UNIT_ECONOMICS": {"subject": "{company}的每一筆交易", "object": "扣掉補貼之後還剩不剩"},
-    "CONCENTRATION": {"subject": "大客戶{customer}", "object": "{company}的產能與帳期"},
+    "CONCENTRATION": {"subject": "大客戶{customer}", "object": "{company}的產能與收款速度"},
     "CAPACITY": {"subject": "{company}最忙的那台設備", "object": "要修、要租，還是要換"},
     "FOUNDER_LOAD": {"subject": "你自己", "object": "{company}離不開你的日常"},
     "INVENTORY": {"subject": "{company}倉庫裡的貨", "object": "{customer}退回來的那一批"},
@@ -256,9 +256,9 @@
   },
   "beats": [
     {"id": "regular", "weight": 14, "subject": "客人{customer}", "object": "又向{company}買{sells}", "text": "{customer}又來了，向{company}買的還是{sells}。", "note": "熟客把信任留下一點，下季的需求會鬆一點。", "effects": {"trust": 0.012, "market_fit": 0.005, "demand": 0.01}},
-    {"id": "referral", "weight": 8, "subject": "客人{customer}", "object": "把{company}的{sells}介紹給另一個人", "text": "{customer}把{company}的{sells}介紹給另一個人。沒有合約，只有一句話。", "note": "配合度上升一點。這種介紹會疊加。", "effects": {"trust": 0.01, "market_fit": 0.008, "demand": 0.012}},
+    {"id": "referral", "weight": 8, "subject": "客人{customer}", "object": "把{company}的{sells}介紹給另一個人", "text": "{customer}把{company}的{sells}介紹給另一個人。沒有合約，只有一句話。", "note": "市場接受度上升一點。這種介紹會疊加。", "effects": {"trust": 0.01, "market_fit": 0.008, "demand": 0.012}},
     {"id": "late_goods", "weight": 10, "subject": "供應商{supplier}", "object": "給{company}的貨晚了兩天", "text": "{supplier}的貨晚了兩天，{company}只好先用較貴的替代。", "note": "變動成本被墊高一點，會留到後面幾個月。", "effects": {"cost": 0.015, "quality": -0.008}},
-    {"id": "longer_terms", "weight": 7, "subject": "供應商{supplier}", "object": "肯讓{company}晚一週再付", "text": "{supplier}願意把帳期放寬一週。", "note": "現金鬆了一點。", "effects": {"cash": 0.08, "cost": -0.006}},
+    {"id": "longer_terms", "weight": 7, "subject": "供應商{supplier}", "object": "肯讓{company}晚一週再付", "text": "{supplier}願意讓你晚一週付款。", "note": "現金鬆了一點。", "effects": {"cash": 0.08, "cost": -0.006}},
     {"id": "peer_price", "weight": 11, "when": ["peer"], "subject": "{peer}", "object": "用低價看{company}的客人", "text": "{peer}把價格寫低。有幾個本來要進{company}的人先去看了一眼。", "note": "身邊的同行的壓力上升，需求被削掉一點。", "effects": {"peer": 0.02, "demand": -0.012}},
     {"id": "wrong_door", "weight": 7, "when": ["peer"], "subject": "{peer}的客人", "object": "走錯門，坐進{company}", "text": "{peer}的熟客有一個走錯門，在{company}坐了下來。", "note": "這一季的需求被墊高一點。", "effects": {"demand": 0.014, "trust": 0.006}},
     {"id": "staff_quiet", "weight": 9, "when": ["staff"], "subject": "{employee}", "object": "替{company}處理掉一件例外", "text": "{employee}把一件例外自己處理完，沒有半夜傳訊息給你。", "note": "士氣上升，你沒那麼不可取代。", "effects": {"morale": 0.02, "will": 0.01}},
@@ -271,7 +271,7 @@
     {"id": "mentor", "weight": 6, "subject": "{mentor}", "object": "提醒你先別改{company}的價格", "text": "{mentor}傳了一句：{company}的價格先不要動。", "note": "意志穩一點。沒有人逼你這一季做重大決定。", "effects": {"will": 0.02}},
     {"id": "landlord_note", "weight": 6, "when": ["premises"], "subject": "業主{landlord}", "object": "只寄來{company}的繳費通知", "text": "{landlord}的訊息只有繳費通知，沒有寒暄。", "note": "場地還在。只是語氣變正式了。", "effects": {"will": -0.008}},
     {"id": "return_note", "weight": 7, "subject": "客人{customer}", "object": "退回{company}的{sells}", "text": "{customer}退了一筆{sells}。留言寫的是這一次，不是{company}整門生意。", "note": "品質被質疑一點，信任沒有一起掉。", "effects": {"quality": -0.01, "trust": 0.004, "cost": 0.006}},
-    {"id": "trade_chat", "weight": 7, "subject": "{city}的同業", "object": "在找{company}的{sells}", "text": "{city}的同業群裡，有人在找{company}做的{sells}。", "note": "配合度上升一點。", "effects": {"market_fit": 0.01, "demand": 0.008}},
+    {"id": "trade_chat", "weight": 7, "subject": "{city}的同業", "object": "在找{company}的{sells}", "text": "{city}的同業群裡，有人在找{company}做的{sells}。", "note": "市場接受度上升一點。", "effects": {"market_fit": 0.01, "demand": 0.008}},
     {"id": "hours_heavy", "weight": 8, "subject": "你", "object": "{company}這一季的日常", "text": "你在{company}多留了幾個晚上，沒有人叫你。", "note": "健康被磨掉一點，需求短暫墊高。", "effects": {"health": -0.015, "demand": 0.008, "hours": 0.02}}
   ],
   "crew_lines": {
@@ -442,7 +442,7 @@
     "founder_burnout": {"group": "fail", "title": "創辦人過勞離場", "line": "所有事的名字都是你，包括那件做不完的。", "cause": "身體先於公司停下。"},
     "rent_squeeze": {"group": "fail", "title": "被租金擠死", "line": "生意在，位置不在了。", "cause": "場地成本佔營業額的比例，超過它能承擔的極限。"},
     "supply_quality": {"group": "fail", "title": "供應與品質失控", "line": "便宜的那一次，後來最貴。", "cause": "替代供應或壓縮成本，在幾個月後變成投訴與退貨。"},
-    "debt_call": {"group": "fail", "title": "債務提前到期", "line": "借來的時間，被一次收回。", "cause": "高槓桿遇上信用緊縮，還款排在現金之前。"},
+    "debt_call": {"group": "fail", "title": "債務提前到期", "line": "借來的時間，被一次收回。", "cause": "借得太多，遇上信用緊縮，還款排在現金之前。"},
     "compliance_stop": {"group": "fail", "title": "停在牌照上", "line": "門是開著的，但不能營業。", "cause": "合規與申報沒有跟上城市的要求。"},
     "guarantee_ruin": {"group": "fail", "title": "公司倒閉，個人仍要還債", "line": "公司清算後，創辦人仍要承擔部分債務。", "cause": "因個人擔保或無限責任，公司倒閉後，創辦人仍需負責部分債務。"},
     "small_rich": {"group": "neutral", "title": "小富即安", "line": "它養活了一家人，沒有養大一個行業。", "cause": "你選擇了不再長大。"},

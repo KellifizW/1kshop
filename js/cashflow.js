@@ -9,7 +9,7 @@ const num = (value, fallback = 0) => {
  * 還本金與創辦人提款會減少現金，但不是營運費用，因此分開列示。
  */
 const EXPENSES = [
-  { key: "variable", label: "材料與履約成本", shortLabel: "材料／履約", at: 0.32 },
+  { key: "variable", label: "材料與交付成本", shortLabel: "材料／交付", at: 0.32 },
   { key: "platform", label: "平台／渠道抽成", shortLabel: "平台抽成", at: 0.42 },
   { key: "labor", label: "員工薪酬", shortLabel: "員工薪酬", at: 0.19 },
   { key: "premises", label: "租金與場地", shortLabel: "租金／場地", at: 0.08 },
@@ -134,7 +134,7 @@ export function cashflowLedger(last, biz = {}, previousCash = null) {
 export function cashflowPulses(startCash, endCash, last, biz = {}) {
   const ledger = cashflowLedger({ ...last, cashStart: startCash, cash: endCash }, biz);
   const pulses = [];
-  const ticks = Math.max(1, Math.min(16, Math.round(num(biz.ticks, 6))));
+  const ticks = Math.max(1, Math.min(5, Math.round(num(biz.ticks, 6))));
   const late = !!biz.late;
 
   for (const item of ledger.inflows) {

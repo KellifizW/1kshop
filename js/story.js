@@ -436,7 +436,7 @@ export function quickMetrics(data, run) {
   const flow = run.last?.parts ? cashflowLedger(run.last, run.work || {}, previousCash) : null;
   const cashChange = flow?.net ?? 0;
   return [
-    { id: "cash", label: "現金", value: money(data, run, run.finance?.cash), level: num(run.finance?.cash, 0) < 0.4 ? "bad" : num(run.finance?.cash, 0) < 1.2 ? "warn" : "good", note: `跑道 ${run.finance?.runway != null ? Math.max(0, num(run.finance.runway, 0)).toFixed(1) + " 季" : "—"}` },
+    { id: "cash", label: "現金", value: money(data, run, run.finance?.cash), level: num(run.finance?.cash, 0) < 0.4 ? "bad" : num(run.finance?.cash, 0) < 1.2 ? "warn" : "good", note: `現金可撐 ${run.finance?.runway != null ? Math.max(0, num(run.finance.runway, 0)).toFixed(1) + " 季" : "—"}` },
     { id: "profit", label: "本季現金淨變動", value: flow ? `${cashChange > 0 ? "+" : ""}${money(data, run, cashChange)}` : "—", level: !flow || cashChange >= 0 ? "good" : "bad", note: flow ? `入帳 ${money(data, run, flow.totalIn)} · 流出 ${money(data, run, -flow.totalOut)}` : "第一季結算後會列出收支" },
     { id: "flow", label: "客流", value: ops ? `${r0(ops.entered)} 人` : "—", level: ops && ops.lost > ops.orders * 0.15 ? "warn" : "good", note: ops ? `${r0(ops.served)} 單做完${ops.lost > 0 ? ` · ${r0(ops.lost)} 單沒接住` : ""}` : "結算後才有數字" },
     { id: "stress", label: "員工壓力", value: `${Math.round(num(run.crewStress, 0) * 100)}%`, level: num(run.crewStress, 0) > 0.78 ? "bad" : num(run.crewStress, 0) > 0.6 ? "warn" : "good", note: `${(run.crew || []).filter((c) => !c.gone).length} 個人在場` },
@@ -459,14 +459,14 @@ export function fillCrewLine(data, run, raw, member, vars) {
 
 const FX = [
   ["cash", (v, f) => `現金${v > 0 ? "立刻多" : "立刻少"}約 ${f.money(Math.abs(v))}`],
-  ["revenue_mult", (v) => `需求係數${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%（實收仍受產能限制）`],
+  ["revenue_mult", (v) => `需求量${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%（實收仍受產能限制）`],
   ["cost_mod", (v) => `變動成本率${v > 0 ? "增加" : "減少"} ${Math.round(Math.abs(v) * 100)} 個百分點`],
   ["fixed_mult", (v) => `固定帳${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
   ["fixed_add", (v, f) => `每季固定帳${v > 0 ? "多" : "少"} ${f.money(Math.abs(v))}`],
   ["trust", (v) => `客人信任${v > 0 ? "上升" : "下降"}約 ${Math.round(Math.abs(v) * 100)} 個百分點`],
   ["brand", (v) => `牌子${v > 0 ? "被更多人認得" : "變得沒有人認得"}`],
   ["quality", (v) => `品質${v > 0 ? "上升" : "下降"}`],
-  ["market_fit", (v) => `市場配合度${v > 0 ? "上升" : "下降"}`],
+  ["market_fit", (v) => `市場接受度${v > 0 ? "上升" : "下降"}`],
   ["morale", (v) => `團隊士氣${v > 0 ? "上升" : "下降"}`],
   ["wage_mult", (v) => `人事成本${v > 1 ? "上升" : "下降"}約 ${Math.round(Math.abs(v - 1) * 100)}%`],
   ["headcount", (v) => `人手${v > 0 ? `多 ${v} 個` : `少 ${Math.abs(v)} 個`}`],
@@ -540,7 +540,7 @@ const DRIVER_DOWN = {
   capital: "沒有人願意再給錢", focus: "你分心了", stability: "不穩", learning: "學不來",
   brand: "牌子沒了", public: "外面看著你", community: "這條街不再挺你", relation: "關係斷了",
   customer: "客人跑了", retention: "人留不住", culture: "這裡的味道變了", product: "東西不對了",
-  growth: "長不動", transform: "轉不過去", market: "市場不買單", unit: "單位經濟不成立",
+  growth: "長不動", transform: "轉不過去", market: "市場不買單", unit: "每一單都在賠錢",
   flexibility: "你動不了", personal: "你個人的部分被拖進去", complexity: "太複雜管不動",
 };
 

@@ -6,7 +6,7 @@ export { calendarLabel };
 export function money(data, state, units) {
   if (state.mode === "history") {
     const n = Number(units) || 0;
-    return `${n < 0 ? "−" : ""}${Math.round(Math.abs(n) * 100) / 100} 遊戲單位`;
+    return `${n < 0 ? "−" : ""}${Math.round(Math.abs(n) * 100) / 100} 個月薪`;
   }
   const city = cityById(data, state.cityId);
   const n = (Number(units) || 0) * city.median_wage;
@@ -28,7 +28,7 @@ const DRIVER = {
   control: "控制權", margin: "毛利", quality: "品質", supply: "供應", compliance: "合規",
   family: "家庭", founder: "身體與時間", identity: "最初的那句話", scale: "規模",
   independence: "獨立", growth: "增長", capital: "資金", debt: "債務", personal: "個人負擔",
-  governance: "治理", focus: "專注", relation: "關係", product: "產品", unit: "單位經濟",
+  governance: "治理", focus: "專注", relation: "關係", product: "產品", unit: "每一單是否賺錢",
   retention: "留存", community: "社區", customer: "客戶", ops: "營運", flexibility: "彈性",
   learning: "學習", public: "公開市場", transform: "轉型", stability: "穩定", market: "市場預期",
   culture: "文化", complexity: "複雜度", brand: "品牌",
