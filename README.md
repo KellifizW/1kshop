@@ -38,6 +38,10 @@ python -m http.server 8080
 
 主畫面的「公司生活紀錄」按時間顯示季結、人物小事和決策；「經營行動」會暫停時間並開啟選單。`data/life-events.json` 收錄按公司壽命階段限定的重大事件與日常小事；故事模式會參考本機最近遇過的內容降低重複，沙盒與每日世界不讀取這份歷史。事件鏈和必經節點仍保留因果與必要的重現。
 
+## 公司成長與不同命運
+
+公司會按年齡和狀況遇上首聘、重新組隊、員工管理、拓展業務、收購同行、規模升級、出售控制權、縮編與長壽企業更新等決策。里程碑不保證在指定季度出現：危機、必經節點及先前選擇的後果優先；條件不符或公司提前結束也可能看不到。公司概況會記錄選擇後的業務和架構；薪酬、產能、需求、成本和控制權仍直接影響營運。研究、遊戲抽象及資料來源見 [公司生命週期研究](research/company-lifecycle.md)。
+
 ## 介面與用語
 
 主畫面在寬螢幕分成左中右三欄：左邊是公司概況（現金、本季淨變動、客流、員工壓力、你自己與警戒線），中間最寬，放店舖動畫、這一季、經營行動與公司生活紀錄，右邊是現金流、可撐季數、季初預測與各本帳。店舖動畫高度上限 248px，不會再把按鈕擠出畫面；季內的時間只有右上角一條很小的進度線，不再橫跨畫面中央。
@@ -61,6 +65,7 @@ python -m http.server 8080
 ```sh
 node --experimental-default-type=module tests/gameplay.mjs
 node --experimental-default-type=module tests/lifecycle.mjs
+node --experimental-default-type=module tests/company-lifecycle.mjs
 node --experimental-default-type=module tests/balance-sample.mjs
 node --experimental-default-type=module tests/operating.mjs
 node --experimental-default-type=module tests/historical.mjs

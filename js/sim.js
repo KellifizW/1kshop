@@ -1981,6 +1981,14 @@ function takeEvent(data, state, rng) {
     if (due.tries < 4) due.month += 6;
     else due.done = true;
   }
+  // 公司發展里程碑按到期時間排隊，不靠隨機抽中；危機、歷史及因果事件先處理。
+  // 不另存排程，舊存檔只需既有的 seen、month 和公司狀態即可加入。
+  if (state.month - num(state.lastMajorMonth, 0) >= 2) {
+    const milestone = data.events
+      .filter((e) => e.milestone && eligible(data, state, e))
+      .sort((a, b) => num(a.min_month, 0) - num(b.min_month, 0))[0];
+    if (milestone) return decorate(data, state, milestone);
+  }
   // 必經事件和決策後果優先；空檔中有機會遇到真正有利的訂單或支援。
   const opportunity = econ(data).opportunities || {};
   const surprises = data.events.filter((e) => e.surprise && eligible(data, state, e));
@@ -1994,7 +2002,7 @@ function takeEvent(data, state, rng) {
   if (since < stage.decision_gap * 0.6) return null;
   const p = clamp((since - stage.decision_gap * 0.6) / stage.decision_gap, 0, 0.8);
   if (rng.next() > p && since < stage.decision_gap * 1.45) return null;
-  let pool = data.events.filter((e) => !e.spine && !e.chain_only && !e.surprise && eligible(data, state, e));
+  let pool = data.events.filter((e) => !e.spine && !e.chain_only && !e.surprise && !e.milestone && eligible(data, state, e));
   if (!pool.length) return null;
   // 選項足夠時不重播本局同一事件；事件鏈和必經節點仍可按因果正常回來。
   const fresh = pool.filter((e) => !state.seen?.[e.id]);
@@ -2016,7 +2024,7 @@ function eligible(data, state, e) {
   if (e.tags_any && !e.tags_any.some((t) => state.venture.tags.includes(t) || state.venture.family === t)) return false;
   const r = e.requires || {};
   if (r.min_headcount && state.team.headcount < r.min_headcount) return false;
-  if (r.max_headcount && state.team.headcount > r.max_headcount) return false;
+  if (r.max_headcount != null && state.team.headcount > r.max_headcount) return false;
   if (r.ownership && !r.ownership.includes(state.shape.ownership)) return false;
   if (r.family && !r.family.includes(state.founder.family)) return false;
   if (r.style && !r.style.includes(state.shape.style)) return false;
@@ -2025,6 +2033,9 @@ function eligible(data, state, e) {
   if (r.declining && !gapById(data, state.gapId).declining) return false;
   if (r.flag && !state.flags[r.flag]) return false;
   if (r.min_fit && state.venture.marketFit < r.min_fit) return false;
+  if (r.min_control != null && state.founder.control < r.min_control) return false;
+  if (r.business_pressure && !(num(state.finance.runway, 9) < 5 || num(state.crewStress, 0) >= 0.65
+      || (state.last && num(state.last.revenue, 0) < num(state.last.cost, 0)))) return false;
   if (r.max_investor != null && (state.drivers.capital || 0) > 8 && state.founder.control < 0.5) return false;
   if (r.positioning && !r.positioning.includes(state.venture.positioning)) return false;
   if (r.min_month && state.month < r.min_month) return false;
@@ -2143,7 +2154,7 @@ function rollBeats(data, state, rng) {
 
 // 自願試驗及收購需先付得起共同成本；其他必要抉擇仍可導致現金危機。
 export function eventChoiceDisabled(data, state, choice) {
-  if (!choice?.outcome) return false;
+  if (!choice?.outcome && !choice?.requires_cash) return false;
   const upfront = Math.max(0, -num(choice.effects?.cash, 0)) * (modeOf(data, state.mode).tail_risk || 1);
   return upfront > num(state.finance?.cash, 0);
 }
@@ -2244,6 +2255,7 @@ function applyEffects(data, state, effects, ev) {
     // 合約的確定支出如實入帳；資金不足時進入救援，不憑空補出餘額。
     state.finance.cash += cash < 0 ? cash * tail : cash;
   }
+  if (permanent.personal_cash) state.personal.cash += permanent.personal_cash;
   if (permanent.debt) state.finance.debt = Math.max(0, state.finance.debt + permanent.debt);
   if (permanent.control) state.founder.control = clamp(state.founder.control + permanent.control, 0.05, 1);
   if (permanent.control_set != null) state.founder.control = permanent.control_set;
