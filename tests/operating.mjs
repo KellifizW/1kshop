@@ -372,7 +372,7 @@ repayment.nextChapter = 999;
 const companyCashBefore = repayment.finance.cash;
 S.settle(data, repayment, { noevents: true });
 assert.ok(repayment.personal.lastDebtPayment > 0);
-near(repayment.personal.debt, 3 - repayment.personal.lastDebtPayment, "個人債下降");
+near(repayment.personal.debt, 3 + repayment.personal.lastInterest - repayment.personal.lastDebtPayment, "個人債先計息再還款");
 const ledger = cashflowLedger(repayment.last);
 near(repayment.finance.cash - companyCashBefore, ledger.net, "個人償債不重複算公司支出");
 assert.ok(repayment.personal.cash >= living - 1e-8, "還款後保留一季生活費");

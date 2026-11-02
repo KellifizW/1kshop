@@ -60,7 +60,8 @@ async function continueSaved(page) {
  assert.equal((await state(p)).venture.companyTypeId,'ai_workflow');
  assert.equal((await state(p)).venture.family,'saas');
  assert.match(await p.locator('#app').innerText(), /AI 自動化服務/);
- assert.match(await p.locator('.rail-self').innerText(),/個人債務/);
+ assert.match(await p.locator('.rail-self').filter({hasText:'個人債務'}).innerText(),/個人債務/);
+ assert.match(await p.locator('.rail-self').filter({hasText:'你自己'}).innerText(),/可用產能/);
  await click(p,'[data-act="drawer"][data-id="ledger"]');
  assert.match(await p.locator('#app').innerText(),/生活費付清並預留一季生活費後/);
  await click(p,'[data-act="close-drawer"]');
@@ -104,6 +105,23 @@ async function continueSaved(page) {
  assert.equal((await state(p)).lastOutcome.success,false); assert.equal((await state(p)).rescueLeft,2);
  assert.match(await p.locator('.opportunity-result').innerText(),/沒有獲批/);
  assert.equal(await rescue.count(),0);
+
+ // 健康／意志臨界存檔載入後，下一步強制休養；個人債務危機與公司現金危機分開。
+ await p.evaluate(()=>{const r=JSON.parse(localStorage.getItem('qf-run'));Object.assign(r.founder,{health:0,will:.03,control:.72,recoveryLeft:0,exited:false});Object.assign(r.personal,{cash:0,debt:15,planLeft:0,distressQuarters:0});r.phase='play';r.pendingEvent=null;r.finance.cash=100;r.spine=[];r.nextChapter=999;localStorage.setItem('qf-run',JSON.stringify(r));});
+ await continueSaved(p);
+ assert.match(await p.locator('.rail-self').filter({hasText:'你自己'}).innerText(),/強制休養線/);
+ await click(p,'[data-act="month-end"]');
+ assert.equal((await state(p)).pendingEvent.id,'health_crisis');
+ assert.match(await p.locator('#app').innerText(),/強制休養線/);
+ await click(p,'[data-act="choice"][data-id="handoff"]');
+ assert.equal((await state(p)).founder.recoveryLeft,2);
+ assert.match(await p.locator('.rail-self').filter({hasText:'你自己'}).innerText(),/休養中/);
+ await p.evaluate(()=>{const r=JSON.parse(localStorage.getItem('qf-run'));Object.assign(r.founder,{health:.8,will:.7,recoveryLeft:0,hours:.6});Object.assign(r.personal,{cash:0,debt:100,planLeft:0,distressQuarters:2});r.flags.personal_crisis_month=-99;r.phase='play';r.pendingEvent=null;r.finance.cash=100;r.spine=[];r.nextChapter=999;localStorage.setItem('qf-run',JSON.stringify(r));});
+ await continueSaved(p); await click(p,'[data-act="month-end"]');
+ assert.equal((await state(p)).pendingEvent.id,'personal_debt_crisis');
+ assert.match(await p.locator('#app').innerText(),/個人已經週轉不過來/);
+ await click(p,'[data-act="choice"][data-id="work_and_repay"]');
+ assert.equal((await state(p)).personal.planLeft,8);
  assert.deepEqual(desk.errors, []); await browser.close(); browser=await launch();
 
  // 每日世界與其他模式一樣只有隨機抽取；手機版目錄無水平溢出。

@@ -2220,26 +2220,24 @@
       "id": "health_crisis",
       "layer": "generic",
       "grammar": "HEALTH",
-      "spine": "founder_health_crisis",
       "title": "你必須離開{company}一段時間",
-      "body": "這次不是感覺。要離開日常的人是你。{company}要麼有人接，要麼縮小。",
+      "body": "健康或意志已跌到強制休養線。這一步不能再靠硬撐：你要暫停日常、讓別人接手，或把公司縮到能停下來。休養期間你的產能是零；公司能不能繼續，取決於團隊和平時留下的交接能力。",
       "weight": 10,
-      "cooldown": 20,
-      "min_month": 6,
-      "once": true,
       "major": true,
+      "mandatory": true,
       "choices": [
         {
           "id": "handoff",
-          "label": "把日常交給已有的人",
-          "detail": "確定：若無人，改為聘請。你的抽取暫停。健康開始恢復。",
-          "risk": "客人會發現聲音變了。",
+          "label": "交接日常，休養兩季",
+          "detail": "確定：若無人，先聘一人承接；你完全離開日常兩季，每季健康 +10%、意志 +6%，提款暫停兩季。公司只靠團隊能覆蓋的部分運作。",
+          "risk": "關鍵工作仍依賴你時，收入會明顯下降；薪酬和固定帳不會消失。",
           "effects": {
             "headcount_min": 1,
-            "hours": 0.25,
+            "recovery_quarters": 2,
             "draw_zero": 2,
-            "health": 0.1,
-            "key_dependency": -0.1,
+            "health": 0.04,
+            "will": 0.02,
+            "key_dependency": -0.15,
             "flags": {
               "founder_absent": true
             }
@@ -2251,15 +2249,18 @@
         },
         {
           "id": "shrink",
-          "label": "主動縮小到能暫停",
-          "detail": "確定：收入 ×0.6，固定成本 ×0.7，不新增擔保。",
-          "risk": "縮小之後不一定長得回去。",
+          "label": "縮小業務，停下來休養",
+          "detail": "確定：需求 ×0.6，基本固定成本 ×0.7；你完全離開日常兩季，每季健康 +10%、意志 +6%。不新增擔保。",
+          "risk": "沒有可交接的團隊時，休養期間幾乎沒有收入，但固定帳仍要付。",
           "effects": {
             "revenue_mult": 0.6,
             "fixed_mult": 0.7,
-            "health": 0.08,
+            "recovery_quarters": 2,
+            "health": 0.04,
+            "will": 0.02,
             "flags": {
-              "shrunk": true
+              "shrunk": true,
+              "founder_absent": true
             }
           },
           "drivers": {
@@ -2270,7 +2271,7 @@
         {
           "id": "sell",
           "label": "趁還能談的時候出售",
-          "detail": "確定：進入出售結局。價格按現在的現金與收入估算，不是幻想估值。",
+          "detail": "確定：進入出售結局，不再由你親自經營。",
           "risk": "名字可能留不住。",
           "effects": {
             "force_ending": "sale"
@@ -2278,6 +2279,83 @@
           "drivers": {
             "personal": 2,
             "identity": -1
+          }
+        }
+      ]
+    },
+    {
+      "id": "personal_debt_crisis",
+      "layer": "generic",
+      "grammar": "PERSONAL_FINANCE",
+      "title": "{company}還在，但你個人已經週轉不過來",
+      "body": "個人債務連續兩季超出可負擔範圍，而個人現金不足以支付一季生活費。公司對你的生活費補貼已減半，未付部分會繼續滾入個人債務。這不等於公司破產，但你不能再把公司當成無限提款機。",
+      "weight": 10,
+      "major": true,
+      "mandatory": true,
+      "choices": [
+        {
+          "id": "work_and_repay",
+          "label": "回到兼職，簽個人還款安排",
+          "detail": "確定：恢復原職約 45% 薪資，投入公司的時間降至不高於 45%；八季內個人債務利息減半，個人盈餘用於還債的比例提高。整局只能談一次。",
+          "risk": "公司產能會下降；債務不會消失，收入不足時仍會累積。",
+          "unless_flag": "personal_restructured",
+          "effects": {
+            "outside_share": 0.45,
+            "hours_cap": 0.45,
+            "personal_plan_quarters": 8,
+            "will": 0.04,
+            "flags": {
+              "personal_restructured": true
+            }
+          },
+          "drivers": {
+            "personal": 2,
+            "focus": -1
+          }
+        },
+        {
+          "id": "sell_stake",
+          "label": "出售部分個人股權還債",
+          "detail": "確定：個人套現 2.5 個月薪並立即優先用於還債，控制權下降 20 個百分點；公司現金不增加。整局只能使用一次。",
+          "risk": "這只是把股權換成個人現金，不會改善公司本身的收支。",
+          "unless_flag": "personal_equity_sold",
+          "min_control": 0.25,
+          "min_company_cash": 0.5,
+          "min_revenue": 0.5,
+          "effects": {
+            "personal_equity_sale": true,
+            "flags": {
+              "personal_equity_sold": true
+            }
+          },
+          "drivers": {
+            "personal": 2,
+            "control": -2
+          }
+        },
+        {
+          "id": "handover",
+          "label": "交出日常經營權",
+          "detail": "確定：進入接班選擇。公司與個人債務分開處理；交棒不會抹除你的個人債務。",
+          "risk": "你不再親自經營，之後以企業守護者身分看這間公司。",
+          "effects": {
+            "open_succession": true
+          },
+          "drivers": {
+            "personal": 2,
+            "governance": 1
+          }
+        },
+        {
+          "id": "close",
+          "label": "結束公司，停止再燒錢",
+          "detail": "確定：進入結業清算。公司債務是否追及個人，仍按擔保與法律形式處理；既有個人債務保留。",
+          "risk": "公司結束後，你仍要面對自己的債務。",
+          "effects": {
+            "force_ending": "voluntary"
+          },
+          "drivers": {
+            "personal": 2
           }
         }
       ]

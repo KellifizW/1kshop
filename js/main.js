@@ -89,6 +89,7 @@ function render() {
   if (data && ui.run) {
     Sim.ensureCast(data, ui.run);
     Sim.ensureWork(data, ui.run);
+    Sim.ensureFounderRules(data, ui.run);
     if (!ui.run.venture) Sim.ensureOpeningSupport(data, ui.run);
     // 舊存檔停在舊的三頁塑形；回到第一個還沒有答案的那一頁，不要留下空白的一頁。
     if (ui.screen === "shaping" && ui.run.phase === "shaping") syncShapeStep(ui.run);
@@ -162,6 +163,9 @@ const views = {
       ["警戒線", "以前叫「紅線」。每一種生意最怕出事的那一個數字，例如租金佔收入的比例。越過它先出警訊，一直不處理才會進入危機，不是立刻倒閉。"],
       ["長期合約", "以前叫「承諾」。已經簽下、要按季付款或履行完才能結束的事：借貸、預售抵扣、牌照審核。時間到之前，它們會一直留在帳上。"],
       ["種子", "開局時的隨機編號。同一個種子會重現同一個世界；選擇仍然由你決定。"],
+      ["健康 與 意志", "兩者會直接限制你親自工作的產能。低於警戒值會逐步減產；健康 ≤12% 或意志 ≤5% 時，下一步必須休養或交接。休養期間你的產能是零，公司只能靠團隊覆蓋。"],
+      ["控制權", "控制權是你對公司的決策份額，不是你的體力或個人現金。控股 72% 不會讓健康歸零的人繼續工作，也不會替個人債務擔保。"],
+      ["個人債務", "與公司債務分開。每季計息，生活費補貼有上限；連續兩季超出可負擔範圍會強制處理。你可以兼職還債、出售部分個人股權、交棒或結業，但公司不會只因個人破產自動倒閉。"],
       ["自動選擇", "開啟後，輪到你的決定時，遊戲會先把一項亮起三秒，時間到才替你按下；這三秒內你仍可以改選。"],
     ];
     return sheet(`<p class="kicker">用語說明</p><h2>先看懂這幾個字，再決定</h2>
@@ -512,6 +516,13 @@ function playView() {
   const healthPct = Math.round(run.founder.health * 100);
   const willPct = Math.round(run.founder.will * 100);
   const controlPct = Math.round(run.founder.control * 100);
+  const founderState = Sim.founderCapacity(data, run);
+  const personal = Sim.personalStatus(data, run);
+  const founderNote = founderState.recovering
+    ? `休養中，剩 ${run.founder.recoveryLeft} 季；你的日常產能是 0%。`
+    : founderState.critical
+      ? "已達強制休養線；下一步必須先處理，不能繼續硬撐。"
+      : `目前可用產能 ${Math.round(founderState.availability * 100)}%；團隊可覆蓋 ${Math.round(founderState.teamFactor * 100)}%。`;
   const note = pauseNote(run);
   const crisisNote = note ? `<p class="crisis-note">${$(note)}</p>` : "";
   const support = run.openingSupport && run.month < run.openingSupport.quarters
@@ -554,7 +565,8 @@ function playView() {
             <small class="kpi-note" id="kpi-${m.id}-note">${$(m.note)}</small>
           </div>`).join("")}</section>
         <p class="rail-self">公司現況：${$(run.flags?.company_structure || "現有股權架構")} · ${$(run.flags?.company_scale || "現有營運規模")}<br>業務：${$(run.flags?.business_scope || "原有業務")}${run.flags?.acquired_business ? " · 曾收購同行" : ""} · 員工 ${run.team?.headcount || 0} 人（不含創辦人）</p>
-        <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%<br>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}${run.personal?.lastDebtPayment > 0.01 ? `（上季還款 ${$(P.money(data, run, run.personal.lastDebtPayment))}）` : ""}</p>
+        <p class="rail-self ${founderState.critical || founderState.recovering ? "danger-ghost" : ""}">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%<br>${$(founderNote)}</p>
+        <p class="rail-self ${personal.level === "crit" ? "danger-ghost" : ""}">個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}${run.personal?.lastInterest > 0.001 ? `（上季利息 ${$(P.money(data, run, run.personal.lastInterest))}）` : ""}${run.personal?.lastDebtPayment > 0.01 ? ` · 上季還款 ${$(P.money(data, run, run.personal.lastDebtPayment))}` : ""}<br>${personal.planLeft > 0 ? `還款安排剩 ${personal.planLeft} 季，利息減半。` : personal.distressed ? "個人債務已超出可負擔範圍；公司生活費補貼減半。" : "公司補貼生活費有上限，不會無限填補個人債務。"}</p>
         <section class="rail-card redline-card ${rl.level}">
           <p class="fold-k">經營警戒線</p>
           <p><b class="redline-icon">${$(rl.mark)}</b> ${$(rl.name || "尚未結算")}</p>
@@ -654,6 +666,8 @@ function pauseNote(run) {
   if (!run) return "";
   if (run.phase === "laststand") return `時間按停。現金付不出這一輪。以日計大約還有 ${run.rescueDays || 0} 天，行動還剩 ${run.rescueLeft || 0} 次。`;
   if (run.phase === "succession") return "時間按停。你不再坐在日常裡，要決定誰接手。";
+  if (run.phase === "play" && Sim.founderCrisisDue(data, run)) return "健康或意志已到強制休養線。下一步會先打開休養／交接決策，不能繼續一般營運。";
+  if (run.phase === "play" && Sim.personalCrisisDue(data, run)) return "個人債務已連續超出可負擔範圍。下一步會先處理個人財務，公司現金不能直接當作無限個人信用。";
   if (run.phase === "event") {
     const ev = run.pendingEvent || {};
     const cause = ev.chainCause;
@@ -752,7 +766,8 @@ function drawerHtml() {
   if (id === "ledger") {
     const rows = (run.factors || []).map(([k, v]) => `<tr><th>${$(k)}</th><td>${$(v)}</td></tr>`).join("");
     body = `<h2>詳細帳簿</h2><p>公司現金 ${$(P.money(data, run, run.finance.cash))} · 公司債務 ${$(P.money(data, run, run.finance.debt))}</p>
-      <p>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}。生活費付清並預留一季生活費後，個人盈餘的一半會用來還個人債務，不計入公司支出。</p>
+      <p>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}。個人債務每季計息 ${Math.round((data.economy.personal_finance?.interest_quarterly || 0.035) * 1000) / 10}%${run.personal?.planLeft > 0 ? "；還款安排期間減半" : ""}。生活費付清並預留一季生活費後，個人盈餘的 ${run.personal?.planLeft > 0 ? "75%" : "50%"} 會用來還個人債務，不計入公司支出。</p>
+      <p>上季個人利息 ${$(P.money(data, run, run.personal?.lastInterest || 0))} · 上季還款 ${$(P.money(data, run, run.personal?.lastDebtPayment || 0))} · 公司補貼生活費 ${$(P.money(data, run, run.personal?.lastPersonalTransfer || 0))}。個人債務連續 ${run.personal?.distressQuarters || 0} 季超出可負擔範圍；達到 ${data.economy.personal_finance?.distress_quarters || 2} 季會強制處理，但不會直接沒收公司。</p>
       <p>法律形式：${$(P.legalLabel(data, run))}。這是遊戲規則，不是法律意見。</p>
       <table>${rows || `<tr><td>結算一次之後，這裡會列出收入怎麼來。</td></tr>`}</table>
       ${sparkTable()}`;
@@ -1267,7 +1282,7 @@ function act(name, ds = {}) {
   if (name === "do-close") { Sim.confirmClose(data, run, ds.how); afterStep(); return; }
   if (name === "close-book") { Sim.closeBook(data, run); ui.screen = "ending"; finishWorld(); saveRun(); return render(); }
   if (name === "pause") { saveRun(); ui.screen = "title"; say("這一章已留下。"); return render(); }
-  if (name === "continue") { ui.run = ui.saved; ui.screen = screenFor(ui.saved); return render(); }
+  if (name === "continue") { ui.run = ui.saved; Sim.ensureFounderRules(data, ui.run); ui.screen = screenFor(ui.saved); return render(); }
   if (name === "drop-save") { localStorage.removeItem(KEY.run); ui.saved = null; ui.corrupt = false; ui.screen = "title"; return render(); }
   if (name === "speed-slower" || name === "speed-faster" || name === "cycle-speed") {
     const order = ["slow", "immerse", "standard", "fast", "blitz"];
