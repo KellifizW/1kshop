@@ -45,7 +45,7 @@ const settings = { flow: false, flowVersion: 2, still: true, smart: false, autop
   assert.equal((await state(p)).phase, 'play');
   assert.match(await p.locator('.worldbar').innerText(), /歷史範本/);
   assert.match(await p.locator('.worldbar').innerText(), /美國加州/);
-  assert.match(await p.locator('#kpi-cash').innerText(), /遊戲單位/);
+  assert.match(await p.locator('#kpi-cash').innerText(), /個月薪/);
   await p.evaluate(() => { const r = JSON.parse(localStorage.getItem('qf-run')); r.finance.cash = 1000; r.spine = []; r.nextChapter = 8; r.firstMajor = { skip: true }; localStorage.setItem('qf-run', JSON.stringify(r)); });
   await p.reload({ waitUntil: 'networkidle' }); await click(p, '[data-act="continue"]');
   let guard = 0;

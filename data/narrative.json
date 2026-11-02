@@ -167,6 +167,7 @@
     {"id": "ipo_people", "ending": ["ipo_running"], "flag": "early_team_gone", "fact": "公司上市了，但最早陪你開業的人已經離開。"},
     {"id": "sale_control", "ending": ["sale"], "fact": "你把控制權換成時間與一筆確定的代價，公司變成別人的節奏。"},
     {"id": "rent_price", "ending": ["liquidate", "guarantee_ruin"], "flag": "price_holds", "fact": "企業沒有一下子倒在租金上，而是被幾次不肯動價格的決定慢慢耗盡。"},
+    {"id": "personal_debt_stop", "ending": ["voluntary", "liquidate", "guarantee_ruin"], "flag": "personal_insolvency", "fact": "公司帳與個人帳分開後，你發現自己已經無法再用公司掩蓋個人週轉問題。"},
     {"id": "voluntary_clean", "ending": ["voluntary"], "fact": "你在還付得起帳的時候停下來，並把人與債務分開處理。"},
     {"id": "succession", "ending": ["succession", "death_continue", "employee_trust", "foundation"], "fact": "公司沒有跟創辦人一起結束。位子換了人，帳簿還在記。"},
     {"id": "hostile", "ending": ["hostile", "erased"], "fact": "價格被接受了。名字與原來的做法沒有一起被保證。"},
@@ -181,6 +182,7 @@
     {"id": "craft", "ending": ["preserve_craft", "decline_preserve"], "cost": "規模被放掉了。留下的是方法，不是市佔。"},
     {"id": "team", "ending": ["ipo_running", "sale", "century"], "flag": "early_team_gone", "cost": "最早的那幾個人，沒有走到這一個句子裡。"},
     {"id": "health", "flag": "health_ignored", "cost": "有一次你把身體的徵兆往後推。後面的選擇因此變少。"},
+    {"id": "personal_debt", "flag": "personal_insolvency", "cost": "個人債務沒有因為公司還在而消失；它只是換了一種方式追上來。"},
     {"id": "generic", "cost": "每一種留下，都對應一種沒有同時保住的東西。"}
   ],
   "comments": [

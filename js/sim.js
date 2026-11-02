@@ -70,6 +70,189 @@ export function livingCost(data, state) {
   return f.living_cost * mult * city.living_index;
 }
 
+function founderCfg(data) {
+  return econ(data).founder || {};
+}
+function personalCfg(data) {
+  return econ(data).personal_finance || {};
+}
+
+/** 舊存檔補上創辦人休養與個人財務欄位；不重置既有健康、意志或債務。 */
+export function ensureFounderRules(data, state) {
+  if (!state?.founder) return state;
+  const f = state.founder;
+  f.health = clamp(num(f.health, 0.82), 0, 1);
+  f.will = clamp(num(f.will, 0.74), 0, 1);
+  f.control = clamp(num(f.control, 1), 0, 1);
+  f.recoveryLeft = Math.max(0, Math.floor(num(f.recoveryLeft, 0)));
+  state.personal = state.personal || { cash: 0, debt: 0 };
+  const p = state.personal;
+  p.cash = Math.max(0, num(p.cash, 0));
+  p.debt = Math.max(0, num(p.debt, 0));
+  p.planLeft = Math.max(0, Math.floor(num(p.planLeft, 0)));
+  p.distressQuarters = Math.max(0, Math.floor(num(p.distressQuarters, 0)));
+  p.lastInterest = Math.max(0, num(p.lastInterest, 0));
+  p.lastDebtPayment = Math.max(0, num(p.lastDebtPayment, 0));
+  state.flags = state.flags || {};
+  if (!state.flags.founder_rules_v2) {
+    // 舊版「交接後暫停」只寫了一個旗標，沒有真的停止創辦人產能。
+    if (state.flags.founder_absent && !f.exited) {
+      f.recoveryLeft = Math.max(f.recoveryLeft, num(founderCfg(data).recovery_quarters, 2));
+      f.hours = 0;
+    }
+    state.flags.founder_rules_v2 = true;
+  }
+  return state;
+}
+
+/**
+ * 健康／意志直接限制創辦人產能；關鍵依賴度決定團隊能補上多少。
+ * 已接班的公司由接班人營運，不再把創辦人的身體當成日常產能。
+ */
+export function founderCapacity(data, state) {
+  const cfg = founderCfg(data);
+  const f = state.founder || {};
+  const recovering = num(f.recoveryLeft, 0) > 0;
+  const healthFactor = clamp(num(f.health, 1) / Math.max(0.01, num(cfg.health_warn, 0.35)), 0, 1);
+  const willFactor = clamp(num(f.will, 1) / Math.max(0.01, num(cfg.will_warn, 0.25)), 0, 1);
+  const availability = f.exited ? 1 : (recovering || num(f.hours, 0) <= 0 ? 0 : healthFactor * willFactor);
+  const dep = clamp(num(state.venture?.keyDependency, 0.6), 0, 1);
+  const teamFactor = f.exited ? 1 : clamp((1 - dep) + dep * availability, 0, 1);
+  const critical = !f.exited && !recovering
+    && (num(f.health, 1) <= num(cfg.health_critical, 0.12) || num(f.will, 1) <= num(cfg.will_critical, 0.05));
+  const reason = num(f.health, 1) <= num(cfg.health_critical, 0.12) ? "health" : "will";
+  return { availability, teamFactor, recovering, critical, reason };
+}
+
+export function founderCrisisDue(data, state) {
+  return !!state?.venture && !state.ending && founderCapacity(data, state).critical;
+}
+
+/** 個人財務壓力用「相對收入」判斷，不把同一個 MX$ 門檻套到所有城市。 */
+export function personalStatus(data, state, revenue = num(state.finance?.lastRevenue, 0)) {
+  ensureFounderRules(data, state);
+  const cfg = personalCfg(data);
+  const p = state.personal;
+  const living = livingCost(data, state);
+  const draw = !state.founder.exited && !(state.founder.drawPause > 0)
+    ? Math.min(num(state.founder.wantsDraw, 0), Math.max(0, revenue) * 0.32)
+    : 0;
+  const income = outsideNow(data, state) + draw;
+  const threshold = Math.max(living * 2, income * 4 * num(cfg.debt_income_multiple, 2));
+  const distressed = !state.founder.exited && p.debt > threshold && p.cash < living;
+  const level = distressed ? "crit" : (p.debt > threshold * 0.6 || p.cash < living ? "warn" : "ok");
+  return { debt: p.debt, cash: p.cash, living, income, threshold, distressed, level, planLeft: p.planLeft };
+}
+
+export function personalCrisisDue(data, state) {
+  if (!state?.venture || state.ending || state.founder?.exited) return false;
+  ensureFounderRules(data, state);
+  const p = state.personal;
+  return p.planLeft <= 0
+    && p.distressQuarters >= num(personalCfg(data).distress_quarters, 2)
+    && state.month > num(state.flags.personal_crisis_month, -99);
+}
+
+function tickFounderRecovery(data, state) {
+  const f = state.founder;
+  if (!f || f.exited || !(f.recoveryLeft > 0)) return;
+  const cfg = founderCfg(data);
+  f.health = clamp(f.health + num(cfg.recovery_health, 0.1), 0, 1);
+  f.will = clamp(f.will + num(cfg.recovery_will, 0.06), 0, 1);
+  f.recoveryLeft -= 1;
+  if (f.recoveryLeft <= 0) {
+    f.hours = clamp(Math.max(num(f.hours, 0), num(cfg.return_hours, 0.35)), 0, 1);
+    state.flags.founder_absent = false;
+    if (!state._cf) pushTimeline(state, "休養結束", "你回到有限度的日常；健康與意志仍會繼續影響產能。", { kind: "history", when: calendarLabel(state) });
+  }
+}
+
+function tickFounderStrain(data, state) {
+  const f = state.founder;
+  if (!f || f.exited || f.recoveryLeft > 0) return;
+  const cfg = founderCfg(data);
+  if (f.age > 70) f.health = clamp(f.health - 0.012, 0, 1);
+  if (f.hours > 0.92 && state.venture.utilization > 0.9) {
+    f.health = clamp(f.health - num(cfg.overwork_health, 0.015), 0, 1);
+    f.will = clamp(f.will - num(cfg.overwork_will, 0.01), 0, 1);
+  }
+  if (state.flags.personal_strain) {
+    f.health = clamp(f.health - num(cfg.strain_health, 0.025), 0, 1);
+    f.will = clamp(f.will - num(cfg.strain_will, 0.03), 0, 1);
+  }
+}
+
+function openMandatoryFounderEvent(data, state) {
+  if (state.phase !== "play" || !state.venture || state.ending) return false;
+  let id = null;
+  if (founderCrisisDue(data, state)) {
+    id = "health_crisis";
+    state.flags.health_ignored = true;
+  } else if (personalCrisisDue(data, state)) {
+    id = "personal_debt_crisis";
+    state.flags.personal_crisis_month = state.month;
+    state.flags.personal_insolvency = true;
+  }
+  if (!id) return false;
+  const ev = data.events.find((e) => e.id === id);
+  if (!ev) return false;
+  state.pendingEvent = decorate(data, state, ev);
+  state.phase = "event";
+  state.lastMajorMonth = state.month;
+  pushTimeline(state, state.pendingEvent.title, "時間按停。這一步不能跳過，也不能用一般經營行動代替。", { kind: "history", when: calendarLabel(state) });
+  logEvent(state, "event_view", { id, mandatory: true });
+  return true;
+}
+
+/** 個人利息、生活費補貼上限與還款都在個人帳處理，不混入公司營運成本。 */
+function settlePersonal(data, state, parts, revenue) {
+  ensureFounderRules(data, state);
+  const cfg = personalCfg(data);
+  const p = state.personal;
+  const f = state.founder;
+  const living = livingCost(data, state);
+  const before = personalStatus(data, state, revenue);
+  const rate = num(cfg.interest_quarterly, 0.035) * (p.planLeft > 0 ? num(cfg.plan_interest_multiplier, 0.5) : 1);
+  const interest = p.debt * rate;
+  p.debt += interest;
+  p.cash += outsideNow(data, state) + parts.draw;
+  if (!f.exited) p.cash -= living;
+
+  let transfer = 0;
+  if (!f.exited && p.cash < 0) {
+    const supportMultiple = before.distressed
+      ? num(cfg.distress_support_living_multiple, 0.5)
+      : num(cfg.support_living_multiple, 1);
+    const cap = living * supportMultiple;
+    const available = Math.max(0, state.finance.cash - num(cfg.support_cash_reserve, 0.4));
+    transfer = Math.min(-p.cash, cap, available);
+    state.finance.cash -= transfer;
+    p.cash += transfer;
+    if (transfer > 0) state.flags.extra_draw = true;
+  }
+  if (p.cash < 0) {
+    p.debt += -p.cash;
+    p.cash = 0;
+    state.flags.personal_strain = true;
+  } else {
+    state.flags.personal_strain = false;
+  }
+
+  const reserve = living * num(econ(data).formula.personal_reserve_months, 1);
+  const share = p.planLeft > 0 ? num(cfg.plan_repayment_share, 0.75) : num(cfg.repayment_share, 0.5);
+  const surplus = f.exited ? 0 : Math.max(0, p.cash - reserve);
+  const repayment = Math.min(p.debt, surplus * share);
+  p.cash -= repayment;
+  p.debt -= repayment;
+  p.lastInterest = interest;
+  p.lastDebtPayment = repayment;
+  p.lastPersonalTransfer = transfer;
+  p.planLeft = Math.max(0, p.planLeft - 1);
+  const after = personalStatus(data, state, revenue);
+  p.distressQuarters = after.distressed ? p.distressQuarters + 1 : 0;
+  return { personalTransfer: transfer, personalInterest: interest, personalRepayment: repayment };
+}
+
 function skillOf(data, founder, gap) {
   const f = econ(data).formula;
   const years = clamp(founder.experience / 18, 0, 1);
@@ -872,10 +1055,16 @@ export function createRun(data, opts = {}) {
       exitReason: null,
       drawPause: 0,
       wantsDraw: 0,
+      recoveryLeft: 0,
     },
     personal: {
       cash: Math.max(0, assets),
       debt: Math.max(0, -assets),
+      planLeft: 0,
+      distressQuarters: 0,
+      lastInterest: 0,
+      lastDebtPayment: 0,
+      lastPersonalTransfer: 0,
     },
     contacts,
     shape: {},
@@ -889,7 +1078,7 @@ export function createRun(data, opts = {}) {
     memories: [],
     timeline: [],
     analytics: [],
-    flags: {},
+    flags: { founder_rules_v2: true },
     drivers: {},
     counts: { priceHold: 0 },
     pendingEvent: null,
@@ -1433,7 +1622,7 @@ export function forecast(data, state) {
     .map((c) => ({ ...c, monthsLeft: c.monthsLeft > 0 ? c.monthsLeft - 1 : c.monthsLeft }))
     .filter((c) => c.monthsLeft > 0);
   // 下一季的季節與趨勢要用下一季；預測不應改變真實產能、旗標或隨機序列。
-  const probeState = { ...state, month: nextMonth, commitments, venture: { ...state.venture }, flags: { ...state.flags }, weather: null };
+  const probeState = { ...state, month: nextMonth, commitments, venture: { ...state.venture }, founder: { ...state.founder }, flags: { ...state.flags }, weather: null };
   const rev = potentialRevenue(data, probeState, 0);
   const parts = costParts(data, probeState, rev, releasing);
   const band = state.month < 2 ? econ(data).formula.forecast_band_early : econ(data).formula.forecast_band;
@@ -1494,23 +1683,29 @@ function potentialRevenue(data, state, noise) {
   const morale = state.team?.morale ?? 0.6;
   const heads = state.team?.headcount || 0;
   const dep = v.keyDependency ?? 0.6;
+  const capacity = founderCapacity(data, state);
   const timeFactor = state.founder.exited
     ? clamp(0.55 + heads * 0.08, 0.55, 1.25)
-    : clamp(state.founder.hours || 0.5, 0.25, 1);
+    : clamp(num(state.founder.hours, 0.5), 0, 1);
   const fitCap = 0.7 + 0.6 * (v.marketFit || 0.3);
   const operator = state.founder.exited ? (state.operator?.type === "pro" ? 0.9 : 0.74) : 1;
-  const founderUnits = timeFactor * (v.skill || 0.55) * E.formula.founder_output * fitCap * operator;
-  const empUnits = heads * E.formula.employee_output * (0.68 + 0.32 * morale) * (1 - 0.28 * dep * (state.founder.exited ? 1 : 0.35)) * num(state.crewOutput, 1);
+  // 健康為零或強制休養時，創辦人產能必須是零；團隊只能補上非關鍵依賴的部分。
+  const founderUnits = state.founder.exited
+    ? timeFactor * (v.skill || 0.55) * E.formula.founder_output * fitCap * operator
+    : timeFactor * capacity.availability * (v.skill || 0.55) * E.formula.founder_output * fitCap;
+  const empUnits = heads * E.formula.employee_output * (0.68 + 0.32 * morale)
+    * (1 - 0.28 * dep * (state.founder.exited ? 1 : 0.35)) * num(state.crewOutput, 1) * capacity.teamFactor;
   const venueCapacity = (ven.capacity || 1) * mods.capacity;
-  const unitCap = Math.max(0.2, (founderUnits + empUnits) * venueCapacity);
+  const unitCap = Math.max(0, (founderUnits + empUnits) * venueCapacity);
   const units = Math.min(Math.max(0, unitDemand), unitCap);
-  v.utilization = clamp(units / unitCap, 0.05, 1.25);
+  v.utilization = unitCap > 0 ? clamp(units / unitCap, 0, 1.25) : 0;
   const qualityFactor = E.formula.quality_floor_factor + E.formula.quality_span * (v.quality || 0.5);
   const price = pos.price * (city.price_index || 1) * (1 + (mods.price || 0));
   // 探針：把「需求有多少、人做得完多少、場地接得住多少」留下來，給漏斗與瓶頸圖用。
   state._probe = {
     unitDemand, unitCap, units, founderUnits, empUnits,
     venueCapacity, price, qualityFactor,
+    founderAvailability: capacity.availability, teamCoverage: capacity.teamFactor,
   };
   return Math.max(0, units * price * qualityFactor);
 }
@@ -1541,7 +1736,7 @@ function costParts(data, state, revenue, released) {
   let draw = 0;
   if (!state.founder.exited && !(state.founder.drawPause > 0)) {
     const target = state.founder.wantsDraw || 0;
-    const affordable = Math.max(0.04, revenue * 0.32);
+    const affordable = Math.max(0, revenue * 0.32);
     draw = Math.min(target, affordable);
     state.flags.draw_short = target > draw + 0.03;
   } else state.flags.draw_short = false;
@@ -1585,6 +1780,7 @@ export function previewMonth(data, state) {
   if (!state?.venture || state.phase !== "play" || state.ending) return null;
   const ghost = structuredClone(state);
   settleOne(data, ghost);
+  if (ghost.month === state.month) return null;
   return {
     month: ghost.month,
     cashStart: state.finance.cash,
@@ -1610,6 +1806,8 @@ function enterCashCrisis(data, state) {
 }
 
 function settleOne(data, state) {
+  ensureFounderRules(data, state);
+  if (openMandatoryFounderEvent(data, state)) return state;
   ensureWork(data, state);
   const cashStart = num(state.finance?.cash, 0);
   const rng = state._cf ? { next: () => 0.5, int: () => 0 } : rngOf(state);
@@ -1642,33 +1840,10 @@ function settleOne(data, state) {
   state.finance.cash += parts.collectedNow + released;
   state.finance.cash -= parts.operating;
   state.finance.debt = Math.max(0, state.finance.debt - parts.principal);
-  state.personal.cash += !state.founder.exited && salaryKept(data, state) > 0
-    ? outsideNow(data, state)
-    : 0;
-  state.personal.cash += parts.draw;
-  state.personal.cash -= state.founder.exited ? 0 : livingCost(data, state);
-  let personalTransfer = 0;
-  if (state.personal.cash < 0 && state.finance.cash > 0.4 - state.personal.cash) {
-    const need = -state.personal.cash;
-    personalTransfer = need;
-    state.finance.cash -= need;
-    state.personal.cash = 0;
-    state.flags.extra_draw = true;
-  } else if (state.personal.cash < 0) {
-    state.personal.debt += -state.personal.cash;
-    state.personal.cash = 0;
-    state.founder.will = clamp(state.founder.will - 0.02, 0, 1);
-    state.founder.health = clamp(state.founder.health - 0.01, 0, 1);
-    state.flags.personal_strain = true;
-  } else {
-    state.flags.personal_strain = false;
-  }
-  // 生活費支付後保留一季生活費，再以一半個人盈餘還債；不是公司支出。
-  const personalSurplus = state.founder.exited ? 0 : Math.max(0, state.personal.cash - livingCost(data, state));
-  const personalRepayment = Math.min(state.personal.debt, personalSurplus * 0.5);
-  state.personal.cash -= personalRepayment;
-  state.personal.debt -= personalRepayment;
-  state.personal.lastDebtPayment = personalRepayment;
+  const personalLedger = settlePersonal(data, state, parts, revenue);
+  const personalTransfer = personalLedger.personalTransfer;
+  tickFounderStrain(data, state);
+  tickFounderRecovery(data, state);
 
   const gap = gapById(data, state.gapId);
   const f = econ(data).formula;
@@ -1694,12 +1869,10 @@ function settleOne(data, state) {
     state.yearProfit = 0;
   }
   state.maxConcentration = Math.max(state.maxConcentration, state.venture.concentration);
-  if (state.founder.age > 70 && !state.founder.exited) state.founder.health = clamp(state.founder.health - 0.012, 0, 1);
-  if (state.founder.hours > 0.92 && state.venture.utilization > 0.9) state.founder.health = clamp(state.founder.health - 0.008, 0, 1);
   state.venture.churn = clamp(state.venture.churn + (state.flags.discount ? -0.002 : 0.001) - state.venture.trust * 0.002, 0.015, 0.2);
 
-  // 個人現金不足時，公司可能會自動補貼；把這筆轉帳獨立記錄，免得被誤認成租金或營運成本。
-  parts.personalTransfer = personalTransfer;
+  // 個人現金不足時，公司只會在儲備與補貼上限內轉帳；這筆轉帳獨立記錄。
+  Object.assign(parts, personalLedger);
   const line = monthLine(data, state, revenue, parts);
   state.finance.lastRevenue = revenue;
   state.finance.lastCollected = parts.collectedNow + released;
@@ -1763,10 +1936,7 @@ function settleOne(data, state) {
     enterCashCrisis(data, state);
     return state;
   }
-  if (state.founder.health < 0.2 && !state.founder.exited && !state.flags.crisis_scheduled) {
-    state.flags.crisis_scheduled = true;
-    state.spine.push({ id: "founder_health_crisis", month: state.month + 1, tries: 0, done: false });
-  }
+  if (openMandatoryFounderEvent(data, state)) return state;
   if (state.operator && state.operator.age > 68 && !state.spine.some((s) => s.id === "succession_due" && !s.done)) {
     state.spine.push({ id: "succession_due", month: state.month + 2, tries: 0, done: false });
   }
@@ -1817,6 +1987,7 @@ function round2(n) {
 function monthLine(data, state, revenue, parts) {
   const name = state.work?.name || "這門生意";
   const sells = state.work?.sells || "東西";
+  if (revenue <= 0.001 && !state.founder.exited) return `${name}這一季沒有足夠的人能把${sells}做出來。固定帳仍要付。`;
   if (parts.collectedNow + 0.001 < parts.variable + parts.premises) return `${name}的帳面有數字。付完場地與${sells}的成本之後，所剩不多。`;
   if (state.finance.arQueue.length && state.venture.arDays > 40) return `${name}賣出的${sells}有些是真的，只是錢還在別人的帳上。`;
   if (revenue > parts.operating) return `${name}這一季的${sells}收進來了，蓋過了要付出去的。`;
@@ -1946,11 +2117,14 @@ function explainFactors(data, state, revenue, parts) {
     ["場地與平台抽成", wage(parts.premises + parts.platform)],
     ["人力", wage(parts.labor)],
     ["你從公司取走", wage(parts.draw)],
+    ["創辦人可用產能", pct(founderCapacity(data, state).availability)],
+    ["團隊可覆蓋比例", pct(founderCapacity(data, state).teamFactor)],
+    ["個人債務利息（不計入公司支出）", wage(parts.personalInterest || 0)],
   ];
 }
 
 function isChapter(state) {
-  return state.month > 0 && state.month === state.nextChapter;
+  return state.month > 0 && state.month >= state.nextChapter;
 }
 
 function takeEvent(data, state, rng) {
@@ -2112,8 +2286,8 @@ function applyBeatEffects(state, effects = {}) {
   if (effects.market_fit) v.marketFit = clamp(v.marketFit + effects.market_fit, 0.05, 0.95);
   if (effects.quality) v.quality = clamp((v.quality || 0.5) + effects.quality, 0.2, 0.95);
   if (effects.morale && state.team) state.team.morale = clamp(state.team.morale + effects.morale, 0.15, 0.95);
-  if (effects.health) state.founder.health = clamp(state.founder.health + effects.health, 0.05, 1);
-  if (effects.will) state.founder.will = clamp(state.founder.will + effects.will, 0.05, 1);
+  if (effects.health) state.founder.health = clamp(state.founder.health + effects.health, 0, 1);
+  if (effects.will) state.founder.will = clamp(state.founder.will + effects.will, 0, 1);
   if (effects.care) state.founder.care = clamp((state.founder.care || 0) + effects.care, 0, 1);
   if (effects.hours) state.founder.hours = clamp(state.founder.hours + effects.hours, 0.2, 1);
   if (effects.cash) state.finance.cash += effects.cash;
@@ -2154,7 +2328,12 @@ function rollBeats(data, state, rng) {
 
 // 自願試驗及收購需先付得起共同成本；其他必要抉擇仍可導致現金危機。
 export function eventChoiceDisabled(data, state, choice) {
-  if (!choice?.outcome && !choice?.requires_cash) return false;
+  if (!choice) return true;
+  if (choice.unless_flag && state.flags?.[choice.unless_flag]) return true;
+  if (choice.min_control != null && num(state.founder?.control, 0) < choice.min_control) return true;
+  if (choice.min_company_cash != null && num(state.finance?.cash, 0) < choice.min_company_cash) return true;
+  if (choice.min_revenue != null && num(state.finance?.lastRevenue, 0) < choice.min_revenue) return true;
+  if (!choice.outcome && !choice.requires_cash) return false;
   const upfront = Math.max(0, -num(choice.effects?.cash, 0)) * (modeOf(data, state.mode).tail_risk || 1);
   return upfront > num(state.finance?.cash, 0);
 }
@@ -2285,9 +2464,28 @@ function applyEffects(data, state, effects, ev) {
   bump("trust", permanent.trust, 0.05, 0.98);
   bump("brand", permanent.brand, 0.05, 0.98);
   if (permanent.will) state.founder.will = clamp(state.founder.will + permanent.will, 0, 1);
-  if (permanent.health) state.founder.health = clamp(state.founder.health + permanent.health, 0.05, 1);
-  if (permanent.hours) state.founder.hours = clamp(state.founder.hours + permanent.hours, 0.15, 1);
-  if (permanent.hours_set != null) state.founder.hours = permanent.hours_set;
+  if (permanent.health) state.founder.health = clamp(state.founder.health + permanent.health, 0, 1);
+  if (permanent.hours) state.founder.hours = clamp(state.founder.hours + permanent.hours, 0, 1);
+  if (permanent.hours_set != null) state.founder.hours = clamp(num(permanent.hours_set, 0), 0, 1);
+  if (permanent.hours_cap != null) state.founder.hours = Math.min(state.founder.hours, clamp(num(permanent.hours_cap, 1), 0, 1));
+  if (permanent.recovery_quarters) {
+    state.founder.recoveryLeft = Math.max(num(state.founder.recoveryLeft, 0), Math.floor(num(permanent.recovery_quarters, 0)));
+    state.founder.hours = 0;
+    state.flags.founder_absent = true;
+  }
+  if (permanent.personal_plan_quarters) {
+    state.personal.planLeft = Math.max(num(state.personal.planLeft, 0), Math.floor(num(permanent.personal_plan_quarters, 0)));
+    state.personal.distressQuarters = 0;
+  }
+  if (permanent.personal_equity_sale) {
+    const cfg = personalCfg(data);
+    const proceeds = num(cfg.equity_sale_proceeds, 2.5);
+    const repay = Math.min(state.personal.debt, proceeds);
+    state.personal.debt -= repay;
+    state.personal.cash += proceeds - repay;
+    state.founder.control = clamp(state.founder.control - num(cfg.equity_sale_control, 0.2), 0.05, 1);
+    v.board = true;
+  }
   if (permanent.morale) state.team.morale = clamp(state.team.morale + permanent.morale, 0.05, 0.98);
   if (permanent.concentration_set != null) v.concentration = permanent.concentration_set;
   if (permanent.ar_days != null) v.arDays = permanent.ar_days;
@@ -2512,6 +2710,13 @@ export function suggestEventChoice(ev, state, data) {
 function heuristicChoice(ev, state, data) {
   if (!ev?.choices?.length) return null;
   const disabled = (c) => data ? eventChoiceDisabled(data, state, c) : !!c.disabled;
+  const prefer = (ids) => ids.map((id) => ev.choices.find((c) => c.id === id)).find((c) => c && !disabled(c))?.id;
+  if (ev.id === "health_crisis") {
+    return prefer(num(state.finance?.cash, 0) >= 2 ? ["handoff", "shrink", "sell"] : ["shrink", "handoff", "sell"]) || null;
+  }
+  if (ev.id === "personal_debt_crisis") {
+    return prefer(["work_and_repay", "sell_stake", "handover", "close"]) || null;
+  }
   let best = ev.choices.find((c) => !disabled(c));
   if (!best) return null;
   let score = -999;
@@ -2578,6 +2783,13 @@ export function ackSummary(state) {
 
 export function initiatives(data, state) {
   if (state.phase !== "play" || !state.venture) return [];
+  ensureFounderRules(data, state);
+  if (founderCrisisDue(data, state)) {
+    return [{ id: "mandatory_founder", label: "先處理強制休養", detail: "健康或意志已到臨界值，不能繼續用一般經營行動硬撐。" }];
+  }
+  if (personalCrisisDue(data, state)) {
+    return [{ id: "mandatory_founder", label: "先處理個人債務危機", detail: "個人週轉已連續超出可負擔範圍；公司現金不等於你的個人現金。" }];
+  }
   const ready = state.month >= (state.initiativeReady || 0);
   const list = [];
   const I = econ(data).initiatives;
@@ -2650,6 +2862,8 @@ export function initiatives(data, state) {
 
 export function actInitiative(data, state, id) {
   if (state.phase !== "play") return { ok: false };
+  ensureFounderRules(data, state);
+  if (openMandatoryFounderEvent(data, state)) return { ok: true, mandatory: true };
   const option = initiatives(data, state).find((item) => item.id === id);
   if (!option || option.disabled) return { ok: false };
   const I = econ(data).initiatives;
@@ -3017,6 +3231,8 @@ export function chooseSuccessor(data, state, id) {
   state.operator = { name, age: id === "family" ? 32 : 44, type: id };
   state.role = "企業守護者";
   state.founder.hours = 0.15;
+  state.founder.recoveryLeft = 0;
+  state.flags.founder_absent = false;
   state.founder.wantsDraw = 0;
   if (id === "pro") state.finance.cash -= 0.8;
   if (id === "trust") {
@@ -3261,6 +3477,7 @@ export function endingFlags(state) {
     early_team_gone: !!state.flags.early_team_gone || state.successionCount > 0,
     price_holds: (state.counts?.priceHold || 0) >= 3,
     health_ignored: !!state.flags.health_ignored,
+    personal_insolvency: !!state.flags.personal_insolvency,
   };
 }
 

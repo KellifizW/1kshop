@@ -9,6 +9,7 @@
  */
 import { money } from "./present.js";
 import { cashflowLedger } from "./cashflow.js";
+import { founderCapacity, personalStatus } from "./sim.js";
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const num = (v, d = 0) => (Number.isFinite(v) ? v : d);
@@ -414,8 +415,13 @@ function biggestRisk(data, run, fc) {
   if (num(parts.platformRate, 0) > 0.12) list.push([4, `平台抽走 ${Math.round(parts.platformRate * 100)}% 的收入`]);
   if (num(parts.premises, 0) > num(run.last?.revenue, 0) * 0.3) list.push([4, `場地吃掉 ${Math.round((parts.premises / Math.max(0.01, run.last.revenue)) * 100)}% 的營業額`]);
   if (num(run.crewStress, 0) > 0.7) list.push([3, "人的壓力已經到會出錯的位置"]);
-  if (num(run.founder?.health, 1) < 0.5) list.push([4, "你自己的身體"]);
-  if (num(run.finance?.debt, 0) > 3) list.push([3, `債務 ${money(data, run, run.finance.debt)}`]);
+  const founder = founderCapacity(data, run);
+  if (founder.critical) list.push([6, "健康或意志已到強制休養線"]);
+  else if (founder.recovering) list.push([5, "創辦人休養中，日常產能是零"]);
+  else if (founder.availability < 0.6) list.push([4, `你的可用產能只剩 ${Math.round(founder.availability * 100)}%`]);
+  const personal = personalStatus(data, run);
+  if (personal.distressed) list.push([5, `個人債務 ${money(data, run, personal.debt)}，已超出可負擔範圍`]);
+  if (num(run.finance?.debt, 0) > 3) list.push([3, `公司債務 ${money(data, run, run.finance.debt)}`]);
   if (num(v?.concentration, 0) > 0.5) list.push([3, `最大客戶佔 ${Math.round(v.concentration * 100)}%`]);
   if (run.weather && num(run.weather.demand, 0) < -0.1) list.push([2, `${run.weather.label}會把客流壓下來`]);
   if (rl?.level === "crit") list.push([5, `${rl.name}，已經越過警戒線`]);

@@ -105,6 +105,34 @@
     "competition_per_fit": 0.08,
     "maturity_overhead_per_complexity": 0.105
   },
+  "founder": {
+    "health_warn": 0.35,
+    "will_warn": 0.25,
+    "health_critical": 0.12,
+    "will_critical": 0.05,
+    "recovery_quarters": 2,
+    "recovery_health": 0.1,
+    "recovery_will": 0.06,
+    "return_hours": 0.35,
+    "strain_health": 0.025,
+    "strain_will": 0.03,
+    "overwork_health": 0.015,
+    "overwork_will": 0.01
+  },
+  "personal_finance": {
+    "interest_quarterly": 0.035,
+    "plan_interest_multiplier": 0.5,
+    "plan_quarters": 8,
+    "repayment_share": 0.5,
+    "plan_repayment_share": 0.75,
+    "debt_income_multiple": 2,
+    "distress_quarters": 2,
+    "support_living_multiple": 1,
+    "distress_support_living_multiple": 0.5,
+    "support_cash_reserve": 0.4,
+    "equity_sale_proceeds": 2.5,
+    "equity_sale_control": 0.2
+  },
   "opportunities": {
     "chance": 0.22,
     "cooldown_quarters": 4,
