@@ -6259,6 +6259,644 @@
           }
         }
       ]
+    },
+    {
+      "id": "company_first_hire",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "第一個願意加入的人",
+      "body": "你一個人處理訂單、交付和帳目。有人願意加入{company}，也可以先請外援；請人會帶來持續的薪酬責任。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 3,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "max_headcount": 0
+      },
+      "choices": [
+        {
+          "id": "hire",
+          "label": "聘請第一位員工",
+          "detail": "一次付 0.2 個月薪招聘及培訓；增加一名員工和每季薪酬，產能上升，但未必有足夠需求。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.2,
+            "headcount": 1
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "contract",
+          "label": "先找外援試一季",
+          "detail": "付 0.25 個月薪；產能提高 20%，只持續 4 季，不增加員工。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.25,
+            "capacity_add": 0.2,
+            "for_months": 4
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "solo",
+          "label": "繼續一個人經營",
+          "detail": "不增加薪酬；保留彈性，但訂單增長仍受自己的產能限制。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "health": -0.02
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_team_growth",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "工作開始分不清誰負責",
+      "body": "{employee}和你都在接手同一批工作。下一個客戶可能讓團隊成長，也可能讓每個人更累。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 8,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "min_headcount": 1
+      },
+      "choices": [
+        {
+          "id": "hire",
+          "label": "增加一名同事",
+          "detail": "付 0.2 個月薪招聘及培訓；增加一人和每季薪酬，產能上升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.2,
+            "headcount": 1,
+            "morale": 0.03
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "process",
+          "label": "整理流程而不增員",
+          "detail": "付 0.25 個月薪，產能永久提高 12%，不增加薪酬。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.25,
+            "capacity_add": 0.12
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "stretch",
+          "label": "保持原班人馬",
+          "detail": "不花錢，團隊士氣下降，創辦人健康下降。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "morale": -0.08,
+            "health": -0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_people_management",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "留下來的條件",
+      "body": "{employee}希望工作安排和待遇更清楚。團隊能否留住知識，不只取決於招聘。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 13,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "min_headcount": 1
+      },
+      "choices": [
+        {
+          "id": "raise",
+          "label": "提高全隊薪酬",
+          "detail": "每季員工薪酬永久增加 8%，士氣上升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "wage_mult": 1.08,
+            "morale": 0.12
+          }
+        },
+        {
+          "id": "training",
+          "label": "安排培訓和輪班",
+          "detail": "付 0.35 個月薪，士氣和品質上升，創辦人健康略升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.35,
+            "morale": 0.06,
+            "quality": 0.03,
+            "health": 0.02
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "defer",
+          "label": "暫時不調整",
+          "detail": "省下支出，士氣下降。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "morale": -0.1
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_diversify",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "客人問：還可以做別的嗎？",
+      "body": "{buyer}希望{company}提供與{sells}相鄰的新服務。這不是換掉原有業務；新業務需要學習和資源。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 18,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {},
+      "choices": [
+        {
+          "id": "launch",
+          "label": "開拓相鄰業務",
+          "detail": "付 0.8 個月薪；需求提高 20%、每季固定成本加 0.1、複雜度增加（亦增加管理開支）。兩季後要檢討。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.8,
+            "revenue_mult": 1.2,
+            "fixed_add": 0.1,
+            "complexity": 0.5,
+            "flags": {
+              "business_scope": "原業務及相鄰新服務"
+            }
+          },
+          "requires_cash": true,
+          "chain": {
+            "event": "company_diversify_review",
+            "after": 2
+          }
+        },
+        {
+          "id": "partner",
+          "label": "與別人合作試水",
+          "detail": "付 0.25 個月薪，需求提高 8%，但品質略降；不設立自己的新業務。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.25,
+            "revenue_mult": 1.08,
+            "quality": -0.02
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "focus",
+          "label": "專注原有業務",
+          "detail": "不擴張；品質上升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "quality": 0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_acquire",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "同行願意把業務交出來",
+      "body": "一間較小的同行有客戶和團隊，卻想退出。收購可以增加產能和需求，但整合並非免費。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 26,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {},
+      "choices": [
+        {
+          "id": "buy",
+          "label": "收購並整合",
+          "detail": "付 1.5 個月薪，聘入一人，需求 +20%、產能 +20%、每季固定成本 +0.12，複雜度增加（亦增加管理開支）；三季後檢討整合。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -1.5,
+            "headcount": 1,
+            "revenue_mult": 1.2,
+            "capacity_add": 0.2,
+            "fixed_add": 0.12,
+            "complexity": 0.6,
+            "flags": {
+              "acquired_business": true
+            }
+          },
+          "requires_cash": true,
+          "chain": {
+            "event": "company_acquire_review",
+            "after": 3
+          }
+        },
+        {
+          "id": "assets",
+          "label": "只接手部分設備",
+          "detail": "付 0.55 個月薪，產能 +15%、資產增加 0.5 個月薪，不接收員工。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.55,
+            "capacity_add": 0.15,
+            "capex_add": 0.5
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "pass",
+          "label": "不收購",
+          "detail": "不花錢，保持目前規模。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "company_scale",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "規模大了，靠記性不夠",
+      "body": "訂單、供應和人事都需要更有系統。升級公司規模不是按一下按鈕就成功：管理和固定開支也會增加。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 35,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {},
+      "choices": [
+        {
+          "id": "scale",
+          "label": "建立擴張營運架構",
+          "detail": "付 1 個月薪，增聘一人；需求 +25%、產能 +25%、每季固定成本 +0.18、複雜度增加（亦增加管理開支）。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -1,
+            "headcount": 1,
+            "revenue_mult": 1.25,
+            "capacity_add": 0.25,
+            "fixed_add": 0.18,
+            "complexity": 0.6,
+            "flags": {
+              "company_scale": "擴張營運架構"
+            }
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "systems",
+          "label": "先建立內部制度",
+          "detail": "付 0.4 個月薪，改善品質和團隊士氣，建立內控，不增聘。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.4,
+            "quality": 0.04,
+            "morale": 0.06,
+            "board": true,
+            "flags": {
+              "company_scale": "制度化營運"
+            }
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "small",
+          "label": "有意識地維持小規模",
+          "detail": "不增開支，健康和品質略升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "health": 0.03,
+            "quality": 0.02
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_buyer_offer",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "有人想買下控制權",
+      "body": "買家看中了{company}的客戶及團隊。你可以出售多數股權後繼續經營，也可以整間出售離場，或維持獨立。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 45,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "min_control": 0.51
+      },
+      "choices": [
+        {
+          "id": "majority",
+          "label": "出售多數股權，繼續經營",
+          "detail": "個人現金增加 2 個月薪，控制權設為 35%；公司需求 +15%，但每季固定成本 +0.1，仍繼續遊戲。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "personal_cash": 2,
+            "control_set": 0.35,
+            "revenue_mult": 1.15,
+            "fixed_add": 0.1,
+            "flags": {
+              "company_structure": "受收購方控制的公司"
+            }
+          }
+        },
+        {
+          "id": "sell",
+          "label": "整間出售並離場",
+          "detail": "個人現金增加 3 個月薪，進入出售結局，不再經營。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "personal_cash": 3,
+            "force_ending": "sale"
+          }
+        },
+        {
+          "id": "independent",
+          "label": "拒絕，保持獨立",
+          "detail": "保留目前控制權；信任略升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "trust": 0.02
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_downsize",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "縮減還是守住團隊",
+      "body": "收入未必能永遠支持原來的班表。裁員可降低往後的薪酬，但要付當地遣散成本，也會影響留下的人。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 55,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "min_headcount": 1,
+        "business_pressure": true
+      },
+      "choices": [
+        {
+          "id": "reduce",
+          "label": "裁減一名員工",
+          "detail": "裁減一人，按城市規則支付遣散費，往後薪酬降低；團隊士氣下降。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "headcount_delta": -1
+          }
+        },
+        {
+          "id": "retain",
+          "label": "留住團隊，調整工作",
+          "detail": "付 0.3 個月薪培訓，士氣和品質略升，薪酬維持。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.3,
+            "morale": 0.06,
+            "quality": 0.02
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "defer",
+          "label": "暫不決定",
+          "detail": "不立即裁員，士氣下降。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "morale": -0.05
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_renewal",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "老公司的下一個方向",
+      "body": "{company}已經歷過不同的市場和人。下一代的生意可以沿用老方法，也可以重新投入。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 165,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {},
+      "choices": [
+        {
+          "id": "renew",
+          "label": "投資新一代業務",
+          "detail": "付 1 個月薪；需求 +15%、產能 +15%、複雜度增加（亦增加管理開支），保留原有生意。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -1,
+            "revenue_mult": 1.15,
+            "capacity_add": 0.15,
+            "complexity": 0.3,
+            "flags": {
+              "business_scope": "原業務及新一代服務"
+            }
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "preserve",
+          "label": "維持核心業務",
+          "detail": "品質和信任上升，不增加固定支出。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "quality": 0.03,
+            "trust": 0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_diversify_review",
+      "layer": "company",
+      "grammar": "COMPANY_FOLLOWUP",
+      "title": "新業務的帳分得清嗎？",
+      "body": "新服務帶來了客人，也佔用了原來的時間。現在要決定怎樣管理兩門業務。",
+      "omen": "先前的決定帶來了新的問題。",
+      "once": true,
+      "chain_only": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "invest",
+          "label": "投資管理新業務",
+          "detail": "付 0.3 個月薪，品質及士氣提高。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.3,
+            "quality": 0.04,
+            "morale": 0.04
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "lean",
+          "label": "保留業務但不追加投入",
+          "detail": "不花錢，品質略降；新業務繼續營運。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "quality": -0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_acquire_review",
+      "layer": "company",
+      "grammar": "COMPANY_FOLLOWUP",
+      "title": "收購後，兩邊的人怎樣合作？",
+      "body": "收購帶來新客戶和同事，但流程和文化尚未磨合。",
+      "omen": "先前的決定帶來了新的問題。",
+      "once": true,
+      "chain_only": true,
+      "major": true,
+      "choices": [
+        {
+          "id": "integrate",
+          "label": "花時間和資源整合",
+          "detail": "付 0.35 個月薪，士氣及信任上升。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "cash": -0.35,
+            "morale": 0.08,
+            "trust": 0.03
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "rush",
+          "label": "沿用舊流程",
+          "detail": "不追加開支，士氣及品質下降。",
+          "risk": "這個決定會改變以後的經營。",
+          "effects": {
+            "morale": -0.08,
+            "quality": -0.03
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_rehire",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "又回到一個人的工作桌",
+      "body": "不論是之前沒有聘人，還是同事離開了，{company}目前又靠你一個人。現在有人願意加入，但薪酬仍要每季支付。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 15,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "max_headcount": 0
+      },
+      "choices": [
+        {
+          "id": "hire",
+          "label": "重新組建團隊",
+          "detail": "付 0.2 個月薪招聘及培訓，聘請一人，產能上升，每季薪酬增加。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {
+            "cash": -0.2,
+            "headcount": 1
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "solo",
+          "label": "保持獨自經營",
+          "detail": "不增加薪酬，維持現有產能。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "company_delegation",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "要不要把決定交出去？",
+      "body": "{employee}熟悉日常營運，願意負責更多事情。放手可以減輕創辦人的負擔，但需要培訓及授權。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 90,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "min_headcount": 1
+      },
+      "choices": [
+        {
+          "id": "delegate",
+          "label": "培養管理人員",
+          "detail": "付 0.4 個月薪，創辦人的健康和團隊士氣上升，對關鍵人物的依賴下降。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {
+            "cash": -0.4,
+            "health": 0.05,
+            "morale": 0.06,
+            "key_dependency": -0.12
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "centralize",
+          "label": "重要決定繼續由你處理",
+          "detail": "不花錢，品質略升，創辦人健康下降。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {
+            "quality": 0.02,
+            "health": -0.04
+          }
+        }
+      ]
+    },
+    {
+      "id": "company_late_hire",
+      "layer": "company",
+      "grammar": "COMPANY_LIFECYCLE",
+      "title": "老公司也可以重新組隊",
+      "body": "多年來{company}一直由你獨力維持。有人願意接手日常工作，讓生意不再只依賴一個人。",
+      "omen": "公司走到這裡，下一步由你決定。",
+      "min_month": 100,
+      "once": true,
+      "major": true,
+      "milestone": true,
+      "requires": {
+        "max_headcount": 0
+      },
+      "choices": [
+        {
+          "id": "hire",
+          "label": "聘請一位同事",
+          "detail": "付 0.2 個月薪，聘請一人，產能上升，每季薪酬增加。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {
+            "cash": -0.2,
+            "headcount": 1
+          },
+          "requires_cash": true
+        },
+        {
+          "id": "solo",
+          "label": "維持一人公司",
+          "detail": "不增加薪酬和產能。",
+          "risk": "不同選擇會影響以後的營運。",
+          "effects": {}
+        }
+      ]
     }
   ]
 }

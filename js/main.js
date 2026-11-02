@@ -553,6 +553,7 @@ function playView() {
             <b class="kpi-value" id="kpi-${m.id}">${$(m.value)}</b>
             <small class="kpi-note" id="kpi-${m.id}-note">${$(m.note)}</small>
           </div>`).join("")}</section>
+        <p class="rail-self">公司現況：${$(run.flags?.company_structure || "現有股權架構")} · ${$(run.flags?.company_scale || "現有營運規模")}<br>業務：${$(run.flags?.business_scope || "原有業務")}${run.flags?.acquired_business ? " · 曾收購同行" : ""} · 員工 ${run.team?.headcount || 0} 人（不含創辦人）</p>
         <p class="rail-self">你自己：健康 ${healthPct}% · 意志 ${willPct}% · 控制權 ${controlPct}%<br>個人現金 ${$(P.money(data, run, run.personal?.cash || 0))} · 個人債務 ${$(P.money(data, run, run.personal?.debt || 0))}${run.personal?.lastDebtPayment > 0.01 ? `（上季還款 ${$(P.money(data, run, run.personal.lastDebtPayment))}）` : ""}</p>
         <section class="rail-card redline-card ${rl.level}">
           <p class="fold-k">經營警戒線</p>
